@@ -1,0 +1,83 @@
+// Presentation/Tasks/TaskViewModel.swift
+
+import Foundation
+import SwiftUI
+
+@Observable
+final class TaskViewModel {
+    private(set) var tasks: [Task] = []
+    private(set) var categories: [Category] = []
+    private(set) var errorMessage: String? = nil
+
+    private let env: AppEnvironment
+
+    init(env: AppEnvironment) {
+        self.env = env
+    }
+
+    func load(for date: Date = Date()) {
+        do {
+            tasks = try env.taskRepository.fetchAll(for: date)
+                .sorted { !$0.isCompleted && $1.isCompleted }
+            categories = try env.categoryRepository.fetchActive()
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func addTask(title: String, categoryId: UUID?, for date: Date = Date()) {
+        guard !title.trimmingCharacters(in: .whitespaces).isEmpty else { return }
+        do {
+            let resolver = ResolveDayStatusUseCase(
+                taskRepository: env.taskRepository,
+                categoryRepository: env.categoryRepository,
+                dayEntryRepository: env.dayEntryRepository
+            )
+            let useCase = AddTaskUseCase(
+                taskRepository: env.taskRepository,
+                categoryRepository: env.categoryRepository,
+                resolveDayStatus: resolver
+            )
+            _ = try useCase.execute(title: title, categoryId: categoryId, targetDate: date)
+            env.syncWidgets()
+            load(for: date)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func toggle(taskId: UUID, for date: Date = Date()) {
+        do {
+            guard let task = tasks.first(where: { $0.id == taskId }) else { return }
+            let resolver = ResolveDayStatusUseCase(
+                taskRepository: env.taskRepository,
+                categoryRepository: env.categoryRepository,
+                dayEntryRepository: env.dayEntryRepository
+            )
+            let useCase = CompleteTaskUseCase(
+                taskRepository: env.taskRepository,
+                resolveDayStatus: resolver
+            )
+            try useCase.execute(taskId: taskId, completed: !task.isCompleted)
+            env.syncWidgets()
+            load(for: date)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func delete(taskId: UUID, for date: Date = Date()) {
+        do {
+            try env.taskRepository.delete(id: taskId)
+            load(for: date)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func color(for task: Task) -> Color? {
+        guard let catId = task.categoryId,
+              let cat = categories.first(where: { $0.id == catId }) else { return nil }
+        return cat.color
+    }
+}

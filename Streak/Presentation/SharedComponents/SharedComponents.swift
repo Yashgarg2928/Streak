@@ -1,0 +1,180 @@
+// Presentation/SharedComponents/SharedComponents.swift
+// Reusable Neo-Brutalist UI components used across all screens.
+
+import SwiftUI
+
+// MARK: - BrutalistCard
+// Base container. borderColor defaults to AppColor.border.
+// Category cards pass their category color.
+
+struct BrutalistCard<Content: View>: View {
+    var borderColor: Color = AppColor.border
+    @ViewBuilder let content: () -> Content
+
+    var body: some View {
+        content()
+            .padding(AppLayout.cardPadding)
+            .background(AppColor.surface)
+            .clipShape(RoundedRectangle(cornerRadius: AppLayout.cornerRadius))
+            .overlay(
+                RoundedRectangle(cornerRadius: AppLayout.cornerRadius)
+                    .stroke(borderColor, lineWidth: AppLayout.borderWidth)
+            )
+    }
+}
+
+// MARK: - CategoryDot
+// 10pt filled circle in the category's color (or neutral gray for uncategorized).
+
+struct CategoryDot: View {
+    var color: Color = AppColor.neutralDot
+
+    var body: some View {
+        Circle()
+            .fill(color)
+            .frame(width: AppLayout.dotSize, height: AppLayout.dotSize)
+            .accessibilityHidden(true)
+    }
+}
+
+// MARK: - StreakBadgeView
+
+struct StreakBadgeView: View {
+    let count: Int
+    var color: Color = AppColor.border
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Text("🔥")
+                .font(.system(size: 16))
+            Text("\(count)")
+                .font(.system(.title2, design: .rounded).weight(.heavy))
+                .foregroundStyle(AppColor.textPrimary)
+            Text(count == 1 ? "day" : "days")
+                .font(.system(.subheadline).weight(.medium))
+                .foregroundStyle(AppColor.textSecondary)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background(AppColor.surface)
+        .clipShape(RoundedRectangle(cornerRadius: AppLayout.cornerRadius))
+        .overlay(
+            RoundedRectangle(cornerRadius: AppLayout.cornerRadius)
+                .stroke(color, lineWidth: AppLayout.borderWidth)
+        )
+    }
+}
+
+// MARK: - ProgressBarView
+
+struct ProgressBarView: View {
+    let fraction: Double    // 0.0 – 1.0
+    let label: String
+    var fillColor: Color = AppColor.border
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    RoundedRectangle(cornerRadius: 3)
+                        .fill(AppColor.blank)
+                    RoundedRectangle(cornerRadius: 3)
+                        .fill(fillColor)
+                        .frame(width: geo.size.width * max(0, min(fraction, 1)))
+                }
+            }
+            .frame(height: 18)
+            .clipShape(RoundedRectangle(cornerRadius: 3))
+            .overlay(
+                RoundedRectangle(cornerRadius: 3)
+                    .stroke(AppColor.border, lineWidth: AppLayout.borderWidth)
+            )
+
+            Text(label)
+                .font(.system(.caption, design: .monospaced).weight(.medium))
+                .foregroundStyle(AppColor.textSecondary)
+        }
+    }
+}
+
+// MARK: - TaskRowView
+
+struct TaskRowView: View {
+    let task: Task
+    let categoryColor: Color?
+    let onToggle: () -> Void
+
+    private var isFuture: Bool {
+        Calendar.current.startOfDay(for: task.targetDate) > Calendar.current.startOfDay(for: Date())
+    }
+
+    var body: some View {
+        Button(action: { if !isFuture { onToggle() } }) {
+            HStack(spacing: 10) {
+                // Checkbox — greyed out for future tasks
+                Image(systemName: task.isCompleted ? "checkmark.square.fill" : "square")
+                    .font(.system(size: 22, weight: .medium))
+                    .foregroundStyle(
+                        isFuture ? AppColor.textDisabled :
+                        task.isCompleted ? AppColor.green : AppColor.textSecondary
+                    )
+                    .frame(width: 28, height: 28)
+
+                // Category dot
+                CategoryDot(color: categoryColor ?? AppColor.neutralDot)
+
+                // Task title
+                Text(task.title)
+                    .font(.system(.body).weight(.medium))
+                    .foregroundStyle(isFuture ? AppColor.textSecondary : AppColor.textPrimary)
+                    .strikethrough(task.isCompleted, color: AppColor.textDisabled)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+
+                Spacer()
+            }
+            .frame(minHeight: AppLayout.minTapTarget)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+// MARK: - EmptyStateView
+
+struct EmptyStateView: View {
+    let message: String
+
+    var body: some View {
+        Text(message)
+            .font(.system(.body))
+            .foregroundStyle(AppColor.textDisabled)
+            .multilineTextAlignment(.center)
+            .padding()
+    }
+}
+
+// MARK: - BrutalistButton
+
+struct BrutalistButton: View {
+    let title: String
+    var borderColor: Color = AppColor.border
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(.system(.body).weight(.semibold))
+                .foregroundStyle(AppColor.textPrimary)
+                .frame(maxWidth: .infinity)
+                .frame(minHeight: AppLayout.minTapTarget)
+                .background(AppColor.surface)
+                .clipShape(RoundedRectangle(cornerRadius: AppLayout.cornerRadius))
+                .overlay(
+                    RoundedRectangle(cornerRadius: AppLayout.cornerRadius)
+                        .stroke(borderColor, lineWidth: AppLayout.borderWidth)
+                )
+        }
+        .buttonStyle(.plain)
+    }
+}

@@ -6,19 +6,90 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		DC0921AE2FFEFF9400457120 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DC0921AD2FFEFF9400457120 /* WidgetKit.framework */; };
+		DC0921B02FFEFF9400457120 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DC0921AF2FFEFF9400457120 /* SwiftUI.framework */; };
+		DC0921BD2FFEFF9600457120 /* StreakWidgetsExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = DC0921AB2FFEFF9400457120 /* StreakWidgetsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		DC0921BB2FFEFF9600457120 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DCE5C1262FFEB56500118CE4 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DC0921AA2FFEFF9400457120;
+			remoteInfo = StreakWidgetsExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		DC0921C22FFEFF9600457120 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				DC0921BD2FFEFF9600457120 /* StreakWidgetsExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		DC0921AB2FFEFF9400457120 /* StreakWidgetsExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = StreakWidgetsExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		DC0921AD2FFEFF9400457120 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		DC0921AF2FFEFF9400457120 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		DC0921C42FFF002200457120 /* StreakWidgetsExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = StreakWidgetsExtension.entitlements; sourceTree = "<group>"; };
 		DCE5C12E2FFEB56500118CE4 /* Streak.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Streak.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		DC0921BE2FFEFF9600457120 /* Exceptions for "StreakWidgets" folder in "StreakWidgetsExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = DC0921AA2FFEFF9400457120 /* StreakWidgetsExtension */;
+		};
+		DC0921D62FFF025200457120 /* Exceptions for "Streak" folder in "StreakWidgetsExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Infrastructure/WidgetDataStore.swift,
+			);
+			target = DC0921AA2FFEFF9400457120 /* StreakWidgetsExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		DC0921B12FFEFF9400457120 /* StreakWidgets */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				DC0921BE2FFEFF9600457120 /* Exceptions for "StreakWidgets" folder in "StreakWidgetsExtension" target */,
+			);
+			path = StreakWidgets;
+			sourceTree = "<group>";
+		};
 		DCE5C1302FFEB56500118CE4 /* Streak */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				DC0921D62FFF025200457120 /* Exceptions for "Streak" folder in "StreakWidgetsExtension" target */,
+			);
 			path = Streak;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		DC0921A82FFEFF9400457120 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DC0921B02FFEFF9400457120 /* SwiftUI.framework in Frameworks */,
+				DC0921AE2FFEFF9400457120 /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		DCE5C12B2FFEB56500118CE4 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -29,10 +100,22 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		DC0921AC2FFEFF9400457120 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				DC0921AD2FFEFF9400457120 /* WidgetKit.framework */,
+				DC0921AF2FFEFF9400457120 /* SwiftUI.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		DCE5C1252FFEB56500118CE4 = {
 			isa = PBXGroup;
 			children = (
+				DC0921C42FFF002200457120 /* StreakWidgetsExtension.entitlements */,
 				DCE5C1302FFEB56500118CE4 /* Streak */,
+				DC0921B12FFEFF9400457120 /* StreakWidgets */,
+				DC0921AC2FFEFF9400457120 /* Frameworks */,
 				DCE5C12F2FFEB56500118CE4 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -41,6 +124,7 @@
 			isa = PBXGroup;
 			children = (
 				DCE5C12E2FFEB56500118CE4 /* Streak.app */,
+				DC0921AB2FFEFF9400457120 /* StreakWidgetsExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -48,6 +132,28 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		DC0921AA2FFEFF9400457120 /* StreakWidgetsExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DC0921BF2FFEFF9600457120 /* Build configuration list for PBXNativeTarget "StreakWidgetsExtension" */;
+			buildPhases = (
+				DC0921A72FFEFF9400457120 /* Sources */,
+				DC0921A82FFEFF9400457120 /* Frameworks */,
+				DC0921A92FFEFF9400457120 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				DC0921B12FFEFF9400457120 /* StreakWidgets */,
+			);
+			name = StreakWidgetsExtension;
+			packageProductDependencies = (
+			);
+			productName = StreakWidgetsExtension;
+			productReference = DC0921AB2FFEFF9400457120 /* StreakWidgetsExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		DCE5C12D2FFEB56500118CE4 /* Streak */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = DCE5C1392FFEB56600118CE4 /* Build configuration list for PBXNativeTarget "Streak" */;
@@ -55,10 +161,12 @@
 				DCE5C12A2FFEB56500118CE4 /* Sources */,
 				DCE5C12B2FFEB56500118CE4 /* Frameworks */,
 				DCE5C12C2FFEB56500118CE4 /* Resources */,
+				DC0921C22FFEFF9600457120 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				DC0921BC2FFEFF9600457120 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				DCE5C1302FFEB56500118CE4 /* Streak */,
@@ -80,6 +188,9 @@
 				LastSwiftUpdateCheck = 2660;
 				LastUpgradeCheck = 2660;
 				TargetAttributes = {
+					DC0921AA2FFEFF9400457120 = {
+						CreatedOnToolsVersion = 26.6;
+					};
 					DCE5C12D2FFEB56500118CE4 = {
 						CreatedOnToolsVersion = 26.6;
 					};
@@ -100,11 +211,19 @@
 			projectRoot = "";
 			targets = (
 				DCE5C12D2FFEB56500118CE4 /* Streak */,
+				DC0921AA2FFEFF9400457120 /* StreakWidgetsExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		DC0921A92FFEFF9400457120 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		DCE5C12C2FFEB56500118CE4 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -115,6 +234,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		DC0921A72FFEFF9400457120 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		DCE5C12A2FFEB56500118CE4 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -124,7 +250,77 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		DC0921BC2FFEFF9600457120 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DC0921AA2FFEFF9400457120 /* StreakWidgetsExtension */;
+			targetProxy = DC0921BB2FFEFF9600457120 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		DC0921C02FFEFF9600457120 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = StreakWidgetsExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = YH2JBDLBCY;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = StreakWidgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = StreakWidgets;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yash.Streak.StreakWidgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		DC0921C12FFEFF9600457120 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = StreakWidgetsExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = YH2JBDLBCY;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = StreakWidgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = StreakWidgets;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yash.Streak.StreakWidgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		DCE5C1372FFEB56600118CE4 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -249,8 +445,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Streak/Streak.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = YH2JBDLBCY;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -280,8 +478,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Streak/Streak.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = YH2JBDLBCY;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -309,6 +509,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		DC0921BF2FFEFF9600457120 /* Build configuration list for PBXNativeTarget "StreakWidgetsExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DC0921C02FFEFF9600457120 /* Debug */,
+				DC0921C12FFEFF9600457120 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		DCE5C1292FFEB56500118CE4 /* Build configuration list for PBXProject "Streak" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
