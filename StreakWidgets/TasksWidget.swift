@@ -50,10 +50,6 @@ struct TasksProvider: TimelineProvider {
 
     private func entry() -> TasksEntry {
         let data = WidgetDataStore.load()
-        let settings = UserDefaultsSettingsRepository()
-        let activeDate = ActiveDayResolver.resolveActiveDate(for: Date(), settings: settings)
-        let deadline = ActiveDayResolver.activeDayDeadline(for: activeDate, settings: settings)
-        
         return TasksEntry(
             date: Date(),
             tasksTotal: data?.tasksToday.total ?? 0,
@@ -61,7 +57,7 @@ struct TasksProvider: TimelineProvider {
             masterStatus: data?.masterStatusToday ?? "future",
             masterStreak: data?.masterStreak ?? 0,
             taskItems: data?.taskItems ?? [],
-            activeDayDeadline: deadline
+            activeDayDeadline: data?.activeDayDeadline ?? Date().addingTimeInterval(3600 * 5)
         )
     }
 }

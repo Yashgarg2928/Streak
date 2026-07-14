@@ -7,13 +7,15 @@ struct SyncWidgetDataUseCase {
     let taskRepository: any TaskRepository
     let dayEntryRepository: any DayEntryRepository
     let goalRepository: any GoalRepository
+    let settingsRepository: any SettingsRepository
 
     func execute() -> WidgetData? {
         try? buildWidgetData()
     }
 
     private func buildWidgetData() throws -> WidgetData {
-        let today = Calendar.current.startOfDay(for: Date())
+        let today = ActiveDayResolver.resolveActiveDate(for: Date(), settings: settingsRepository)
+        let deadline = ActiveDayResolver.activeDayDeadline(for: today, settings: settingsRepository)
         let categories = try categoryRepository.fetchActive()
         let todayTasks = try taskRepository.fetchAll(for: today)
         let goals = try goalRepository.fetchAll()
@@ -97,7 +99,8 @@ struct SyncWidgetDataUseCase {
             taskItems: taskItems,
             categories: catData,
             goals: goalData,
-            lastUpdated: Date()
+            lastUpdated: Date(),
+            activeDayDeadline: deadline
         )
     }
 }

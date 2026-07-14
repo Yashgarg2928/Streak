@@ -13,6 +13,7 @@ struct WidgetData: Codable {
     var categories: [CategoryWidgetData]
     var goals: [GoalWidgetData]
     var lastUpdated: Date
+    var activeDayDeadline: Date
 
     struct TaskSummary: Codable {
         var total: Int
