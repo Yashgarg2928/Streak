@@ -14,6 +14,7 @@ struct TasksEntry: TimelineEntry {
     let masterStatus: String
     let masterStreak: Int
     let taskItems: [WidgetData.TaskItem]
+    let activeDayDeadline: Date
 }
 
 // MARK: - Provider
@@ -30,7 +31,8 @@ struct TasksProvider: TimelineProvider {
                 WidgetData.TaskItem(title: "Morning workout", isCompleted: true, categoryColorHex: "#E74C3C"),
                 WidgetData.TaskItem(title: "Read 20 pages", isCompleted: false, categoryColorHex: "#3498DB"),
                 WidgetData.TaskItem(title: "Call parents", isCompleted: false, categoryColorHex: nil),
-            ]
+            ],
+            activeDayDeadline: Date().addingTimeInterval(3600 * 5)
         )
     }
 
@@ -48,13 +50,18 @@ struct TasksProvider: TimelineProvider {
 
     private func entry() -> TasksEntry {
         let data = WidgetDataStore.load()
+        let settings = UserDefaultsSettingsRepository()
+        let activeDate = ActiveDayResolver.resolveActiveDate(for: Date(), settings: settings)
+        let deadline = ActiveDayResolver.activeDayDeadline(for: activeDate, settings: settings)
+        
         return TasksEntry(
             date: Date(),
             tasksTotal: data?.tasksToday.total ?? 0,
             tasksCompleted: data?.tasksToday.completed ?? 0,
             masterStatus: data?.masterStatusToday ?? "future",
             masterStreak: data?.masterStreak ?? 0,
-            taskItems: data?.taskItems ?? []
+            taskItems: data?.taskItems ?? [],
+            activeDayDeadline: deadline
         )
     }
 }
@@ -73,9 +80,15 @@ struct TasksWidgetSmall: View {
     var body: some View {
         let theme = WidgetColorTheme.theme(for: renderingMode)
         VStack(alignment: .leading, spacing: 6) {
-            Text("TASKS")
-                .font(.system(size: 10, weight: .semibold))
-                .foregroundStyle(theme.textSecondary)
+            HStack {
+                Text("TASKS")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(theme.textSecondary)
+                Spacer()
+                Text(entry.activeDayDeadline, style: .timer)
+                    .font(.system(size: 10, design: .monospaced).weight(.bold))
+                    .foregroundStyle(theme.textSecondary)
+            }
 
             HStack(alignment: .firstTextBaseline, spacing: 3) {
                 Text("\(entry.tasksCompleted)")
@@ -132,6 +145,12 @@ struct TasksWidgetMedium: View {
                 Text("TODAY")
                     .font(.system(size: 10, weight: .semibold))
                     .foregroundStyle(theme.textSecondary)
+                Text("·")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(theme.textDisabled)
+                Text(entry.activeDayDeadline, style: .timer)
+                    .font(.system(size: 10, design: .monospaced).weight(.bold))
+                    .foregroundStyle(theme.textSecondary)
                 Spacer()
                 Text("\(entry.tasksCompleted) / \(entry.tasksTotal)")
                     .font(.system(size: 13, design: .rounded).weight(.heavy))
@@ -177,9 +196,17 @@ struct TasksWidgetLarge: View {
             // Header
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("TODAY'S TASKS")
-                        .font(.system(size: 10, weight: .semibold))
-                        .foregroundStyle(theme.textSecondary)
+                    HStack(spacing: 6) {
+                        Text("TODAY'S TASKS")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(theme.textSecondary)
+                        Text("·")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(theme.textDisabled)
+                        Text(entry.activeDayDeadline, style: .timer)
+                            .font(.system(size: 10, design: .monospaced).weight(.bold))
+                            .foregroundStyle(theme.textSecondary)
+                    }
                     HStack(alignment: .firstTextBaseline, spacing: 3) {
                         Text("\(entry.tasksCompleted)")
                             .font(.system(.title, design: .rounded).weight(.heavy))

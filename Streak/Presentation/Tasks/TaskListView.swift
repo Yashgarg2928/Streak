@@ -22,6 +22,10 @@ struct TaskListView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
+                ActiveDayCountdownView(settings: env.settingsRepository)
+                    .padding(.horizontal, AppLayout.screenMargin)
+                    .padding(.top, AppLayout.itemSpacing)
+                
                 dateToggle
                     .padding(.horizontal, AppLayout.screenMargin)
                     .padding(.top, AppLayout.itemSpacing)

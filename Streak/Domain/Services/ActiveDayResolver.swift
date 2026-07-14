@@ -83,4 +83,34 @@ public final class ActiveDayResolver {
             return calendar.date(from: components) ?? activeDate
         }
     }
+    
+    public static func activeDayDeadline(for resolvedDate: Date, settings: SettingsRepository) -> Date {
+        let calendar = Calendar.current
+        let endHour = settings.activeDayEndHour
+        let endMinute = settings.activeDayEndMinute
+        
+        var components = calendar.dateComponents([.year, .month, .day], from: resolvedDate)
+        components.hour = endHour
+        components.minute = endMinute
+        
+        guard var deadline = calendar.date(from: components) else { return resolvedDate }
+        
+        if settings.isInterCalendarEnabled {
+            let startHour = settings.activeDayStartHour
+            let startMinute = settings.activeDayStartMinute
+            let endCrossesMidnight = (endHour < startHour) || (endHour == startHour && endMinute < startMinute)
+            if endCrossesMidnight {
+                if let nextDayDeadline = calendar.date(byAdding: .day, value: 1, to: deadline) {
+                    deadline = nextDayDeadline
+                }
+            }
+        }
+        
+        let graceExtension = settings.timezoneGraceExtension
+        if graceExtension > 0 {
+            deadline = deadline.addingTimeInterval(graceExtension)
+        }
+        
+        return deadline
+    }
 }

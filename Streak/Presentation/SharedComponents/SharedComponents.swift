@@ -182,3 +182,45 @@ struct BrutalistButton: View {
         .buttonStyle(.plain)
     }
 }
+
+// MARK: - ActiveDayCountdownView
+// Real-time countdown timer to the active day's rollover deadline.
+
+struct ActiveDayCountdownView: View {
+    let settings: any SettingsRepository
+
+    var body: some View {
+        TimelineView(.animation(minimumInterval: 1)) { context in
+            let now = context.date
+            let activeDate = ActiveDayResolver.resolveActiveDate(for: now, settings: settings)
+            let deadline = ActiveDayResolver.activeDayDeadline(for: activeDate, settings: settings)
+            let timeRemaining = max(0, deadline.timeIntervalSince(now))
+            
+            let hours = Int(timeRemaining) / 3600
+            let minutes = (Int(timeRemaining) % 3600) / 60
+            let seconds = Int(timeRemaining) % 60
+            
+            let timeString = String(format: "%02d:%02d:%02d", hours, minutes, seconds)
+            
+            HStack(spacing: 8) {
+                Text("⏳")
+                    .font(.system(size: 14))
+                Text("DAY ENDS IN:")
+                    .font(.system(.caption, design: .monospaced).weight(.black))
+                    .foregroundStyle(AppColor.textSecondary)
+                Spacer()
+                Text(timeString)
+                    .font(.system(.body, design: .monospaced).weight(.black))
+                    .foregroundStyle(AppColor.textPrimary)
+            }
+            .padding(.horizontal, AppLayout.cardPadding)
+            .padding(.vertical, 10)
+            .background(AppColor.surface)
+            .clipShape(RoundedRectangle(cornerRadius: AppLayout.cornerRadius))
+            .overlay(
+                RoundedRectangle(cornerRadius: AppLayout.cornerRadius)
+                    .stroke(AppColor.border, lineWidth: AppLayout.borderWidth)
+            )
+        }
+    }
+}

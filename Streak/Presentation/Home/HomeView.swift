@@ -12,6 +12,8 @@ struct HomeView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: AppLayout.sectionSpacing) {
+                    ActiveDayCountdownView(settings: env.settingsRepository)
+                    
                     Button {
                         router.showOverallDetail = true
                     } label: {
