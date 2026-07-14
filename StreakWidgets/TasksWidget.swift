@@ -268,6 +268,7 @@ struct TasksWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: TasksProvider()) { entry in
             TasksWidgetEntryView(entry: entry)
+                .environment(\.colorScheme, .light)
                 .containerBackground(WColor.background, for: .widget)
                 // Deep link — tapping opens Tasks tab
                 .widgetURL(URL(string: "streak://tasks"))

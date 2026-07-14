@@ -214,6 +214,7 @@ struct MultiCategoryWidget: Widget {
             provider: MultiCategoryProvider()
         ) { entry in
             MultiCategoryWidgetEntryView(entry: entry)
+                .environment(\.colorScheme, .light)
                 .containerBackground(WColor.background, for: .widget)
                 // Deep link opens home screen
                 .widgetURL(URL(string: "streak://home"))

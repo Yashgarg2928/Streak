@@ -278,6 +278,7 @@ struct GoalWidget: Widget {
             provider: GoalProvider()
         ) { entry in
             GoalWidgetMedium(entry: entry)
+                .environment(\.colorScheme, .light)
                 .containerBackground(WColor.background, for: .widget)
         }
         .configurationDisplayName("Goal Progress")

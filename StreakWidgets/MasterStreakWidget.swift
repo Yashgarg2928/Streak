@@ -163,6 +163,7 @@ struct MasterStreakWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: MasterProvider()) { entry in
             MasterWidgetEntryView(entry: entry)
+                .environment(\.colorScheme, .light)
                 .containerBackground(WColor.background, for: .widget)
         }
         .configurationDisplayName("Overall Streak")

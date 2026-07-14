@@ -286,6 +286,7 @@ struct CategoryWidget: Widget {
         AppIntentConfiguration(kind: kind, intent: CategoryIntent.self,
                                provider: CategoryProvider()) { entry in
             CategoryWidgetEntryView(entry: entry)
+                .environment(\.colorScheme, .light)
                 .containerBackground(WColor.background, for: .widget)
         }
         .configurationDisplayName("Category Streak")
