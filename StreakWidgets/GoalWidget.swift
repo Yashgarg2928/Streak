@@ -157,24 +157,27 @@ struct GoalProvider: AppIntentTimelineProvider {
 // MARK: - Medium View
 
 struct GoalWidgetMedium: View {
+    @Environment(\.widgetRenderingMode) var renderingMode
     let entry: GoalEntry
 
     var body: some View {
+        let theme = WidgetColorTheme.theme(for: renderingMode)
+        
         if entry.isEmptyState {
             VStack {
                 Text("NO GOALS")
                     .font(.system(size: 11, weight: .bold))
-                    .foregroundStyle(WColor.textSecondary)
+                    .foregroundStyle(theme.textSecondary)
                 Text("Open the app to create a new goal.")
                     .font(.system(size: 11))
-                    .foregroundStyle(WColor.textDisabled)
+                    .foregroundStyle(theme.textDisabled)
                     .multilineTextAlignment(.center)
             }
             .padding(14)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(WColor.background)
+            .background(theme.background)
             .overlay(RoundedRectangle(cornerRadius: 6)
-                .stroke(WColor.border, lineWidth: 2).padding(1))
+                .stroke(theme.border, lineWidth: 2).padding(1))
         } else {
             let color = Color(hex: entry.colorHex)
             
@@ -182,12 +185,12 @@ struct GoalWidgetMedium: View {
                 // Header Title + Category Dot
                 HStack(spacing: 6) {
                     Circle()
-                        .fill(color)
+                        .fill(renderingMode == .fullColor ? color : .white)
                         .frame(width: 8, height: 8)
                     
                     Text(entry.title.uppercased())
                         .font(.system(size: 11, weight: .black))
-                        .foregroundStyle(WColor.textPrimary)
+                        .foregroundStyle(theme.textPrimary)
                         .lineLimit(1)
                     
                     Spacer()
@@ -195,10 +198,10 @@ struct GoalWidgetMedium: View {
                     if entry.isCompleted {
                         Text("COMPLETED")
                             .font(.system(size: 8, weight: .black))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(renderingMode == .fullColor ? .white : .black)
                             .padding(.horizontal, 4)
                             .padding(.vertical, 2)
-                            .background(WColor.green)
+                            .background(renderingMode == .fullColor ? WColor.green : .white)
                             .clipShape(RoundedRectangle(cornerRadius: 2))
                     }
                 }
@@ -208,9 +211,9 @@ struct GoalWidgetMedium: View {
                     GeometryReader { geo in
                         ZStack(alignment: .leading) {
                             RoundedRectangle(cornerRadius: 3)
-                                .fill(WColor.blank)
+                                .fill(theme.blank)
                             RoundedRectangle(cornerRadius: 3)
-                                .fill(color)
+                                .fill(renderingMode == .fullColor ? color : .white)
                                 .frame(width: geo.size.width * CGFloat(max(0, min(entry.progressFraction, 1.0))))
                         }
                     }
@@ -218,12 +221,12 @@ struct GoalWidgetMedium: View {
                     .clipShape(RoundedRectangle(cornerRadius: 3))
                     .overlay(
                         RoundedRectangle(cornerRadius: 3)
-                            .stroke(WColor.border, lineWidth: 1.5)
+                            .stroke(theme.border, lineWidth: 1.5)
                     )
                     
                     Text("\(formatValue(entry.currentValue)) / \(formatValue(entry.targetValue)) \(entry.unit)")
                         .font(.system(size: 9, design: .monospaced).weight(.bold))
-                        .foregroundStyle(WColor.textSecondary)
+                        .foregroundStyle(theme.textSecondary)
                 }
                 
                 Spacer().frame(height: 0)
@@ -232,22 +235,22 @@ struct GoalWidgetMedium: View {
                 HStack {
                     Text("\(Int(entry.progressFraction * 100))% completed")
                         .font(.system(size: 9, design: .monospaced).weight(.bold))
-                        .foregroundStyle(WColor.textPrimary)
+                        .foregroundStyle(theme.textPrimary)
                     
                     Spacer()
                     
                     if let targetDate = entry.targetDate {
                         Text("Deadline: \(formatDate(targetDate))")
                             .font(.system(size: 9))
-                            .foregroundStyle(WColor.textSecondary)
+                            .foregroundStyle(theme.textSecondary)
                     }
                 }
             }
             .padding(14)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(WColor.background)
+            .background(theme.background)
             .overlay(RoundedRectangle(cornerRadius: 6)
-                .stroke(color, lineWidth: 2).padding(1))
+                .stroke(renderingMode == .fullColor ? color : theme.border, lineWidth: 2).padding(1))
         }
     }
 

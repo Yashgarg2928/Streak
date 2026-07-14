@@ -133,13 +133,16 @@ struct CategoryProvider: AppIntentTimelineProvider {
 // MARK: - Views (unchanged from before)
 
 struct CategoryWidgetSmall: View {
+    @Environment(\.widgetRenderingMode) var renderingMode
     let entry: CategoryEntry
     var body: some View {
+        let theme = WidgetColorTheme.theme(for: renderingMode)
+        let catColor = Color(hex: entry.colorHex)
         VStack(alignment: .leading, spacing: 6) {
             HStack {
                 Text(entry.name.uppercased())
                     .font(.system(size: 10, weight: .semibold))
-                    .foregroundStyle(WColor.textPrimary)
+                    .foregroundStyle(theme.textPrimary)
                     .lineLimit(1)
                 Spacer()
                 StatusDot(status: entry.statusToday, size: 8)
@@ -147,65 +150,71 @@ struct CategoryWidgetSmall: View {
             WStreakLabel(count: entry.streak, size: .title2)
             Spacer()
             MiniHeatmap(recentDays: entry.recentDays,
-                        categoryColor: Color(hex: entry.colorHex))
+                        categoryColor: catColor)
         }
         .padding(10)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(WColor.background)
+        .background(theme.background)
         .overlay(RoundedRectangle(cornerRadius: 6)
-            .stroke(Color(hex: entry.colorHex), lineWidth: 2).padding(1))
+            .stroke(renderingMode == .fullColor ? catColor : theme.border, lineWidth: 2).padding(1))
     }
 }
 
 struct CategoryWidgetMedium: View {
+    @Environment(\.widgetRenderingMode) var renderingMode
     let entry: CategoryEntry
     var body: some View {
+        let theme = WidgetColorTheme.theme(for: renderingMode)
+        let catColor = Color(hex: entry.colorHex)
         HStack(spacing: 14) {
             VStack(alignment: .leading, spacing: 6) {
                 Text(entry.name.uppercased())
                     .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(WColor.textPrimary)
+                    .foregroundStyle(theme.textPrimary)
                     .lineLimit(1)
                 WStreakLabel(count: entry.streak, size: .title)
                 Spacer()
                 HStack(spacing: 4) {
                     StatusDot(status: entry.statusToday, size: 8)
-                    Text("Today").font(.system(size: 11)).foregroundStyle(WColor.textSecondary)
+                    Text("Today").font(.system(size: 11)).foregroundStyle(theme.textSecondary)
                 }
             }
             Spacer()
             MiniHeatmap(recentDays: entry.recentDays,
-                        categoryColor: Color(hex: entry.colorHex))
+                        categoryColor: catColor)
         }
         .padding(12)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(WColor.background)
+        .background(theme.background)
         .overlay(RoundedRectangle(cornerRadius: 6)
-            .stroke(Color(hex: entry.colorHex), lineWidth: 2).padding(1))
+            .stroke(renderingMode == .fullColor ? catColor : theme.border, lineWidth: 2).padding(1))
     }
 }
 
 struct CategoryWidgetLarge: View {
+    @Environment(\.widgetRenderingMode) var renderingMode
     let entry: CategoryEntry
     var body: some View {
+        let theme = WidgetColorTheme.theme(for: renderingMode)
+        let catColor = Color(hex: entry.colorHex)
         VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Text(entry.name.uppercased())
                     .font(.system(.headline).weight(.semibold))
-                    .foregroundStyle(WColor.textPrimary)
+                    .foregroundStyle(theme.textPrimary)
                 Spacer()
                 StatusDot(status: entry.statusToday, size: 10)
             }
             WStreakLabel(count: entry.streak, size: .largeTitle)
             LargeHeatmap(recentDays: entry.recentDays,
-                         categoryColor: Color(hex: entry.colorHex))
+                         categoryColor: catColor)
             Spacer()
         }
         .padding(14)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(WColor.background)
+        .background(theme.background)
         .overlay(RoundedRectangle(cornerRadius: 6)
-            .stroke(Color(hex: entry.colorHex), lineWidth: 2).padding(1))
+            .stroke(renderingMode == .fullColor ? catColor : theme.border, lineWidth: 2).padding(1))
     }
 }
 
@@ -233,6 +242,7 @@ struct CategoryLockCircular: View {
 // MARK: - Large heatmap
 
 struct LargeHeatmap: View {
+    @Environment(\.widgetRenderingMode) var renderingMode
     let recentDays: [String: String]
     var categoryColor: Color = WColor.green
     private let cols = 12, rows = 7
@@ -270,9 +280,12 @@ struct LargeHeatmap: View {
         if date > today { return Color.clear }
         let key = Self.keyFmt.string(from: cal.startOfDay(for: date))
         switch recentDays[key] {
-        case "green": return categoryColor
-        case "red":   return WColor.red
-        default:      return WColor.blank.opacity(0.4)
+        case "green":
+            return renderingMode == .fullColor ? categoryColor : .white
+        case "red":
+            return renderingMode == .fullColor ? WColor.red : .white.opacity(0.3)
+        default:
+            return renderingMode == .fullColor ? WColor.blank.opacity(0.4) : .white.opacity(0.1)
         }
     }
 }

@@ -62,6 +62,7 @@ struct TasksProvider: TimelineProvider {
 // MARK: - Small widget (count + progress bar only)
 
 struct TasksWidgetSmall: View {
+    @Environment(\.widgetRenderingMode) var renderingMode
     let entry: TasksEntry
 
     private var fraction: Double {
@@ -70,18 +71,19 @@ struct TasksWidgetSmall: View {
     }
 
     var body: some View {
+        let theme = WidgetColorTheme.theme(for: renderingMode)
         VStack(alignment: .leading, spacing: 6) {
             Text("TASKS")
                 .font(.system(size: 10, weight: .semibold))
-                .foregroundStyle(WColor.textSecondary)
+                .foregroundStyle(theme.textSecondary)
 
             HStack(alignment: .firstTextBaseline, spacing: 3) {
                 Text("\(entry.tasksCompleted)")
                     .font(.system(.largeTitle, design: .rounded).weight(.heavy))
-                    .foregroundStyle(WColor.textPrimary)
+                    .foregroundStyle(theme.textPrimary)
                 Text("/ \(entry.tasksTotal)")
                     .font(.system(.title3).weight(.medium))
-                    .foregroundStyle(WColor.textSecondary)
+                    .foregroundStyle(theme.textSecondary)
             }
 
             Spacer()
@@ -89,28 +91,28 @@ struct TasksWidgetSmall: View {
             // Progress bar
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: 3).fill(WColor.blank.opacity(0.5))
+                    RoundedRectangle(cornerRadius: 3).fill(theme.blank)
                     RoundedRectangle(cornerRadius: 3)
-                        .fill(fraction == 1 ? WColor.green : WColor.border)
+                        .fill(renderingMode == .fullColor ? (fraction == 1 ? WColor.green : WColor.border) : .white)
                         .frame(width: geo.size.width * fraction)
                 }
             }
             .frame(height: 8)
-            .overlay(RoundedRectangle(cornerRadius: 3).stroke(WColor.border, lineWidth: 1.5))
+            .overlay(RoundedRectangle(cornerRadius: 3).stroke(theme.border, lineWidth: 1.5))
 
             HStack(spacing: 4) {
                 StatusDot(status: entry.masterStatus, size: 7)
                 Text("🔥 \(entry.masterStreak)")
                     .font(.system(size: 10, weight: .medium))
-                    .foregroundStyle(WColor.textSecondary)
+                    .foregroundStyle(theme.textSecondary)
             }
         }
         .padding(12)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(WColor.background)
+        .background(theme.background)
         .overlay(
             RoundedRectangle(cornerRadius: 6)
-                .stroke(WColor.border, lineWidth: 2)
+                .stroke(theme.border, lineWidth: 2)
                 .padding(1)
         )
     }
@@ -119,31 +121,33 @@ struct TasksWidgetSmall: View {
 // MARK: - Medium widget (count + first 3 tasks)
 
 struct TasksWidgetMedium: View {
+    @Environment(\.widgetRenderingMode) var renderingMode
     let entry: TasksEntry
 
     var body: some View {
+        let theme = WidgetColorTheme.theme(for: renderingMode)
         VStack(alignment: .leading, spacing: 0) {
             // Header
             HStack {
                 Text("TODAY")
                     .font(.system(size: 10, weight: .semibold))
-                    .foregroundStyle(WColor.textSecondary)
+                    .foregroundStyle(theme.textSecondary)
                 Spacer()
                 Text("\(entry.tasksCompleted) / \(entry.tasksTotal)")
                     .font(.system(size: 13, design: .rounded).weight(.heavy))
-                    .foregroundStyle(WColor.textPrimary)
+                    .foregroundStyle(theme.textPrimary)
             }
             .padding(.bottom, 8)
 
             // Task list — up to 3 items
             VStack(alignment: .leading, spacing: 5) {
                 ForEach(Array(entry.taskItems.prefix(3).enumerated()), id: \.offset) { _, item in
-                    taskRow(item: item)
+                    taskRow(item: item, theme: theme, mode: renderingMode)
                 }
                 if entry.taskItems.count > 3 {
                     Text("+ \(entry.taskItems.count - 3) more")
                         .font(.system(size: 10))
-                        .foregroundStyle(WColor.textDisabled)
+                        .foregroundStyle(theme.textDisabled)
                         .padding(.leading, 22)
                 }
             }
@@ -152,10 +156,10 @@ struct TasksWidgetMedium: View {
         }
         .padding(12)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(WColor.background)
+        .background(theme.background)
         .overlay(
             RoundedRectangle(cornerRadius: 6)
-                .stroke(WColor.border, lineWidth: 2)
+                .stroke(theme.border, lineWidth: 2)
                 .padding(1)
         )
     }
@@ -164,23 +168,25 @@ struct TasksWidgetMedium: View {
 // MARK: - Large widget (count + full list)
 
 struct TasksWidgetLarge: View {
+    @Environment(\.widgetRenderingMode) var renderingMode
     let entry: TasksEntry
 
     var body: some View {
+        let theme = WidgetColorTheme.theme(for: renderingMode)
         VStack(alignment: .leading, spacing: 0) {
             // Header
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("TODAY'S TASKS")
                         .font(.system(size: 10, weight: .semibold))
-                        .foregroundStyle(WColor.textSecondary)
+                        .foregroundStyle(theme.textSecondary)
                     HStack(alignment: .firstTextBaseline, spacing: 3) {
                         Text("\(entry.tasksCompleted)")
                             .font(.system(.title, design: .rounded).weight(.heavy))
-                            .foregroundStyle(WColor.textPrimary)
+                            .foregroundStyle(theme.textPrimary)
                         Text("/ \(entry.tasksTotal)")
                             .font(.system(.title3).weight(.medium))
-                            .foregroundStyle(WColor.textSecondary)
+                            .foregroundStyle(theme.textSecondary)
                     }
                 }
                 Spacer()
@@ -188,18 +194,18 @@ struct TasksWidgetLarge: View {
             }
             .padding(.bottom, 10)
 
-            Divider().background(WColor.blank)
+            Divider().background(theme.blank)
                 .padding(.bottom, 8)
 
             // Full task list — up to 8
             VStack(alignment: .leading, spacing: 7) {
                 ForEach(Array(entry.taskItems.prefix(8).enumerated()), id: \.offset) { _, item in
-                    taskRow(item: item)
+                    taskRow(item: item, theme: theme, mode: renderingMode)
                 }
                 if entry.taskItems.count > 8 {
                     Text("+ \(entry.taskItems.count - 8) more")
                         .font(.system(size: 10))
-                        .foregroundStyle(WColor.textDisabled)
+                        .foregroundStyle(theme.textDisabled)
                         .padding(.leading, 22)
                 }
             }
@@ -208,10 +214,10 @@ struct TasksWidgetLarge: View {
         }
         .padding(14)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(WColor.background)
+        .background(theme.background)
         .overlay(
             RoundedRectangle(cornerRadius: 6)
-                .stroke(WColor.border, lineWidth: 2)
+                .stroke(theme.border, lineWidth: 2)
                 .padding(1)
         )
     }
@@ -219,27 +225,27 @@ struct TasksWidgetLarge: View {
 
 // MARK: - Shared task row
 
-private func taskRow(item: WidgetData.TaskItem) -> some View {
+private func taskRow(item: WidgetData.TaskItem, theme: WidgetColorTheme, mode: WidgetRenderingMode) -> some View {
     HStack(spacing: 6) {
         Image(systemName: item.isCompleted ? "checkmark.square.fill" : "square")
             .font(.system(size: 13, weight: .medium))
-            .foregroundStyle(item.isCompleted ? WColor.green : WColor.textSecondary)
+            .foregroundStyle(item.isCompleted ? (mode == .fullColor ? WColor.green : .white.opacity(0.6)) : theme.textSecondary)
             .frame(width: 16)
 
         if let hex = item.categoryColorHex {
             Circle()
-                .fill(Color(hex: hex))
+                .fill(mode == .fullColor ? Color(hex: hex) : .white)
                 .frame(width: 6, height: 6)
         } else {
             Circle()
-                .fill(WColor.blank)
+                .fill(theme.blank)
                 .frame(width: 6, height: 6)
         }
 
         Text(item.title)
             .font(.system(size: 12, weight: item.isCompleted ? .regular : .medium))
-            .foregroundStyle(item.isCompleted ? WColor.textDisabled : WColor.textPrimary)
-            .strikethrough(item.isCompleted, color: WColor.textDisabled)
+            .foregroundStyle(item.isCompleted ? theme.textDisabled : theme.textPrimary)
+            .strikethrough(item.isCompleted, color: theme.textDisabled)
             .lineLimit(1)
     }
 }

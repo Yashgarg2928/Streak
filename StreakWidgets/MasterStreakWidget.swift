@@ -52,13 +52,15 @@ struct MasterProvider: TimelineProvider {
 // MARK: - Views
 
 struct MasterWidgetSmall: View {
+    @Environment(\.widgetRenderingMode) var renderingMode
     let entry: MasterEntry
 
     var body: some View {
+        let theme = WidgetColorTheme.theme(for: renderingMode)
         VStack(alignment: .leading, spacing: 6) {
             Text("STREAK")
                 .font(.system(size: 10, weight: .semibold))
-                .foregroundStyle(WColor.textSecondary)
+                .foregroundStyle(theme.textSecondary)
 
             WStreakLabel(count: entry.streak, size: .title)
 
@@ -68,33 +70,35 @@ struct MasterWidgetSmall: View {
                 StatusDot(status: entry.statusToday, size: 8)
                 Text("Today")
                     .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(WColor.textSecondary)
+                    .foregroundStyle(theme.textSecondary)
                 Spacer()
                 Text("\(entry.tasksCompleted)/\(entry.tasksTotal)")
                     .font(.system(size: 11, weight: .medium).monospacedDigit())
-                    .foregroundStyle(WColor.textSecondary)
+                    .foregroundStyle(theme.textSecondary)
             }
         }
         .padding(12)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(WColor.background)
+        .background(theme.background)
         .overlay(
             RoundedRectangle(cornerRadius: 6)
-                .stroke(WColor.border, lineWidth: 2)
+                .stroke(theme.border, lineWidth: 2)
                 .padding(1)
         )
     }
 }
 
 struct MasterWidgetMedium: View {
+    @Environment(\.widgetRenderingMode) var renderingMode
     let entry: MasterEntry
 
     var body: some View {
+        let theme = WidgetColorTheme.theme(for: renderingMode)
         HStack(spacing: 14) {
             VStack(alignment: .leading, spacing: 6) {
                 Text("OVERALL")
                     .font(.system(size: 10, weight: .semibold))
-                    .foregroundStyle(WColor.textSecondary)
+                    .foregroundStyle(theme.textSecondary)
 
                 WStreakLabel(count: entry.streak, size: .title)
 
@@ -104,7 +108,7 @@ struct MasterWidgetMedium: View {
                     StatusDot(status: entry.statusToday, size: 8)
                     Text("\(entry.tasksCompleted)/\(entry.tasksTotal) tasks")
                         .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(WColor.textSecondary)
+                        .foregroundStyle(theme.textSecondary)
                 }
             }
 
@@ -114,10 +118,10 @@ struct MasterWidgetMedium: View {
         }
         .padding(12)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(WColor.background)
+        .background(theme.background)
         .overlay(
             RoundedRectangle(cornerRadius: 6)
-                .stroke(WColor.border, lineWidth: 2)
+                .stroke(theme.border, lineWidth: 2)
                 .padding(1)
         )
     }

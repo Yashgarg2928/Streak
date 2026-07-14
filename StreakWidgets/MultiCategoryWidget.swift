@@ -73,19 +73,21 @@ struct MultiCategoryProvider: AppIntentTimelineProvider {
 // MARK: - Views
 
 struct MultiCategoryWidgetSmall: View {
+    @Environment(\.widgetRenderingMode) var renderingMode
     let entry: MultiCategoryEntry
 
     var body: some View {
+        let theme = WidgetColorTheme.theme(for: renderingMode)
         VStack(alignment: .leading, spacing: 6) {
             Text("STREAKS")
                 .font(.system(size: 9, weight: .bold))
-                .foregroundStyle(WColor.textSecondary)
+                .foregroundStyle(theme.textSecondary)
 
             if entry.categories.isEmpty {
                 Spacer()
                 Text("No categories")
                     .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(WColor.textDisabled)
+                    .foregroundStyle(theme.textDisabled)
                 Spacer()
             } else {
                 // In small widget, fit up to 4 categories maximum
@@ -93,16 +95,16 @@ struct MultiCategoryWidgetSmall: View {
                     ForEach(entry.categories.prefix(4)) { cat in
                         HStack(spacing: 5) {
                             Circle()
-                                .fill(Color(hex: cat.colorHex))
+                                .fill(renderingMode == .fullColor ? Color(hex: cat.colorHex) : .white)
                                 .frame(width: 6, height: 6)
                             Text(cat.name)
                                 .font(.system(size: 10, weight: .bold))
-                                .foregroundStyle(WColor.textPrimary)
+                                .foregroundStyle(theme.textPrimary)
                                 .lineLimit(1)
                             Spacer()
                             Text("🔥\(cat.streak)")
                                 .font(.system(size: 10, design: .rounded).weight(.heavy))
-                                .foregroundStyle(WColor.textPrimary)
+                                .foregroundStyle(theme.textPrimary)
                         }
                     }
                 }
@@ -110,35 +112,37 @@ struct MultiCategoryWidgetSmall: View {
                 if entry.categories.count > 4 {
                     Text("+ \(entry.categories.count - 4) more")
                         .font(.system(size: 8, weight: .semibold))
-                        .foregroundStyle(WColor.textDisabled)
+                        .foregroundStyle(theme.textDisabled)
                 }
             }
         }
         .padding(10)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(WColor.background)
+        .background(theme.background)
         .overlay(
             RoundedRectangle(cornerRadius: 6)
-                .stroke(WColor.border, lineWidth: 2)
+                .stroke(theme.border, lineWidth: 2)
                 .padding(1)
         )
     }
 }
 
 struct MultiCategoryWidgetMedium: View {
+    @Environment(\.widgetRenderingMode) var renderingMode
     let entry: MultiCategoryEntry
 
     var body: some View {
+        let theme = WidgetColorTheme.theme(for: renderingMode)
         VStack(alignment: .leading, spacing: 6) {
             Text("STREAKS")
                 .font(.system(size: 10, weight: .bold))
-                .foregroundStyle(WColor.textSecondary)
+                .foregroundStyle(theme.textSecondary)
 
             if entry.categories.isEmpty {
                 Spacer()
                 Text("No categories")
                     .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(WColor.textDisabled)
+                    .foregroundStyle(theme.textDisabled)
                 Spacer()
             } else {
                 // In medium widget, display in two columns (up to 8 categories)
@@ -146,7 +150,7 @@ struct MultiCategoryWidgetMedium: View {
                     // Left Column (first 4)
                     VStack(spacing: 6) {
                         ForEach(entry.categories.prefix(4)) { cat in
-                            categoryRow(cat)
+                            categoryRow(cat, theme: theme)
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -155,14 +159,14 @@ struct MultiCategoryWidgetMedium: View {
                         // Right Column (next 4)
                         VStack(spacing: 6) {
                             ForEach(entry.categories.dropFirst(4).prefix(4)) { cat in
-                                categoryRow(cat)
+                                categoryRow(cat, theme: theme)
                             }
                             if entry.categories.count > 8 {
                                 HStack {
                                     Spacer()
                                     Text("+ \(entry.categories.count - 8) more")
                                         .font(.system(size: 9, weight: .bold))
-                                        .foregroundStyle(WColor.textDisabled)
+                                        .foregroundStyle(theme.textDisabled)
                                 }
                             }
                         }
@@ -177,27 +181,27 @@ struct MultiCategoryWidgetMedium: View {
         }
         .padding(12)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(WColor.background)
+        .background(theme.background)
         .overlay(
             RoundedRectangle(cornerRadius: 6)
-                .stroke(WColor.border, lineWidth: 2)
+                .stroke(theme.border, lineWidth: 2)
                 .padding(1)
         )
     }
 
-    private func categoryRow(_ cat: WidgetData.CategoryWidgetData) -> some View {
+    private func categoryRow(_ cat: WidgetData.CategoryWidgetData, theme: WidgetColorTheme) -> some View {
         HStack(spacing: 6) {
             Circle()
-                .fill(Color(hex: cat.colorHex))
+                .fill(renderingMode == .fullColor ? Color(hex: cat.colorHex) : .white)
                 .frame(width: 6, height: 6)
             Text(cat.name)
                 .font(.system(size: 11, weight: .bold))
-                .foregroundStyle(WColor.textPrimary)
+                .foregroundStyle(theme.textPrimary)
                 .lineLimit(1)
             Spacer()
             Text("🔥\(cat.streak)")
                 .font(.system(size: 11, design: .rounded).weight(.heavy))
-                .foregroundStyle(WColor.textPrimary)
+                .foregroundStyle(theme.textPrimary)
         }
     }
 }

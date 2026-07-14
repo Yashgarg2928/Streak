@@ -30,17 +30,59 @@ extension Color {
     }
 }
 
+// MARK: - Widget Color Theme for Accented/Tinted Mode (iOS 18)
+
+struct WidgetColorTheme {
+    let background: Color
+    let surface: Color
+    let border: Color
+    let textPrimary: Color
+    let textSecondary: Color
+    let textDisabled: Color
+    let blank: Color
+    
+    static func theme(for mode: WidgetRenderingMode) -> WidgetColorTheme {
+        switch mode {
+        case .accented, .vibrant:
+            return WidgetColorTheme(
+                background: .clear,
+                surface: Color.white.opacity(0.15),
+                border: .white,
+                textPrimary: .white,
+                textSecondary: .white.opacity(0.7),
+                textDisabled: .white.opacity(0.4),
+                blank: .white.opacity(0.2)
+            )
+        default:
+            return WidgetColorTheme(
+                background: WColor.background,
+                surface: WColor.surface,
+                border: WColor.border,
+                textPrimary: WColor.textPrimary,
+                textSecondary: WColor.textSecondary,
+                textDisabled: WColor.textDisabled,
+                blank: WColor.blank
+            )
+        }
+    }
+}
+
 // MARK: - Status dot
 
 struct StatusDot: View {
+    @Environment(\.widgetRenderingMode) var renderingMode
     let status: String   // "green" | "red" | "future"
     let size: CGFloat
 
     var color: Color {
+        let theme = WidgetColorTheme.theme(for: renderingMode)
         switch status {
-        case "green": return WColor.green
-        case "red":   return WColor.red
-        default:      return WColor.blank
+        case "green":
+            return renderingMode == .fullColor ? WColor.green : .white
+        case "red":
+            return renderingMode == .fullColor ? WColor.red : .white.opacity(0.5)
+        default:
+            return theme.blank
         }
     }
 
@@ -52,6 +94,7 @@ struct StatusDot: View {
 // MARK: - Mini heatmap (last 4 weeks, 7 rows × 4 cols)
 
 struct MiniHeatmap: View {
+    @Environment(\.widgetRenderingMode) var renderingMode
     let recentDays: [String: String]
     var categoryColor: Color = WColor.green
 
@@ -87,10 +130,14 @@ struct MiniHeatmap: View {
         let day   = Calendar.current.startOfDay(for: date)
         if day > today { return Color.clear }
         let key = Self.keyFmt.string(from: day)
+        
         switch recentDays[key] {
-        case "green": return categoryColor
-        case "red":   return WColor.red
-        default:      return WColor.blank.opacity(0.4)
+        case "green":
+            return renderingMode == .fullColor ? categoryColor : .white
+        case "red":
+            return renderingMode == .fullColor ? WColor.red : .white.opacity(0.3)
+        default:
+            return renderingMode == .fullColor ? WColor.blank.opacity(0.4) : .white.opacity(0.1)
         }
     }
 
@@ -109,15 +156,17 @@ struct MiniHeatmap: View {
 // MARK: - Streak label
 
 struct WStreakLabel: View {
+    @Environment(\.widgetRenderingMode) var renderingMode
     let count: Int
     var size: Font = .title2
 
     var body: some View {
+        let theme = WidgetColorTheme.theme(for: renderingMode)
         HStack(spacing: 3) {
             Text("🔥").font(.system(size: 14))
             Text("\(count)")
                 .font(size.weight(.heavy))
-                .foregroundStyle(WColor.textPrimary)
+                .foregroundStyle(theme.textPrimary)
         }
     }
 }
