@@ -52,6 +52,7 @@ struct StreakApp: App {
     var body: some Scene {
         WindowGroup {
             RootView()
+                .preferredColorScheme(.light)
                 .environment(environment)
                 .environment(router)
                 .modelContainer(container)
