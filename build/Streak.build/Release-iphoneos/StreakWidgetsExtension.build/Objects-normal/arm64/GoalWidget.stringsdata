@@ -1,0 +1,104 @@
+{
+  "source": "/Users/madhvan07icloud.coom/self-improvment-app/Streak/StreakWidgets/GoalWidget.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Goal",
+        "location": {
+          "startingColumn": 71,
+          "startingLine": 14
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 18
+        }
+      },
+      {
+        "comment": "",
+        "key": "Select Goal",
+        "location": {
+          "startingColumn": 49,
+          "startingLine": 64
+        }
+      },
+      {
+        "comment": "",
+        "key": "Choose which goal to display.",
+        "location": {
+          "startingColumn": 48,
+          "startingLine": 65
+        }
+      },
+      {
+        "comment": "",
+        "key": "NO GOALS",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 165
+        }
+      },
+      {
+        "comment": "",
+        "key": "Open the app to create a new goal.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 168
+        }
+      },
+      {
+        "comment": "",
+        "key": "COMPLETED",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 196
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ / %@ %@",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 224
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld%% completed",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 233
+        }
+      },
+      {
+        "comment": "",
+        "key": "Deadline: %@",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 240
+        }
+      },
+      {
+        "comment": "",
+        "key": "Goal Progress",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 283
+        }
+      },
+      {
+        "comment": "",
+        "key": "Track the completion metrics of a selected goal.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 284
+        }
+      }
+    ]
+  },
+  "version": 1
+}

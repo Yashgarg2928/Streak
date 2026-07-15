@@ -1,0 +1,5 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     '/Users/madhvan07icloud.coom/self-improvment-app/Streak/build/Release-iphoneos/Streak.app/Streak'
+relocations:     []
+...

@@ -1,0 +1,104 @@
+{
+  "source": "/Users/madhvan07icloud.coom/self-improvment-app/Streak/StreakWidgets/MasterStreakWidget.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "STREAK",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 59
+        }
+      },
+      {
+        "comment": "",
+        "key": "Today",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 69
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld/%lld",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 73
+        }
+      },
+      {
+        "comment": "",
+        "key": "OVERALL",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 95
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld/%lld tasks",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 105
+        }
+      },
+      {
+        "comment": "",
+        "key": "🔥%lldd",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 132
+        }
+      },
+      {
+        "comment": "",
+        "key": "·",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 134
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld/%lld tasks",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 136
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 149
+        }
+      },
+      {
+        "comment": "",
+        "key": "days",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 151
+        }
+      },
+      {
+        "comment": "",
+        "key": "Overall Streak",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 168
+        }
+      },
+      {
+        "comment": "",
+        "key": "Your master consistency streak and today's task progress.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 169
+        }
+      }
+    ]
+  },
+  "version": 1
+}

@@ -1,0 +1,40 @@
+{
+  "source": "/Users/madhvan07icloud.coom/self-improvment-app/Streak/Streak/Presentation/SharedComponents/SharedComponents.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "🔥",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 48
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 50
+        }
+      },
+      {
+        "comment": "",
+        "key": "day",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 53
+        }
+      },
+      {
+        "comment": "",
+        "key": "days",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 53
+        }
+      }
+    ]
+  },
+  "version": 1
+}

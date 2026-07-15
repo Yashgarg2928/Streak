@@ -31,12 +31,14 @@ final class TaskViewModel {
             let resolver = ResolveDayStatusUseCase(
                 taskRepository: env.taskRepository,
                 categoryRepository: env.categoryRepository,
-                dayEntryRepository: env.dayEntryRepository
+                dayEntryRepository: env.dayEntryRepository,
+                settingsRepository: env.settingsRepository
             )
             let useCase = AddTaskUseCase(
                 taskRepository: env.taskRepository,
                 categoryRepository: env.categoryRepository,
-                resolveDayStatus: resolver
+                resolveDayStatus: resolver,
+                settingsRepository: env.settingsRepository
             )
             _ = try useCase.execute(title: title, categoryId: categoryId, targetDate: date)
             env.syncWidgets()
@@ -52,11 +54,13 @@ final class TaskViewModel {
             let resolver = ResolveDayStatusUseCase(
                 taskRepository: env.taskRepository,
                 categoryRepository: env.categoryRepository,
-                dayEntryRepository: env.dayEntryRepository
+                dayEntryRepository: env.dayEntryRepository,
+                settingsRepository: env.settingsRepository
             )
             let useCase = CompleteTaskUseCase(
                 taskRepository: env.taskRepository,
-                resolveDayStatus: resolver
+                resolveDayStatus: resolver,
+                settingsRepository: env.settingsRepository
             )
             try useCase.execute(taskId: taskId, completed: !task.isCompleted)
             env.syncWidgets()

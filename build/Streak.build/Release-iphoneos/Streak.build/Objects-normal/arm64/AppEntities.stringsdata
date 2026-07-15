@@ -1,0 +1,40 @@
+{
+  "source": "/Users/madhvan07icloud.coom/self-improvment-app/Streak/Streak/App/AppEntities.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Category",
+        "location": {
+          "startingColumn": 71,
+          "startingLine": 14
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 18
+        }
+      },
+      {
+        "comment": "",
+        "key": "Goal",
+        "location": {
+          "startingColumn": 71,
+          "startingLine": 66
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 70
+        }
+      }
+    ]
+  },
+  "version": 1
+}

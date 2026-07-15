@@ -1,0 +1,104 @@
+{
+  "source": "/Users/madhvan07icloud.coom/self-improvment-app/Streak/StreakWidgets/CategoryWidget.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Category",
+        "location": {
+          "startingColumn": 71,
+          "startingLine": 15
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 19
+        }
+      },
+      {
+        "comment": "",
+        "key": "Select Category",
+        "location": {
+          "startingColumn": 49,
+          "startingLine": 66
+        }
+      },
+      {
+        "comment": "",
+        "key": "Choose which category to display.",
+        "location": {
+          "startingColumn": 48,
+          "startingLine": 67
+        }
+      },
+      {
+        "comment": "",
+        "key": "Category",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 69
+        }
+      },
+      {
+        "comment": "",
+        "key": "Today",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 173
+        }
+      },
+      {
+        "comment": "",
+        "key": "🔥%lldd",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 217
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 226
+        }
+      },
+      {
+        "comment": "",
+        "key": "Category Streak",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 291
+        }
+      },
+      {
+        "comment": "",
+        "key": "Pick a category to show its streak and consistency.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 292
+        }
+      },
+      {
+        "comment": "",
+        "key": "Goal",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 65
+        }
+      },
+      {
+        "comment": "",
+        "key": "Categories",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 309
+        }
+      }
+    ]
+  },
+  "version": 1
+}

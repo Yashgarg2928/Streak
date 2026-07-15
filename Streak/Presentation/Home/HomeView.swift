@@ -12,7 +12,12 @@ struct HomeView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: AppLayout.sectionSpacing) {
-                    masterCard
+                    Button {
+                        router.showOverallDetail = true
+                    } label: {
+                        masterCard
+                    }
+                    .buttonStyle(.plain)
                     categoriesSection
                 }
                 .padding(.horizontal, AppLayout.screenMargin)
@@ -35,6 +40,9 @@ struct HomeView: View {
             }
             .navigationDestination(item: $router.categoryDetailId) { id in
                 CategoryDetailView(categoryId: id)
+            }
+            .navigationDestination(isPresented: $router.showOverallDetail) {
+                OverallDetailView(env: env)
             }
         }
         .onAppear {

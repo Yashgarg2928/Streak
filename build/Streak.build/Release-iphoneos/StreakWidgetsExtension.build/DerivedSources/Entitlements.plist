@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>application-identifier</key>
+	<string>YH2JBDLBCY.com.yash.Streak.StreakWidgets</string>
+	<key>com.apple.developer.team-identifier</key>
+	<string>YH2JBDLBCY</string>
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>group.com.madhvan.streak</string>
+	</array>
+	<key>get-task-allow</key>
+	<true/>
+</dict>
+</plist>

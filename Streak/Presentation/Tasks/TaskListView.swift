@@ -5,13 +5,18 @@ import SwiftUI
 struct TaskListView: View {
     @Environment(AppEnvironment.self) private var env
     @State private var vm: TaskViewModel?
-    @State private var selectedDate: Date = Calendar.current.startOfDay(for: Date())
+    @State private var selectedDate: Date? = nil
     @State private var newTaskTitle: String = ""
     @State private var newTaskCategoryId: UUID? = nil
     @State private var showCategoryPicker: Bool = false
 
+    private var activeToday: Date {
+        ActiveDayResolver.resolveActiveDate(for: Date(), settings: env.settingsRepository)
+    }
+
     private var isToday: Bool {
-        Calendar.current.isDateInToday(selectedDate)
+        let currentSelected = selectedDate ?? activeToday
+        return Calendar.current.isDate(currentSelected, inSameDayAs: activeToday)
     }
 
     var body: some View {
@@ -32,8 +37,10 @@ struct TaskListView: View {
             .navigationBarTitleDisplayMode(.large)
         }
         .onAppear {
+            let today = activeToday
+            if selectedDate == nil { selectedDate = today }
             if vm == nil { vm = TaskViewModel(env: env) }
-            vm?.load(for: selectedDate)
+            vm?.load(for: selectedDate ?? today)
         }
         .sheet(isPresented: $showCategoryPicker) {
             categoryPickerSheet
@@ -45,7 +52,7 @@ struct TaskListView: View {
     // MARK: - Date toggle
 
     private var dateToggle: some View {
-        let today = Calendar.current.startOfDay(for: Date())
+        let today = activeToday
         let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: today)!
         return HStack(spacing: 0) {
             toggleButton(title: "TODAY",    date: today)
@@ -59,7 +66,7 @@ struct TaskListView: View {
     }
 
     private func toggleButton(title: String, date: Date) -> some View {
-        let selected = Calendar.current.isDate(selectedDate, inSameDayAs: date)
+        let selected = Calendar.current.isDate(selectedDate ?? activeToday, inSameDayAs: date)
         return Button {
             selectedDate = date
             vm?.load(for: date)
@@ -84,7 +91,7 @@ struct TaskListView: View {
                             task: task,
                             categoryColor: vm?.color(for: task)
                         ) {
-                            vm?.toggle(taskId: task.id, for: selectedDate)
+                            vm?.toggle(taskId: task.id, for: selectedDate ?? activeToday)
                         }
                         .listRowBackground(AppColor.background)
                         .listRowSeparatorTint(AppColor.blank)
@@ -92,7 +99,7 @@ struct TaskListView: View {
                     .onDelete { indexSet in
                         indexSet.forEach { i in
                             if let tasks = vm?.tasks {
-                                vm?.delete(taskId: tasks[i].id, for: selectedDate)
+                                vm?.delete(taskId: tasks[i].id, for: selectedDate ?? activeToday)
                             }
                         }
                     }
@@ -246,7 +253,7 @@ struct TaskListView: View {
 
     private func addTask() {
         guard !newTaskTitle.trimmingCharacters(in: .whitespaces).isEmpty else { return }
-        vm?.addTask(title: newTaskTitle, categoryId: newTaskCategoryId, for: selectedDate)
+        vm?.addTask(title: newTaskTitle, categoryId: newTaskCategoryId, for: selectedDate ?? activeToday)
         newTaskTitle = ""
         newTaskCategoryId = nil
     }

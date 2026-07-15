@@ -100,12 +100,16 @@ struct ProgressBarView: View {
 // MARK: - TaskRowView
 
 struct TaskRowView: View {
+    @Environment(AppEnvironment.self) private var env
     let task: Task
     let categoryColor: Color?
     let onToggle: () -> Void
 
     private var isFuture: Bool {
-        Calendar.current.startOfDay(for: task.targetDate) > Calendar.current.startOfDay(for: Date())
+        let activeToday = env.settingsRepository.isOnboardingCompleted
+            ? ActiveDayResolver.resolveActiveDate(for: Date(), settings: env.settingsRepository)
+            : Calendar.current.startOfDay(for: Date())
+        return Calendar.current.startOfDay(for: task.targetDate) > Calendar.current.startOfDay(for: activeToday)
     }
 
     var body: some View {

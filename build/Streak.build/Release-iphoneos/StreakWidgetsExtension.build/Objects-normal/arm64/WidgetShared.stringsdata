@@ -1,0 +1,24 @@
+{
+  "source": "/Users/madhvan07icloud.coom/self-improvment-app/Streak/StreakWidgets/WidgetShared.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "🔥",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 117
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 118
+        }
+      }
+    ]
+  },
+  "version": 1
+}

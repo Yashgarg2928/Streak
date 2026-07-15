@@ -12,26 +12,30 @@ final class AppEnvironment {
     let goalRepository: any GoalRepository
     let dayEntryRepository: any DayEntryRepository
     let reflectionRepository: any ReflectionRepository
+    let settingsRepository: any SettingsRepository
 
     init(
         categoryRepository: any CategoryRepository,
         taskRepository: any TaskRepository,
         goalRepository: any GoalRepository,
         dayEntryRepository: any DayEntryRepository,
-        reflectionRepository: any ReflectionRepository
+        reflectionRepository: any ReflectionRepository,
+        settingsRepository: any SettingsRepository
     ) {
         self.categoryRepository = categoryRepository
         self.taskRepository = taskRepository
         self.goalRepository = goalRepository
         self.dayEntryRepository = dayEntryRepository
         self.reflectionRepository = reflectionRepository
+        self.settingsRepository = settingsRepository
     }
 
     func syncWidgets() {
         let useCase = SyncWidgetDataUseCase(
             categoryRepository: categoryRepository,
             taskRepository: taskRepository,
-            dayEntryRepository: dayEntryRepository
+            dayEntryRepository: dayEntryRepository,
+            goalRepository: goalRepository
         )
         if let data = useCase.execute() {
             WidgetDataStore.save(data)

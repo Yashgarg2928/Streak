@@ -1,0 +1,48 @@
+{
+  "source": "/Users/madhvan07icloud.coom/self-improvment-app/Streak/Streak/Presentation/RootView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "More",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 25
+        }
+      },
+      {
+        "comment": "",
+        "key": "Home",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 14
+        }
+      },
+      {
+        "comment": "",
+        "key": "Tasks",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 18
+        }
+      },
+      {
+        "comment": "",
+        "key": "Goals",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 22
+        }
+      },
+      {
+        "comment": "",
+        "key": "More",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 28
+        }
+      }
+    ]
+  },
+  "version": 1
+}

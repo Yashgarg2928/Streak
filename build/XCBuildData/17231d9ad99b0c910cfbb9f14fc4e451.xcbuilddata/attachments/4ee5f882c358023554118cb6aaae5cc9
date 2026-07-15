@@ -1,0 +1,56 @@
+{
+  "" : {
+    "const-values" : "/Users/madhvan07icloud.coom/self-improvment-app/Streak/build/Streak.build/Release-iphoneos/StreakWidgetsExtension.build/Objects-normal/arm64/StreakWidgetsExtension-primary.swiftconstvalues",
+    "dependencies" : "/Users/madhvan07icloud.coom/self-improvment-app/Streak/build/Streak.build/Release-iphoneos/StreakWidgetsExtension.build/Objects-normal/arm64/StreakWidgetsExtension-primary.d",
+    "diagnostics" : "/Users/madhvan07icloud.coom/self-improvment-app/Streak/build/Streak.build/Release-iphoneos/StreakWidgetsExtension.build/Objects-normal/arm64/StreakWidgetsExtension-primary.dia",
+    "emit-module-dependencies" : "/Users/madhvan07icloud.coom/self-improvment-app/Streak/build/Streak.build/Release-iphoneos/StreakWidgetsExtension.build/Objects-normal/arm64/StreakWidgetsExtension-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/madhvan07icloud.coom/self-improvment-app/Streak/build/Streak.build/Release-iphoneos/StreakWidgetsExtension.build/Objects-normal/arm64/StreakWidgetsExtension-primary-emit-module.dia",
+    "pch" : "/Users/madhvan07icloud.coom/self-improvment-app/Streak/build/Streak.build/Release-iphoneos/StreakWidgetsExtension.build/Objects-normal/arm64/StreakWidgetsExtension-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/madhvan07icloud.coom/self-improvment-app/Streak/build/Streak.build/Release-iphoneos/StreakWidgetsExtension.build/Objects-normal/arm64/StreakWidgetsExtension-primary.swiftdeps"
+  },
+  "/Users/madhvan07icloud.coom/self-improvment-app/Streak/Streak/Infrastructure/WidgetDataStore.swift" : {
+    "index-unit-output-path" : "/Streak.build/Release-iphoneos/StreakWidgetsExtension.build/Objects-normal/arm64/WidgetDataStore.o",
+    "llvm-bc" : "/Users/madhvan07icloud.coom/self-improvment-app/Streak/build/Streak.build/Release-iphoneos/StreakWidgetsExtension.build/Objects-normal/arm64/WidgetDataStore.bc",
+    "object" : "/Users/madhvan07icloud.coom/self-improvment-app/Streak/build/Streak.build/Release-iphoneos/StreakWidgetsExtension.build/Objects-normal/arm64/WidgetDataStore.o"
+  },
+  "/Users/madhvan07icloud.coom/self-improvment-app/Streak/StreakWidgets/CategoryWidget.swift" : {
+    "index-unit-output-path" : "/Streak.build/Release-iphoneos/StreakWidgetsExtension.build/Objects-normal/arm64/CategoryWidget.o",
+    "llvm-bc" : "/Users/madhvan07icloud.coom/self-improvment-app/Streak/build/Streak.build/Release-iphoneos/StreakWidgetsExtension.build/Objects-normal/arm64/CategoryWidget.bc",
+    "object" : "/Users/madhvan07icloud.coom/self-improvment-app/Streak/build/Streak.build/Release-iphoneos/StreakWidgetsExtension.build/Objects-normal/arm64/CategoryWidget.o"
+  },
+  "/Users/madhvan07icloud.coom/self-improvment-app/Streak/StreakWidgets/GoalWidget.swift" : {
+    "index-unit-output-path" : "/Streak.build/Release-iphoneos/StreakWidgetsExtension.build/Objects-normal/arm64/GoalWidget.o",
+    "llvm-bc" : "/Users/madhvan07icloud.coom/self-improvment-app/Streak/build/Streak.build/Release-iphoneos/StreakWidgetsExtension.build/Objects-normal/arm64/GoalWidget.bc",
+    "object" : "/Users/madhvan07icloud.coom/self-improvment-app/Streak/build/Streak.build/Release-iphoneos/StreakWidgetsExtension.build/Objects-normal/arm64/GoalWidget.o"
+  },
+  "/Users/madhvan07icloud.coom/self-improvment-app/Streak/StreakWidgets/MasterStreakWidget.swift" : {
+    "index-unit-output-path" : "/Streak.build/Release-iphoneos/StreakWidgetsExtension.build/Objects-normal/arm64/MasterStreakWidget.o",
+    "llvm-bc" : "/Users/madhvan07icloud.coom/self-improvment-app/Streak/build/Streak.build/Release-iphoneos/StreakWidgetsExtension.build/Objects-normal/arm64/MasterStreakWidget.bc",
+    "object" : "/Users/madhvan07icloud.coom/self-improvment-app/Streak/build/Streak.build/Release-iphoneos/StreakWidgetsExtension.build/Objects-normal/arm64/MasterStreakWidget.o"
+  },
+  "/Users/madhvan07icloud.coom/self-improvment-app/Streak/StreakWidgets/MultiCategoryWidget.swift" : {
+    "index-unit-output-path" : "/Streak.build/Release-iphoneos/StreakWidgetsExtension.build/Objects-normal/arm64/MultiCategoryWidget.o",
+    "llvm-bc" : "/Users/madhvan07icloud.coom/self-improvment-app/Streak/build/Streak.build/Release-iphoneos/StreakWidgetsExtension.build/Objects-normal/arm64/MultiCategoryWidget.bc",
+    "object" : "/Users/madhvan07icloud.coom/self-improvment-app/Streak/build/Streak.build/Release-iphoneos/StreakWidgetsExtension.build/Objects-normal/arm64/MultiCategoryWidget.o"
+  },
+  "/Users/madhvan07icloud.coom/self-improvment-app/Streak/StreakWidgets/StreakWidgetsBundle.swift" : {
+    "index-unit-output-path" : "/Streak.build/Release-iphoneos/StreakWidgetsExtension.build/Objects-normal/arm64/StreakWidgetsBundle.o",
+    "llvm-bc" : "/Users/madhvan07icloud.coom/self-improvment-app/Streak/build/Streak.build/Release-iphoneos/StreakWidgetsExtension.build/Objects-normal/arm64/StreakWidgetsBundle.bc",
+    "object" : "/Users/madhvan07icloud.coom/self-improvment-app/Streak/build/Streak.build/Release-iphoneos/StreakWidgetsExtension.build/Objects-normal/arm64/StreakWidgetsBundle.o"
+  },
+  "/Users/madhvan07icloud.coom/self-improvment-app/Streak/StreakWidgets/TasksWidget.swift" : {
+    "index-unit-output-path" : "/Streak.build/Release-iphoneos/StreakWidgetsExtension.build/Objects-normal/arm64/TasksWidget.o",
+    "llvm-bc" : "/Users/madhvan07icloud.coom/self-improvment-app/Streak/build/Streak.build/Release-iphoneos/StreakWidgetsExtension.build/Objects-normal/arm64/TasksWidget.bc",
+    "object" : "/Users/madhvan07icloud.coom/self-improvment-app/Streak/build/Streak.build/Release-iphoneos/StreakWidgetsExtension.build/Objects-normal/arm64/TasksWidget.o"
+  },
+  "/Users/madhvan07icloud.coom/self-improvment-app/Streak/StreakWidgets/WidgetShared.swift" : {
+    "index-unit-output-path" : "/Streak.build/Release-iphoneos/StreakWidgetsExtension.build/Objects-normal/arm64/WidgetShared.o",
+    "llvm-bc" : "/Users/madhvan07icloud.coom/self-improvment-app/Streak/build/Streak.build/Release-iphoneos/StreakWidgetsExtension.build/Objects-normal/arm64/WidgetShared.bc",
+    "object" : "/Users/madhvan07icloud.coom/self-improvment-app/Streak/build/Streak.build/Release-iphoneos/StreakWidgetsExtension.build/Objects-normal/arm64/WidgetShared.o"
+  },
+  "/Users/madhvan07icloud.coom/self-improvment-app/Streak/build/Streak.build/Release-iphoneos/StreakWidgetsExtension.build/DerivedSources/GeneratedAssetSymbols.swift" : {
+    "index-unit-output-path" : "/Streak.build/Release-iphoneos/StreakWidgetsExtension.build/Objects-normal/arm64/GeneratedAssetSymbols.o",
+    "llvm-bc" : "/Users/madhvan07icloud.coom/self-improvment-app/Streak/build/Streak.build/Release-iphoneos/StreakWidgetsExtension.build/Objects-normal/arm64/GeneratedAssetSymbols.bc",
+    "object" : "/Users/madhvan07icloud.coom/self-improvment-app/Streak/build/Streak.build/Release-iphoneos/StreakWidgetsExtension.build/Objects-normal/arm64/GeneratedAssetSymbols.o"
+  }
+}

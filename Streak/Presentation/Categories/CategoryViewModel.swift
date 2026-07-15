@@ -28,13 +28,20 @@ final class CategoryViewModel {
             streak = try CalculateStreakUseCase(dayEntryRepository: env.dayEntryRepository)
                 .execute(categoryId: categoryId)
 
+            let syncUseCase = SyncGoalProgressUseCase(
+                goalRepository: env.goalRepository,
+                dayEntryRepository: env.dayEntryRepository,
+                taskRepository: env.taskRepository
+            )
+            try syncUseCase.execute()
+
             linkedGoals = try env.goalRepository.fetchAll()
                 .filter { $0.categoryId == categoryId }
 
             // All tasks for this category, grouped by date, past only, newest first
             let allTasks = try env.taskRepository.fetchAll()
                 .filter { $0.categoryId == categoryId }
-            let today = Calendar.current.startOfDay(for: Date())
+            let today = ActiveDayResolver.resolveActiveDate(for: Date(), settings: env.settingsRepository)
             let pastTasks = allTasks.filter { $0.targetDate <= today }
 
             var grouped: [Date: [Task]] = [:]

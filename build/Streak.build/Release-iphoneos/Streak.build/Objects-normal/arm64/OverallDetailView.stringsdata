@@ -1,0 +1,96 @@
+{
+  "source": "/Users/madhvan07icloud.coom/self-improvment-app/Streak/Streak/Presentation/Home/OverallDetailView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "OVERALL HISTORY",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 102
+        }
+      },
+      {
+        "comment": "",
+        "key": "Completion rate across all tasks",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 106
+        }
+      },
+      {
+        "comment": "",
+        "key": "COMPLETION RATE (0% - 100%)",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 114
+        }
+      },
+      {
+        "comment": "",
+        "key": "No history recorded yet.",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 119
+        }
+      },
+      {
+        "comment": "",
+        "key": "Selected",
+        "location": {
+          "startingColumn": 51,
+          "startingLine": 144
+        }
+      },
+      {
+        "comment": "",
+        "key": "Day",
+        "location": {
+          "startingColumn": 51,
+          "startingLine": 127
+        }
+      },
+      {
+        "comment": "",
+        "key": "Completion",
+        "location": {
+          "startingColumn": 51,
+          "startingLine": 128
+        }
+      },
+      {
+        "comment": "",
+        "key": "Day",
+        "location": {
+          "startingColumn": 51,
+          "startingLine": 135
+        }
+      },
+      {
+        "comment": "",
+        "key": "Completion",
+        "location": {
+          "startingColumn": 51,
+          "startingLine": 136
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld%%",
+        "location": {
+          "startingColumn": 50,
+          "startingLine": 168
+        }
+      },
+      {
+        "comment": "",
+        "key": "No tasks recorded for this day.",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 187
+        }
+      }
+    ]
+  },
+  "version": 1
+}

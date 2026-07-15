@@ -8,6 +8,7 @@ struct ResolveDayStatusUseCase {
     let taskRepository: any TaskRepository
     let categoryRepository: any CategoryRepository
     let dayEntryRepository: any DayEntryRepository
+    let settingsRepository: any SettingsRepository
 
     func execute(date: Date, categoryId: UUID?) throws {
         let tasks: [Task]
@@ -20,7 +21,16 @@ struct ResolveDayStatusUseCase {
 
         let taskCount = tasks.count
         let completedCount = tasks.filter { $0.isCompleted }.count
-        let status = DayStatus.resolve(taskCount: taskCount, completedCount: completedCount, date: date)
+        let activeDate = ActiveDayResolver.resolveActiveDate(for: Date(), settings: settingsRepository)
+        var status = DayStatus.resolve(taskCount: taskCount, completedCount: completedCount, date: date, activeDate: activeDate)
+
+        if status == .green {
+            let deadline = ActiveDayResolver.planningDeadline(for: date, settings: settingsRepository)
+            let hasLateTasks = tasks.contains { $0.createdAt > deadline }
+            if hasLateTasks {
+                status = .red
+            }
+        }
 
         let entry = DayEntry(
             date: date,

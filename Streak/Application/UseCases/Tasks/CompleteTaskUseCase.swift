@@ -5,13 +5,14 @@ import Foundation
 struct CompleteTaskUseCase {
     let taskRepository: any TaskRepository
     let resolveDayStatus: ResolveDayStatusUseCase
+    let settingsRepository: any SettingsRepository
 
     func execute(taskId: UUID, completed: Bool) throws {
         guard var task = try taskRepository.fetch(id: taskId) else {
             throw StreakError.taskNotFound
         }
         // Cannot complete a task that isn't for today or earlier
-        let today = Calendar.current.startOfDay(for: Date())
+        let today = ActiveDayResolver.resolveActiveDate(for: Date(), settings: settingsRepository)
         guard task.targetDate <= today else { return }
         task.isCompleted = completed
         task.completedAt = completed ? Date() : nil

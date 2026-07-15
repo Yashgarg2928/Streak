@@ -5,6 +5,8 @@
 import SwiftUI
 
 struct ConsistencyGridView: View {
+    @Environment(AppEnvironment.self) private var env
+    
     // Key: "yyyy-MM-dd" local date string → DayStatus
     let entries: [String: DayStatus]
     var categoryColor: Color? = nil
@@ -111,7 +113,11 @@ struct ConsistencyGridView: View {
     }
 
     private func fillColor(for status: DayStatus?, date: Date) -> Color {
-        let today = Calendar.current.startOfDay(for: Date())
+        let activeToday = env.settingsRepository.isOnboardingCompleted
+            ? ActiveDayResolver.resolveActiveDate(for: Date(), settings: env.settingsRepository)
+            : Calendar.current.startOfDay(for: Date())
+            
+        let today = Calendar.current.startOfDay(for: activeToday)
         let day   = Calendar.current.startOfDay(for: date)
         if day > today { return Color.clear }
         switch status {

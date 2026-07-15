@@ -1,0 +1,544 @@
+[
+  {
+    "typeName": "Streak.CategoryAppEntity",
+    "mangledTypeName": "6Streak17CategoryAppEntityV",
+    "kind": "struct",
+    "file": "/Users/madhvan07icloud.coom/self-improvment-app/Streak/Streak/App/AppEntities.swift",
+    "line": 9,
+    "conformances": [
+      "AppIntents.AppEntity",
+      "AppIntents.AppValue",
+      "AppIntents.DisplayRepresentable",
+      "Swift.Identifiable",
+      "AppIntents.PersistentlyIdentifiable",
+      "AppIntents.TypeDisplayRepresentable",
+      "AppIntents._IntentValue",
+      "Swift.Sendable",
+      "AppIntents.InstanceDisplayRepresentable",
+      "Swift.SendableMetatype",
+      "Foundation.CustomLocalizedStringResourceConvertible"
+    ],
+    "allConformances": [
+      {
+        "protocolName": "AppIntents.AppEntity",
+        "conformanceDefiningModule": "Streak"
+      },
+      {
+        "protocolName": "AppIntents.AppValue",
+        "conformanceDefiningModule": "Streak"
+      },
+      {
+        "protocolName": "AppIntents.DisplayRepresentable",
+        "conformanceDefiningModule": "Streak"
+      },
+      {
+        "protocolName": "Swift.Identifiable",
+        "conformanceDefiningModule": "Streak"
+      },
+      {
+        "protocolName": "AppIntents.PersistentlyIdentifiable",
+        "conformanceDefiningModule": "Streak"
+      },
+      {
+        "protocolName": "AppIntents.TypeDisplayRepresentable",
+        "conformanceDefiningModule": "Streak"
+      },
+      {
+        "protocolName": "AppIntents._IntentValue",
+        "conformanceDefiningModule": "Streak"
+      },
+      {
+        "protocolName": "Swift.Sendable",
+        "conformanceDefiningModule": "Streak"
+      },
+      {
+        "protocolName": "AppIntents.InstanceDisplayRepresentable",
+        "conformanceDefiningModule": "Streak"
+      },
+      {
+        "protocolName": "Swift.SendableMetatype",
+        "conformanceDefiningModule": "Streak"
+      },
+      {
+        "protocolName": "Foundation.CustomLocalizedStringResourceConvertible",
+        "conformanceDefiningModule": "Streak"
+      }
+    ],
+    "associatedTypeAliases": [
+      {
+        "typeAliasName": "DefaultQuery",
+        "substitutedTypeName": "Streak.CategoryEntityQuery",
+        "substitutedMangledTypeName": "6Streak19CategoryEntityQueryV"
+      },
+      {
+        "typeAliasName": "ID",
+        "substitutedTypeName": "Swift.String",
+        "substitutedMangledTypeName": "SS"
+      },
+      {
+        "typeAliasName": "ValueType",
+        "substitutedTypeName": "Streak.CategoryAppEntity",
+        "substitutedMangledTypeName": "6Streak17CategoryAppEntityV"
+      },
+      {
+        "typeAliasName": "UnwrappedType",
+        "substitutedTypeName": "Streak.CategoryAppEntity",
+        "substitutedMangledTypeName": "6Streak17CategoryAppEntityV"
+      },
+      {
+        "typeAliasName": "Specification",
+        "substitutedTypeName": "AppIntents.EmptyResolverSpecification<Streak.CategoryAppEntity>",
+        "substitutedMangledTypeName": "10AppIntents26EmptyResolverSpecificationVy6Streak08CategoryA6EntityVG"
+      }
+    ],
+    "properties": [
+      {
+        "label": "id",
+        "type": "Swift.String",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "false",
+        "file": "/Users/madhvan07icloud.coom/self-improvment-app/Streak/Streak/App/AppEntities.swift",
+        "line": 10,
+        "valueKind": "Runtime"
+      },
+      {
+        "label": "name",
+        "type": "Swift.String",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "false",
+        "file": "/Users/madhvan07icloud.coom/self-improvment-app/Streak/Streak/App/AppEntities.swift",
+        "line": 11,
+        "valueKind": "Runtime"
+      },
+      {
+        "label": "colorHex",
+        "type": "Swift.String",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "false",
+        "file": "/Users/madhvan07icloud.coom/self-improvment-app/Streak/Streak/App/AppEntities.swift",
+        "line": 12,
+        "valueKind": "Runtime"
+      },
+      {
+        "label": "typeDisplayRepresentation",
+        "type": "AppIntents.TypeDisplayRepresentation",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "true",
+        "isComputed": "false",
+        "file": "/Users/madhvan07icloud.coom/self-improvment-app/Streak/Streak/App/AppEntities.swift",
+        "line": 14,
+        "valueKind": "RawLiteral",
+        "value": "Category"
+      },
+      {
+        "label": "defaultQuery",
+        "type": "Streak.CategoryEntityQuery",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "true",
+        "isComputed": "false",
+        "file": "/Users/madhvan07icloud.coom/self-improvment-app/Streak/Streak/App/AppEntities.swift",
+        "line": 15,
+        "valueKind": "InitCall",
+        "value": {
+          "type": "Streak.CategoryEntityQuery",
+          "arguments": []
+        }
+      },
+      {
+        "label": "displayRepresentation",
+        "type": "AppIntents.DisplayRepresentation",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "true",
+        "file": "/Users/madhvan07icloud.coom/self-improvment-app/Streak/Streak/App/AppEntities.swift",
+        "line": 17,
+        "valueKind": "InitCall",
+        "value": {
+          "type": "AppIntents.DisplayRepresentation",
+          "arguments": [
+            {
+              "label": "title",
+              "type": "Foundation.LocalizedStringResource",
+              "valueKind": "InterpolatedStringLiteral",
+              "value": {
+                "segments": [
+                  {
+                    "valueKind": "RawLiteral",
+                    "value": ""
+                  },
+                  {
+                    "valueKind": "Runtime"
+                  },
+                  {
+                    "valueKind": "RawLiteral",
+                    "value": ""
+                  }
+                ]
+              }
+            },
+            {
+              "label": "subtitle",
+              "type": "Swift.Optional<Foundation.LocalizedStringResource>",
+              "valueKind": "NilLiteral"
+            },
+            {
+              "label": "image",
+              "type": "Swift.Optional<AppIntents.DisplayRepresentation.Image>",
+              "valueKind": "NilLiteral"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "typeName": "Streak.CategoryEntityQuery",
+    "mangledTypeName": "6Streak19CategoryEntityQueryV",
+    "kind": "struct",
+    "file": "/Users/madhvan07icloud.coom/self-improvment-app/Streak/Streak/App/AppEntities.swift",
+    "line": 22,
+    "conformances": [
+      "AppIntents.EntityQuery",
+      "AppIntents.DynamicOptionsProvider",
+      "AppIntents.PersistentlyIdentifiable",
+      "Swift.Sendable",
+      "AppIntents._SupportsAppDependencies",
+      "Swift.SendableMetatype",
+      "Swift.BitwiseCopyable"
+    ],
+    "allConformances": [
+      {
+        "protocolName": "AppIntents.EntityQuery",
+        "conformanceDefiningModule": "Streak"
+      },
+      {
+        "protocolName": "AppIntents.DynamicOptionsProvider",
+        "conformanceDefiningModule": "Streak"
+      },
+      {
+        "protocolName": "AppIntents.PersistentlyIdentifiable",
+        "conformanceDefiningModule": "Streak"
+      },
+      {
+        "protocolName": "Swift.Sendable",
+        "conformanceDefiningModule": "Streak"
+      },
+      {
+        "protocolName": "AppIntents._SupportsAppDependencies",
+        "conformanceDefiningModule": "Streak"
+      },
+      {
+        "protocolName": "Swift.SendableMetatype",
+        "conformanceDefiningModule": "Streak"
+      },
+      {
+        "protocolName": "Swift.BitwiseCopyable",
+        "conformanceDefiningModule": "Streak"
+      }
+    ],
+    "associatedTypeAliases": [
+      {
+        "typeAliasName": "Entity",
+        "substitutedTypeName": "Streak.CategoryAppEntity",
+        "substitutedMangledTypeName": "6Streak17CategoryAppEntityV"
+      },
+      {
+        "typeAliasName": "Result",
+        "substitutedTypeName": "Swift.Array<Streak.CategoryAppEntity>",
+        "substitutedMangledTypeName": "Say6Streak17CategoryAppEntityVG"
+      },
+      {
+        "typeAliasName": "Result",
+        "substitutedTypeName": "Swift.Array<Streak.CategoryAppEntity>",
+        "substitutedMangledTypeName": "Say6Streak17CategoryAppEntityVG"
+      },
+      {
+        "typeAliasName": "DefaultValue",
+        "substitutedTypeName": "Streak.CategoryAppEntity",
+        "substitutedMangledTypeName": "6Streak17CategoryAppEntityV"
+      }
+    ],
+    "properties": [
+      {
+        "label": "cache",
+        "type": "Swift.Array<Streak.CategoryAppEntity>",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "true",
+        "isComputed": "false",
+        "file": "/Users/madhvan07icloud.coom/self-improvment-app/Streak/Streak/App/AppEntities.swift",
+        "line": 23,
+        "valueKind": "Array",
+        "value": []
+      }
+    ]
+  },
+  {
+    "typeName": "Streak.GoalAppEntity",
+    "mangledTypeName": "6Streak13GoalAppEntityV",
+    "kind": "struct",
+    "file": "/Users/madhvan07icloud.coom/self-improvment-app/Streak/Streak/App/AppEntities.swift",
+    "line": 62,
+    "conformances": [
+      "AppIntents.AppEntity",
+      "AppIntents.AppValue",
+      "AppIntents.DisplayRepresentable",
+      "Swift.Identifiable",
+      "AppIntents.PersistentlyIdentifiable",
+      "AppIntents.TypeDisplayRepresentable",
+      "AppIntents._IntentValue",
+      "Swift.Sendable",
+      "AppIntents.InstanceDisplayRepresentable",
+      "Swift.SendableMetatype",
+      "Foundation.CustomLocalizedStringResourceConvertible"
+    ],
+    "allConformances": [
+      {
+        "protocolName": "AppIntents.AppEntity",
+        "conformanceDefiningModule": "Streak"
+      },
+      {
+        "protocolName": "AppIntents.AppValue",
+        "conformanceDefiningModule": "Streak"
+      },
+      {
+        "protocolName": "AppIntents.DisplayRepresentable",
+        "conformanceDefiningModule": "Streak"
+      },
+      {
+        "protocolName": "Swift.Identifiable",
+        "conformanceDefiningModule": "Streak"
+      },
+      {
+        "protocolName": "AppIntents.PersistentlyIdentifiable",
+        "conformanceDefiningModule": "Streak"
+      },
+      {
+        "protocolName": "AppIntents.TypeDisplayRepresentable",
+        "conformanceDefiningModule": "Streak"
+      },
+      {
+        "protocolName": "AppIntents._IntentValue",
+        "conformanceDefiningModule": "Streak"
+      },
+      {
+        "protocolName": "Swift.Sendable",
+        "conformanceDefiningModule": "Streak"
+      },
+      {
+        "protocolName": "AppIntents.InstanceDisplayRepresentable",
+        "conformanceDefiningModule": "Streak"
+      },
+      {
+        "protocolName": "Swift.SendableMetatype",
+        "conformanceDefiningModule": "Streak"
+      },
+      {
+        "protocolName": "Foundation.CustomLocalizedStringResourceConvertible",
+        "conformanceDefiningModule": "Streak"
+      }
+    ],
+    "associatedTypeAliases": [
+      {
+        "typeAliasName": "DefaultQuery",
+        "substitutedTypeName": "Streak.GoalEntityQuery",
+        "substitutedMangledTypeName": "6Streak15GoalEntityQueryV"
+      },
+      {
+        "typeAliasName": "ID",
+        "substitutedTypeName": "Swift.String",
+        "substitutedMangledTypeName": "SS"
+      },
+      {
+        "typeAliasName": "ValueType",
+        "substitutedTypeName": "Streak.GoalAppEntity",
+        "substitutedMangledTypeName": "6Streak13GoalAppEntityV"
+      },
+      {
+        "typeAliasName": "UnwrappedType",
+        "substitutedTypeName": "Streak.GoalAppEntity",
+        "substitutedMangledTypeName": "6Streak13GoalAppEntityV"
+      },
+      {
+        "typeAliasName": "Specification",
+        "substitutedTypeName": "AppIntents.EmptyResolverSpecification<Streak.GoalAppEntity>",
+        "substitutedMangledTypeName": "10AppIntents26EmptyResolverSpecificationVy6Streak04GoalA6EntityVG"
+      }
+    ],
+    "properties": [
+      {
+        "label": "id",
+        "type": "Swift.String",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "false",
+        "file": "/Users/madhvan07icloud.coom/self-improvment-app/Streak/Streak/App/AppEntities.swift",
+        "line": 63,
+        "valueKind": "Runtime"
+      },
+      {
+        "label": "title",
+        "type": "Swift.String",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "false",
+        "file": "/Users/madhvan07icloud.coom/self-improvment-app/Streak/Streak/App/AppEntities.swift",
+        "line": 64,
+        "valueKind": "Runtime"
+      },
+      {
+        "label": "typeDisplayRepresentation",
+        "type": "AppIntents.TypeDisplayRepresentation",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "true",
+        "isComputed": "false",
+        "file": "/Users/madhvan07icloud.coom/self-improvment-app/Streak/Streak/App/AppEntities.swift",
+        "line": 66,
+        "valueKind": "RawLiteral",
+        "value": "Goal"
+      },
+      {
+        "label": "defaultQuery",
+        "type": "Streak.GoalEntityQuery",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "true",
+        "isComputed": "false",
+        "file": "/Users/madhvan07icloud.coom/self-improvment-app/Streak/Streak/App/AppEntities.swift",
+        "line": 67,
+        "valueKind": "InitCall",
+        "value": {
+          "type": "Streak.GoalEntityQuery",
+          "arguments": []
+        }
+      },
+      {
+        "label": "displayRepresentation",
+        "type": "AppIntents.DisplayRepresentation",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "true",
+        "file": "/Users/madhvan07icloud.coom/self-improvment-app/Streak/Streak/App/AppEntities.swift",
+        "line": 69,
+        "valueKind": "InitCall",
+        "value": {
+          "type": "AppIntents.DisplayRepresentation",
+          "arguments": [
+            {
+              "label": "title",
+              "type": "Foundation.LocalizedStringResource",
+              "valueKind": "InterpolatedStringLiteral",
+              "value": {
+                "segments": [
+                  {
+                    "valueKind": "RawLiteral",
+                    "value": ""
+                  },
+                  {
+                    "valueKind": "Runtime"
+                  },
+                  {
+                    "valueKind": "RawLiteral",
+                    "value": ""
+                  }
+                ]
+              }
+            },
+            {
+              "label": "subtitle",
+              "type": "Swift.Optional<Foundation.LocalizedStringResource>",
+              "valueKind": "NilLiteral"
+            },
+            {
+              "label": "image",
+              "type": "Swift.Optional<AppIntents.DisplayRepresentation.Image>",
+              "valueKind": "NilLiteral"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "typeName": "Streak.GoalEntityQuery",
+    "mangledTypeName": "6Streak15GoalEntityQueryV",
+    "kind": "struct",
+    "file": "/Users/madhvan07icloud.coom/self-improvment-app/Streak/Streak/App/AppEntities.swift",
+    "line": 74,
+    "conformances": [
+      "AppIntents.EntityQuery",
+      "AppIntents.DynamicOptionsProvider",
+      "AppIntents.PersistentlyIdentifiable",
+      "Swift.Sendable",
+      "AppIntents._SupportsAppDependencies",
+      "Swift.SendableMetatype",
+      "Swift.BitwiseCopyable"
+    ],
+    "allConformances": [
+      {
+        "protocolName": "AppIntents.EntityQuery",
+        "conformanceDefiningModule": "Streak"
+      },
+      {
+        "protocolName": "AppIntents.DynamicOptionsProvider",
+        "conformanceDefiningModule": "Streak"
+      },
+      {
+        "protocolName": "AppIntents.PersistentlyIdentifiable",
+        "conformanceDefiningModule": "Streak"
+      },
+      {
+        "protocolName": "Swift.Sendable",
+        "conformanceDefiningModule": "Streak"
+      },
+      {
+        "protocolName": "AppIntents._SupportsAppDependencies",
+        "conformanceDefiningModule": "Streak"
+      },
+      {
+        "protocolName": "Swift.SendableMetatype",
+        "conformanceDefiningModule": "Streak"
+      },
+      {
+        "protocolName": "Swift.BitwiseCopyable",
+        "conformanceDefiningModule": "Streak"
+      }
+    ],
+    "associatedTypeAliases": [
+      {
+        "typeAliasName": "Entity",
+        "substitutedTypeName": "Streak.GoalAppEntity",
+        "substitutedMangledTypeName": "6Streak13GoalAppEntityV"
+      },
+      {
+        "typeAliasName": "Result",
+        "substitutedTypeName": "Swift.Array<Streak.GoalAppEntity>",
+        "substitutedMangledTypeName": "Say6Streak13GoalAppEntityVG"
+      },
+      {
+        "typeAliasName": "Result",
+        "substitutedTypeName": "Swift.Array<Streak.GoalAppEntity>",
+        "substitutedMangledTypeName": "Say6Streak13GoalAppEntityVG"
+      },
+      {
+        "typeAliasName": "DefaultValue",
+        "substitutedTypeName": "Streak.GoalAppEntity",
+        "substitutedMangledTypeName": "6Streak13GoalAppEntityV"
+      }
+    ],
+    "properties": [
+      {
+        "label": "cache",
+        "type": "Swift.Array<Streak.GoalAppEntity>",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "true",
+        "isComputed": "false",
+        "file": "/Users/madhvan07icloud.coom/self-improvment-app/Streak/Streak/App/AppEntities.swift",
+        "line": 75,
+        "valueKind": "Array",
+        "value": []
+      }
+    ]
+  }
+]

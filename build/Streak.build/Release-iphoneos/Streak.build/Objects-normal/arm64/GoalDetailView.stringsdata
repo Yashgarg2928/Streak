@@ -1,0 +1,80 @@
+{
+  "source": "/Users/madhvan07icloud.coom/self-improvment-app/Streak/Streak/Presentation/Goals/GoalDetailView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Goal Type: %@",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 96
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld%% completed",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 107
+        }
+      },
+      {
+        "comment": "",
+        "key": "Deadline: %@",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 112
+        }
+      },
+      {
+        "comment": "",
+        "key": "LOG PROGRESS",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 123
+        }
+      },
+      {
+        "comment": "",
+        "key": "Note (optional)",
+        "location": {
+          "startingColumn": 47,
+          "startingLine": 142
+        }
+      },
+      {
+        "comment": "",
+        "key": "Value (e.g. 10)",
+        "location": {
+          "startingColumn": 51,
+          "startingLine": 130
+        }
+      },
+      {
+        "comment": "",
+        "key": "PROGRESS TIMELINE",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 158
+        }
+      },
+      {
+        "comment": "",
+        "key": "No updates logged yet.",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 164
+        }
+      },
+      {
+        "comment": "",
+        "key": "+%@ %@",
+        "location": {
+          "startingColumn": 50,
+          "startingLine": 184
+        }
+      }
+    ]
+  },
+  "version": 1
+}

@@ -11,6 +11,7 @@ struct WidgetData: Codable {
     var tasksToday: TaskSummary
     var taskItems: [TaskItem]                  // actual task list for today
     var categories: [CategoryWidgetData]
+    var goals: [GoalWidgetData]
     var lastUpdated: Date
 
     struct TaskSummary: Codable {
@@ -30,8 +31,20 @@ struct WidgetData: Codable {
         var colorHex: String
         var streak: Int
         var statusToday: String            // "green" | "red" | "future"
-        // Last 60 days status: date string → status string
         var recentDays: [String: String]
+    }
+
+    struct GoalWidgetData: Codable, Identifiable {
+        var id: String                     // UUID string
+        var title: String
+        var categoryId: String?            // UUID string
+        var categoryColorHex: String?
+        var currentValue: Double
+        var targetValue: Double
+        var unit: String
+        var progressFraction: Double
+        var isCompleted: Bool
+        var targetDate: Date?
     }
 }
 

@@ -3,7 +3,10 @@
 import SwiftUI
 
 struct RootView: View {
+    @Environment(AppEnvironment.self) private var env
     @Environment(AppRouter.self) private var router
+    
+    @State private var showOnboarding: Bool = false
 
     var body: some View {
         @Bindable var router = router
@@ -17,20 +20,24 @@ struct RootView: View {
                 .tabItem { Label("Tasks", systemImage: "checkmark.square") }
                 .tag(Tab.tasks)
 
-            Text("Goals")
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(AppColor.background.ignoresSafeArea())
+            GoalListView(env: env)
                 .tabItem { Label("Goals", systemImage: "flag") }
                 .tag(Tab.goals)
 
-            Text("More")
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(AppColor.background.ignoresSafeArea())
+            SettingsView(env: env)
                 .tabItem { Label("More", systemImage: "ellipsis") }
                 .tag(Tab.more)
         }
         .tint(AppColor.textPrimary)
-        .onAppear { styleTabBar() }
+        .onAppear {
+            styleTabBar()
+            showOnboarding = !env.settingsRepository.isOnboardingCompleted
+        }
+        .fullScreenCover(isPresented: $showOnboarding) {
+            OnboardingView(settings: env.settingsRepository) {
+                showOnboarding = false
+            }
+        }
         .sheet(item: $router.activeSheet) { sheet in
             switch sheet {
             case .addCategory:

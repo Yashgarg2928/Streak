@@ -78,7 +78,11 @@ struct CategoryDetailView: View {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Menu {
                     Button("Edit") { router.present(.editCategory(categoryId)) }
-                    Button("Archive", role: .destructive) { vm?.archive() }
+                    Button("Archive", role: .destructive) {
+                        vm?.archive()
+                        env.syncWidgets()
+                        router.categoryDetailId = nil
+                    }
                 } label: {
                     Image(systemName: "ellipsis")
                         .foregroundStyle(AppColor.textPrimary)

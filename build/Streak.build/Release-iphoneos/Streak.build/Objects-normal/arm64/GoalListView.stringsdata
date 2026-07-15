@@ -1,0 +1,40 @@
+{
+  "source": "/Users/madhvan07icloud.coom/self-improvment-app/Streak/Streak/Presentation/Goals/GoalListView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "GOALS",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 61
+        }
+      },
+      {
+        "comment": "",
+        "key": "ACTIVE GOALS",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 31
+        }
+      },
+      {
+        "comment": "",
+        "key": "COMPLETED GOALS",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 45
+        }
+      },
+      {
+        "comment": "",
+        "key": "COMPLETED",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 106
+        }
+      }
+    ]
+  },
+  "version": 1
+}

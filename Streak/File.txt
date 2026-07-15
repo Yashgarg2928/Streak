@@ -1,0 +1,1 @@
+The thing which I can see differently is that above in the X code, in the area where devices are listed on the simulation, at the first year earlier it was Streak, but now it's Streak with its extension. I think it's saying running Streak with its extension on IP. 

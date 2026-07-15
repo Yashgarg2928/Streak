@@ -9,5 +9,7 @@ struct StreakWidgetsBundle: WidgetBundle {
         MasterStreakWidget()
         CategoryWidget()
         TasksWidget()
+        MultiCategoryWidget()
+        GoalWidget()
     }
 }

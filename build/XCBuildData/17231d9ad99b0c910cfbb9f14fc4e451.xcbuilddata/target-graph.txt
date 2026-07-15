@@ -1,0 +1,4 @@
+Target dependency graph (2 targets)
+Target 'Streak' in project 'Streak'
+➜ Explicit dependency on target 'StreakWidgetsExtension' in project 'Streak'
+Target 'StreakWidgetsExtension' in project 'Streak' (no dependencies)

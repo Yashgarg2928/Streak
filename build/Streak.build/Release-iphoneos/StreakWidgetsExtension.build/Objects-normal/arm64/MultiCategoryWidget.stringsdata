@@ -1,0 +1,108 @@
+{
+  "source": "/Users/madhvan07icloud.coom/self-improvment-app/Streak/StreakWidgets/MultiCategoryWidget.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Select Categories",
+        "location": {
+          "startingColumn": 49,
+          "startingLine": 12
+        }
+      },
+      {
+        "comment": "",
+        "key": "Choose which categories to display in the list.",
+        "location": {
+          "startingColumn": 48,
+          "startingLine": 13
+        }
+      },
+      {
+        "comment": "",
+        "key": "Categories"
+      },
+      {
+        "comment": "",
+        "key": "STREAKS",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 80
+        }
+      },
+      {
+        "comment": "",
+        "key": "No categories",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 86
+        }
+      },
+      {
+        "comment": "",
+        "key": "+ %lld more",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 111
+        }
+      },
+      {
+        "comment": "",
+        "key": "🔥%lld",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 103
+        }
+      },
+      {
+        "comment": "",
+        "key": "STREAKS",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 133
+        }
+      },
+      {
+        "comment": "",
+        "key": "No categories",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 139
+        }
+      },
+      {
+        "comment": "",
+        "key": "+ %lld more",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 163
+        }
+      },
+      {
+        "comment": "",
+        "key": "🔥%lld",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 198
+        }
+      },
+      {
+        "comment": "",
+        "key": "Category List Streaks",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 221
+        }
+      },
+      {
+        "comment": "",
+        "key": "View a compact list of category streaks. Edit the widget to select which ones to show.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 222
+        }
+      }
+    ]
+  },
+  "version": 1
+}

@@ -6,6 +6,7 @@ struct SyncWidgetDataUseCase {
     let categoryRepository: any CategoryRepository
     let taskRepository: any TaskRepository
     let dayEntryRepository: any DayEntryRepository
+    let goalRepository: any GoalRepository
 
     func execute() -> WidgetData? {
         try? buildWidgetData()
@@ -15,6 +16,7 @@ struct SyncWidgetDataUseCase {
         let today = Calendar.current.startOfDay(for: Date())
         let categories = try categoryRepository.fetchActive()
         let todayTasks = try taskRepository.fetchAll(for: today)
+        let goals = try goalRepository.fetchAll()
 
         let masterEntry = try dayEntryRepository.fetch(date: today, categoryId: nil)
         let masterStreak = try CalculateStreakUseCase(dayEntryRepository: dayEntryRepository)
@@ -67,6 +69,23 @@ struct SyncWidgetDataUseCase {
             )
         }
 
+        // Build goals widget data
+        let goalData = goals.map { goal in
+            let cat = categories.first { $0.id == goal.categoryId }
+            return WidgetData.GoalWidgetData(
+                id: goal.id.uuidString,
+                title: goal.title,
+                categoryId: goal.categoryId?.uuidString,
+                categoryColorHex: cat?.colorHex,
+                currentValue: goal.currentValue,
+                targetValue: goal.targetValue,
+                unit: goal.unit,
+                progressFraction: goal.progressFraction,
+                isCompleted: goal.isCompleted,
+                targetDate: goal.targetDate
+            )
+        }
+
         return WidgetData(
             masterStreak: masterStreak,
             masterStatusToday: masterEntry?.status.rawValue ?? "future",
@@ -77,6 +96,7 @@ struct SyncWidgetDataUseCase {
             ),
             taskItems: taskItems,
             categories: catData,
+            goals: goalData,
             lastUpdated: Date()
         )
     }

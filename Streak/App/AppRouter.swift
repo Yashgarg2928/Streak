@@ -43,6 +43,7 @@ final class AppRouter {
     var activeSheet: Sheet? = nil
     var categoryDetailId: UUID? = nil   // nil = no detail pushed
     var goalDetailId: UUID? = nil
+    var showOverallDetail: Bool = false
 
     func present(_ sheet: Sheet) {
         activeSheet = sheet

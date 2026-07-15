@@ -1,0 +1,128 @@
+{
+  "source": "/Users/madhvan07icloud.coom/self-improvment-app/Streak/StreakWidgets/TasksWidget.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "TASKS",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 74
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 79
+        }
+      },
+      {
+        "comment": "",
+        "key": "/ %lld",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 82
+        }
+      },
+      {
+        "comment": "",
+        "key": "🔥 %lld",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 103
+        }
+      },
+      {
+        "comment": "",
+        "key": "TODAY",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 128
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld / %lld",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 132
+        }
+      },
+      {
+        "comment": "",
+        "key": "+ %lld more",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 144
+        }
+      },
+      {
+        "comment": "",
+        "key": "TODAY'S TASKS",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 174
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 178
+        }
+      },
+      {
+        "comment": "",
+        "key": "/ %lld",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 181
+        }
+      },
+      {
+        "comment": "",
+        "key": "+ %lld more",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 200
+        }
+      },
+      {
+        "comment": "",
+        "key": "Tasks %lld/%lld",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 254
+        }
+      },
+      {
+        "comment": "",
+        "key": "· 🔥%lld",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 256
+        }
+      },
+      {
+        "comment": "",
+        "key": "Today's Tasks",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 275
+        }
+      },
+      {
+        "comment": "",
+        "key": "See your task list for today.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 276
+        }
+      }
+    ]
+  },
+  "version": 1
+}

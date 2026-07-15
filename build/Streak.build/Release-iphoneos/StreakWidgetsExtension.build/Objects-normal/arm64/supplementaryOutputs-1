@@ -1,0 +1,12 @@
+{
+  "/Users/madhvan07icloud.coom/self-improvment-app/Streak/StreakWidgets/CategoryWidget.swift" : {
+    "abi-baseline-json" : "/Users/madhvan07icloud.coom/self-improvment-app/Streak/build/Streak.build/Release-iphoneos/StreakWidgetsExtension.build/Objects-normal/arm64/StreakWidgetsExtension.abi.json",
+    "const-values" : "/Users/madhvan07icloud.coom/self-improvment-app/Streak/build/Streak.build/Release-iphoneos/StreakWidgetsExtension.build/Objects-normal/arm64/StreakWidgetsExtension-primary.swiftconstvalues",
+    "dependencies" : "/Users/madhvan07icloud.coom/self-improvment-app/Streak/build/Streak.build/Release-iphoneos/StreakWidgetsExtension.build/Objects-normal/arm64/StreakWidgetsExtension-primary.d",
+    "diagnostics" : "/Users/madhvan07icloud.coom/self-improvment-app/Streak/build/Streak.build/Release-iphoneos/StreakWidgetsExtension.build/Objects-normal/arm64/StreakWidgetsExtension-primary.dia",
+    "objc-header" : "/Users/madhvan07icloud.coom/self-improvment-app/Streak/build/Streak.build/Release-iphoneos/StreakWidgetsExtension.build/Objects-normal/arm64/StreakWidgetsExtension-Swift.h",
+    "swiftdoc" : "/Users/madhvan07icloud.coom/self-improvment-app/Streak/build/Streak.build/Release-iphoneos/StreakWidgetsExtension.build/Objects-normal/arm64/StreakWidgetsExtension.swiftdoc",
+    "swiftmodule" : "/Users/madhvan07icloud.coom/self-improvment-app/Streak/build/Streak.build/Release-iphoneos/StreakWidgetsExtension.build/Objects-normal/arm64/StreakWidgetsExtension.swiftmodule",
+    "swiftsourceinfo" : "/Users/madhvan07icloud.coom/self-improvment-app/Streak/build/Streak.build/Release-iphoneos/StreakWidgetsExtension.build/Objects-normal/arm64/StreakWidgetsExtension.swiftsourceinfo"
+  }
+}

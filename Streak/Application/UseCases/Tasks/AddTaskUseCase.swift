@@ -6,6 +6,7 @@ struct AddTaskUseCase {
     let taskRepository: any TaskRepository
     let categoryRepository: any CategoryRepository
     let resolveDayStatus: ResolveDayStatusUseCase
+    let settingsRepository: any SettingsRepository
 
     func execute(title: String, categoryId: UUID?, targetDate: Date) throws -> Task {
         let trimmed = title.trimmingCharacters(in: .whitespaces)
@@ -29,7 +30,7 @@ struct AddTaskUseCase {
     // v1: tasks only for today or tomorrow
     private func validateTargetDate(_ date: Date) throws {
         let cal = Calendar.current
-        let today = cal.startOfDay(for: Date())
+        let today = ActiveDayResolver.resolveActiveDate(for: Date(), settings: settingsRepository)
         let tomorrow = cal.date(byAdding: .day, value: 1, to: today)!
         let day = cal.startOfDay(for: date)
         guard day == today || day == tomorrow else {

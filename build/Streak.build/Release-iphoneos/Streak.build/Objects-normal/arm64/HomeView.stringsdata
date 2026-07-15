@@ -1,0 +1,40 @@
+{
+  "source": "/Users/madhvan07icloud.coom/self-improvment-app/Streak/Streak/Presentation/Home/HomeView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "STREAK",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 27
+        }
+      },
+      {
+        "comment": "",
+        "key": "OVERALL",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 60
+        }
+      },
+      {
+        "comment": "",
+        "key": "CATEGORIES",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 75
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ category, %lld day streak",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 119
+        }
+      }
+    ]
+  },
+  "version": 1
+}

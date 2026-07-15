@@ -1,0 +1,40 @@
+{
+  "source": "/Users/madhvan07icloud.coom/self-improvment-app/Streak/Streak/Presentation/Tasks/TaskListView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "TODAY",
+        "location": {
+          "startingColumn": 40,
+          "startingLine": 31
+        }
+      },
+      {
+        "comment": "",
+        "key": "TOMORROW",
+        "location": {
+          "startingColumn": 50,
+          "startingLine": 31
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add a task…",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 141
+        }
+      },
+      {
+        "comment": "",
+        "key": "CATEGORY",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 172
+        }
+      }
+    ]
+  },
+  "version": 1
+}

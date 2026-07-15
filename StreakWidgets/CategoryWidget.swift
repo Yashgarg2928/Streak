@@ -21,19 +21,35 @@ struct CategoryAppEntity: AppEntity {
 }
 
 struct CategoryEntityQuery: EntityQuery {
+    static var cache: [CategoryAppEntity] = []
+
     func entities(for identifiers: [String]) async throws -> [CategoryAppEntity] {
         let all = allEntities()
+        if !all.isEmpty {
+            Self.cache = all
+        }
+        let resolvedAll = all.isEmpty ? Self.cache : all
+        
         // Return all if identifiers is empty, else filter
-        guard !identifiers.isEmpty else { return all }
-        return all.filter { identifiers.contains($0.id) }
+        guard !identifiers.isEmpty else { return resolvedAll }
+        let lowercasedIds = identifiers.map { $0.lowercased() }
+        return resolvedAll.filter { lowercasedIds.contains($0.id.lowercased()) }
     }
 
     func suggestedEntities() async throws -> [CategoryAppEntity] {
-        allEntities()
+        let all = allEntities()
+        if !all.isEmpty {
+            Self.cache = all
+        }
+        return all
     }
 
     func defaultResult() async -> CategoryAppEntity? {
-        allEntities().first
+        let all = allEntities()
+        if !all.isEmpty {
+            Self.cache = all
+        }
+        return all.first
     }
 
     private func allEntities() -> [CategoryAppEntity] {
@@ -97,9 +113,9 @@ struct CategoryProvider: AppIntentTimelineProvider {
 
         let names = data.categories.map { $0.name }
 
-        // Match by selected entity id (UUID string), fall back to first
-        let selectedId = config.category?.id ?? ""
-        let cat = data.categories.first(where: { $0.id == selectedId })
+        // Match by selected entity id (UUID string) case-insensitively, fall back to first
+        let selectedId = (config.category?.id ?? "").lowercased()
+        let cat = data.categories.first(where: { $0.id.lowercased() == selectedId })
                   ?? data.categories[0]
 
         return CategoryEntry(

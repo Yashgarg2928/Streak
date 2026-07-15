@@ -1,0 +1,160 @@
+{
+  "source": "/Users/madhvan07icloud.coom/self-improvment-app/Streak/Streak/Presentation/Goals/AddGoalView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "NEW GOAL",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 85
+        }
+      },
+      {
+        "comment": "",
+        "key": "Goal Title (e.g. Gym 60 Days)",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 27
+        }
+      },
+      {
+        "comment": "",
+        "key": "TITLE",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 30
+        }
+      },
+      {
+        "comment": "",
+        "key": "Goal Type",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 34
+        }
+      },
+      {
+        "comment": "",
+        "key": "Link Category",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 43
+        }
+      },
+      {
+        "comment": "",
+        "key": "Active Streak",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 35
+        }
+      },
+      {
+        "comment": "",
+        "key": "Total Green Days",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 36
+        }
+      },
+      {
+        "comment": "",
+        "key": "Manual Target",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 37
+        }
+      },
+      {
+        "comment": "",
+        "key": "Total Tasks Done",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 38
+        }
+      },
+      {
+        "comment": "",
+        "key": "Select Category...",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 44
+        }
+      },
+      {
+        "comment": "",
+        "key": "TRACKING TYPE",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 51
+        }
+      },
+      {
+        "comment": "",
+        "key": "Target Value (e.g. 90)",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 60
+        }
+      },
+      {
+        "comment": "",
+        "key": "Unit Symbol (e.g. days, ₹, km)",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 63
+        }
+      },
+      {
+        "comment": "",
+        "key": "TARGET VALUE & UNIT",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 65
+        }
+      },
+      {
+        "comment": "",
+        "key": "Set Completion Deadline",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 69
+        }
+      },
+      {
+        "comment": "",
+        "key": "Deadline",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 71
+        }
+      },
+      {
+        "comment": "",
+        "key": "TIMELINE",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 74
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 89
+        }
+      },
+      {
+        "comment": "",
+        "key": "Save",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 94
+        }
+      }
+    ]
+  },
+  "version": 1
+}
