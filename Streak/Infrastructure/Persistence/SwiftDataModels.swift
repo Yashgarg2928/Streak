@@ -45,6 +45,7 @@ final class TaskModel {
     var isCompleted: Bool
     var completedAt: Date?
     var createdAt: Date
+    var isDeleted: Bool = false
 
     init(from entity: Task) {
         self.id = entity.id
@@ -54,12 +55,14 @@ final class TaskModel {
         self.isCompleted = entity.isCompleted
         self.completedAt = entity.completedAt
         self.createdAt = entity.createdAt
+        self.isDeleted = entity.isDeleted
     }
 
     func toDomain() -> Task {
         Task(id: id, title: title, categoryId: categoryId,
              targetDate: targetDate, isCompleted: isCompleted,
-             completedAt: completedAt, createdAt: createdAt)
+             completedAt: completedAt, createdAt: createdAt,
+             isDeleted: isDeleted)
     }
 
     func update(from entity: Task) {
@@ -68,6 +71,7 @@ final class TaskModel {
         targetDate = entity.targetDate
         isCompleted = entity.isCompleted
         completedAt = entity.completedAt
+        isDeleted = entity.isDeleted
     }
 }
 

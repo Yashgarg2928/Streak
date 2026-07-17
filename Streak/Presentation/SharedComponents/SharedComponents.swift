@@ -113,27 +113,39 @@ struct TaskRowView: View {
     }
 
     var body: some View {
-        Button(action: { if !isFuture { onToggle() } }) {
+        Button(action: { if !isFuture && !task.isDeleted { onToggle() } }) {
             HStack(spacing: 10) {
-                // Checkbox — greyed out for future tasks
+                // Checkbox — greyed out for future/deleted tasks
                 Image(systemName: task.isCompleted ? "checkmark.square.fill" : "square")
                     .font(.system(size: 22, weight: .medium))
                     .foregroundStyle(
+                        task.isDeleted ? AppColor.textDisabled.opacity(0.6) :
                         isFuture ? AppColor.textDisabled :
                         task.isCompleted ? AppColor.green : AppColor.textSecondary
                     )
                     .frame(width: 28, height: 28)
 
                 // Category dot
-                CategoryDot(color: categoryColor ?? AppColor.neutralDot)
+                CategoryDot(color: task.isDeleted ? AppColor.neutralDot.opacity(0.4) : (categoryColor ?? AppColor.neutralDot))
 
-                // Task title
-                Text(task.title)
-                    .font(.system(.body).weight(.medium))
-                    .foregroundStyle(isFuture ? AppColor.textSecondary : AppColor.textPrimary)
-                    .strikethrough(task.isCompleted, color: AppColor.textDisabled)
-                    .lineLimit(nil)
-                    .multilineTextAlignment(.leading)
+                // Task title + Deleted label
+                HStack(spacing: 6) {
+                    Text(task.title)
+                        .font(.system(.body).weight(.medium))
+                        .foregroundStyle(
+                            task.isDeleted ? AppColor.textDisabled :
+                            isFuture ? AppColor.textSecondary : AppColor.textPrimary
+                        )
+                        .strikethrough(task.isCompleted || task.isDeleted, color: AppColor.textDisabled)
+                        .lineLimit(nil)
+                        .multilineTextAlignment(.leading)
+                    
+                    if task.isDeleted {
+                        Text("(Deleted)")
+                            .font(.system(.caption).weight(.bold))
+                            .foregroundStyle(AppColor.textDisabled)
+                    }
+                }
 
                 Spacer()
             }
@@ -141,6 +153,7 @@ struct TaskRowView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .disabled(task.isDeleted)
     }
 }
 

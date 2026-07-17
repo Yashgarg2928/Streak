@@ -18,7 +18,12 @@ final class TaskViewModel {
     func load(for date: Date = Date()) {
         do {
             tasks = try env.taskRepository.fetchAll(for: date)
-                .sorted { !$0.isCompleted && $1.isCompleted }
+                .sorted { t1, t2 in
+                    if t1.isDeleted != t2.isDeleted {
+                        return !t1.isDeleted && t2.isDeleted
+                    }
+                    return !t1.isCompleted && t2.isCompleted
+                }
             categories = try env.categoryRepository.fetchActive()
         } catch {
             errorMessage = error.localizedDescription
@@ -89,7 +94,11 @@ final class TaskViewModel {
     func delete(taskId: UUID, for date: Date = Date()) {
         do {
             guard let task = try env.taskRepository.fetch(id: taskId) else { return }
-            try env.taskRepository.delete(id: taskId)
+            if task.isDeleted {
+                try env.taskRepository.deletePermanently(id: taskId)
+            } else {
+                try env.taskRepository.delete(id: taskId)
+            }
             
             let resolver = ResolveDayStatusUseCase(
                 taskRepository: env.taskRepository,

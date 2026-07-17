@@ -123,6 +123,15 @@ final class SwiftDataTaskRepository: TaskRepository {
         let models = try context.fetch(FetchDescriptor<TaskModel>(
             predicate: #Predicate { $0.id == localId }
         ))
+        models.forEach { $0.isDeleted = true }
+        try context.save()
+    }
+
+    func deletePermanently(id: UUID) throws {
+        let localId = id
+        let models = try context.fetch(FetchDescriptor<TaskModel>(
+            predicate: #Predicate { $0.id == localId }
+        ))
         models.forEach { context.delete($0) }
         try context.save()
     }

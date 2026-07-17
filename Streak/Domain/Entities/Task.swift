@@ -11,6 +11,7 @@ struct Task: Identifiable, Equatable {
     var isCompleted: Bool
     var completedAt: Date?
     let createdAt: Date
+    var isDeleted: Bool
 
     init(
         id: UUID = UUID(),
@@ -19,7 +20,8 @@ struct Task: Identifiable, Equatable {
         targetDate: Date,
         isCompleted: Bool = false,
         completedAt: Date? = nil,
-        createdAt: Date = Date()
+        createdAt: Date = Date(),
+        isDeleted: Bool = false
     ) {
         self.id = id
         self.title = title
@@ -28,5 +30,6 @@ struct Task: Identifiable, Equatable {
         self.isCompleted = isCompleted
         self.completedAt = completedAt
         self.createdAt = createdAt
+        self.isDeleted = isDeleted
     }
 }
