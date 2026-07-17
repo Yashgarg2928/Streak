@@ -132,7 +132,7 @@ struct TaskRowView: View {
                     .font(.system(.body).weight(.medium))
                     .foregroundStyle(isFuture ? AppColor.textSecondary : AppColor.textPrimary)
                     .strikethrough(task.isCompleted, color: AppColor.textDisabled)
-                    .lineLimit(2)
+                    .lineLimit(nil)
                     .multilineTextAlignment(.leading)
 
                 Spacer()
