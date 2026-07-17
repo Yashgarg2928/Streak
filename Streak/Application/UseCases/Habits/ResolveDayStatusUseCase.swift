@@ -19,7 +19,17 @@ struct ResolveDayStatusUseCase {
             tasks = try taskRepository.fetchAll(for: date)
         }
         
-        let activeTasks = tasks.filter { !$0.isDeleted }
+        let activeCategories = try categoryRepository.fetchActive()
+        let activeCategoryIds = Set(activeCategories.map { $0.id })
+        
+        let activeTasks = tasks.filter { task in
+            if task.isDeleted { return false }
+            if let catId = task.categoryId {
+                return activeCategoryIds.contains(catId)
+            }
+            return true
+        }
+        
         let taskCount = activeTasks.count
         let completedCount = activeTasks.filter { $0.isCompleted }.count
         let activeDate = ActiveDayResolver.resolveActiveDate(for: Date(), settings: settingsRepository)

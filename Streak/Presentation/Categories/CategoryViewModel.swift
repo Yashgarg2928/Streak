@@ -59,6 +59,26 @@ final class CategoryViewModel {
         guard let id = category?.id else { return }
         do {
             try env.categoryRepository.archive(id: id)
+            
+            // Re-resolve today's master status (using the new logic which ignores archived categories)
+            let today = ActiveDayResolver.resolveActiveDate(for: Date(), settings: env.settingsRepository)
+            let resolver = ResolveDayStatusUseCase(
+                taskRepository: env.taskRepository,
+                categoryRepository: env.categoryRepository,
+                dayEntryRepository: env.dayEntryRepository,
+                settingsRepository: env.settingsRepository
+            )
+            try resolver.execute(date: today, categoryId: nil)
+            
+            // Recalculate goal values
+            let syncGoals = SyncGoalProgressUseCase(
+                goalRepository: env.goalRepository,
+                dayEntryRepository: env.dayEntryRepository,
+                taskRepository: env.taskRepository
+            )
+            try syncGoals.execute()
+            
+            env.syncWidgets()
         } catch {
             errorMessage = error.localizedDescription
         }
