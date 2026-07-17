@@ -41,6 +41,14 @@ final class TaskViewModel {
                 settingsRepository: env.settingsRepository
             )
             _ = try useCase.execute(title: title, categoryId: categoryId, targetDate: date)
+            
+            let syncGoals = SyncGoalProgressUseCase(
+                goalRepository: env.goalRepository,
+                dayEntryRepository: env.dayEntryRepository,
+                taskRepository: env.taskRepository
+            )
+            try syncGoals.execute()
+            
             env.syncWidgets()
             load(for: date)
         } catch {
@@ -63,6 +71,14 @@ final class TaskViewModel {
                 settingsRepository: env.settingsRepository
             )
             try useCase.execute(taskId: taskId, completed: !task.isCompleted)
+            
+            let syncGoals = SyncGoalProgressUseCase(
+                goalRepository: env.goalRepository,
+                dayEntryRepository: env.dayEntryRepository,
+                taskRepository: env.taskRepository
+            )
+            try syncGoals.execute()
+            
             env.syncWidgets()
             load(for: date)
         } catch {
@@ -72,7 +88,26 @@ final class TaskViewModel {
 
     func delete(taskId: UUID, for date: Date = Date()) {
         do {
+            guard let task = try env.taskRepository.fetch(id: taskId) else { return }
             try env.taskRepository.delete(id: taskId)
+            
+            let resolver = ResolveDayStatusUseCase(
+                taskRepository: env.taskRepository,
+                categoryRepository: env.categoryRepository,
+                dayEntryRepository: env.dayEntryRepository,
+                settingsRepository: env.settingsRepository
+            )
+            try resolver.execute(date: task.targetDate, categoryId: task.categoryId)
+            try resolver.execute(date: task.targetDate, categoryId: nil)
+            
+            let syncGoals = SyncGoalProgressUseCase(
+                goalRepository: env.goalRepository,
+                dayEntryRepository: env.dayEntryRepository,
+                taskRepository: env.taskRepository
+            )
+            try syncGoals.execute()
+            
+            env.syncWidgets()
             load(for: date)
         } catch {
             errorMessage = error.localizedDescription

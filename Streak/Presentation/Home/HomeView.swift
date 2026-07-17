@@ -47,6 +47,11 @@ struct HomeView: View {
                 OverallDetailView(env: env)
             }
         }
+        .onChange(of: router.activeSheet) { oldValue, newValue in
+            if newValue == nil {
+                vm?.load()
+            }
+        }
         .onAppear {
             if vm == nil { vm = HomeViewModel(env: env) }
             vm?.load()
