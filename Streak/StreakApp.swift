@@ -214,5 +214,43 @@ struct StreakApp: App {
             environment.syncWidgets()
             defaults.set(fmt.string(from: currentActiveDate), forKey: lastActiveDateKey)
         }
+        
+        // Check if the current active date has passed its planning deadline and has 0 tasks
+        let deadline = ActiveDayResolver.planningDeadline(for: currentActiveDate, settings: settings)
+        if Date() > deadline {
+            let taskRepo = SwiftDataTaskRepository(context: ctx)
+            let dayEntryRepo = SwiftDataDayEntryRepository(context: ctx)
+            let categoryRepo = SwiftDataCategoryRepository(context: ctx)
+            
+            do {
+                let tasks = try taskRepo.fetchAll(for: currentActiveDate)
+                if tasks.isEmpty {
+                    let masterEntry = DayEntry(
+                        date: currentActiveDate,
+                        categoryId: nil,
+                        status: .red,
+                        taskCount: 0,
+                        completedCount: 0
+                    )
+                    try dayEntryRepo.save(masterEntry)
+                    
+                    let activeCategories = try categoryRepo.fetchActive()
+                    for cat in activeCategories {
+                        let catEntry = DayEntry(
+                            date: currentActiveDate,
+                            categoryId: cat.id,
+                            status: .red,
+                            taskCount: 0,
+                            completedCount: 0
+                        )
+                        try dayEntryRepo.save(catEntry)
+                    }
+                    
+                    environment.syncWidgets()
+                }
+            } catch {
+                print("Failed to enforce planning deadline check: \(error)")
+            }
+        }
     }
 }
