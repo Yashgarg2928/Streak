@@ -6,10 +6,6 @@ public final class ActiveDayResolver {
     public static func resolveActiveDate(for date: Date, settings: SettingsRepository) -> Date {
         let calendar = Calendar.current
         
-        guard settings.isInterCalendarEnabled else {
-            return calendar.startOfDay(for: date)
-        }
-        
         let endHour = settings.activeDayEndHour
         let endMinute = settings.activeDayEndMinute
         let startHour = settings.activeDayStartHour

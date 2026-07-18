@@ -92,29 +92,37 @@ struct SettingsView: View {
                         }
                         .tint(AppColor.border)
                         
-                        if isInterCalendar {
-                            Divider()
-                                .background(AppColor.border)
-                            
-                            HStack {
-                                Text("Active Start:")
-                                    .font(.system(.body).weight(.semibold))
-                                    .foregroundStyle(AppColor.textSecondary)
-                                Spacer()
-                                TimeDropdownPicker(hour: $startHour, minute: $startMinute)
-                            }
-                            
-                            Divider()
-                                .background(AppColor.border)
-                            
-                            HStack {
-                                Text("Active End:")
-                                    .font(.system(.body).weight(.semibold))
-                                    .foregroundStyle(AppColor.textSecondary)
-                                Spacer()
-                                TimeDropdownPicker(hour: $endHour, minute: $endMinute)
-                            }
+                        Divider()
+                            .background(AppColor.border)
+                        
+                        HStack {
+                            Text("Active Start:")
+                                .font(.system(.body).weight(.semibold))
+                                .foregroundStyle(AppColor.textSecondary)
+                            Spacer()
+                            TimeDropdownPicker(hour: $startHour, minute: $startMinute)
                         }
+                        
+                        Divider()
+                            .background(AppColor.border)
+                        
+                        HStack {
+                            Text("Active End:")
+                                .font(.system(.body).weight(.semibold))
+                                .foregroundStyle(AppColor.textSecondary)
+                            Spacer()
+                            TimeDropdownPicker(hour: $endHour, minute: $endMinute)
+                        }
+                        
+                        Divider()
+                            .background(AppColor.border)
+                        
+                        Text(isInterCalendar
+                             ? "Your active day wraps across midnight (e.g. 1 PM to 1 AM)."
+                             : "Your active day is within a single calendar day (e.g. 9 AM to 6 PM).")
+                            .font(.system(.caption))
+                            .foregroundStyle(AppColor.textSecondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                     }
                 }
                 .padding(.horizontal, AppLayout.screenMargin)
@@ -222,6 +230,21 @@ struct SettingsView: View {
                 
                 // Save Button
                 BrutalistButton(title: "SAVE CONFIGURATION") {
+                    if !isInterCalendar {
+                        let endTotal = endHour * 60 + endMinute
+                        let startTotal = startHour * 60 + startMinute
+                        if endTotal <= startTotal {
+                            bannerMessage = "End time must be after start time when Spans Midnight is off."
+                            withAnimation {
+                                showBanner = true
+                            }
+                            // Trigger failure haptic
+                            let feedback = UINotificationFeedbackGenerator()
+                            feedback.notificationOccurred(.error)
+                            return
+                        }
+                    }
+                    
                     settings.activeDayStartHour = startHour
                     settings.activeDayStartMinute = startMinute
                     settings.activeDayEndHour = endHour

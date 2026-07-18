@@ -16,6 +16,9 @@ struct OnboardingView: View {
     @State private var planningHour: Int = 10
     @State private var planningMinute: Int = 0
     
+    @State private var showBanner: Bool = false
+    @State private var bannerMessage: String = ""
+    
     var body: some View {
         ScrollView {
             VStack(spacing: AppLayout.sectionSpacing) {
@@ -36,6 +39,29 @@ struct OnboardingView: View {
                 .padding(.horizontal, AppLayout.screenMargin)
                 .padding(.top, 20)
                 
+                // Banner Notification
+                if showBanner {
+                    HStack {
+                        Text(bannerMessage)
+                            .font(.system(.subheadline, design: .monospaced).weight(.bold))
+                            .foregroundStyle(AppColor.textPrimary)
+                        Spacer()
+                        Button(action: { showBanner = false }) {
+                            Image(systemName: "xmark")
+                                .foregroundStyle(AppColor.textSecondary)
+                        }
+                    }
+                    .padding()
+                    .background(AppColor.surface)
+                    .clipShape(RoundedRectangle(cornerRadius: AppLayout.cornerRadius))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: AppLayout.cornerRadius)
+                            .stroke(AppColor.red, lineWidth: AppLayout.borderWidth)
+                    )
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                    .padding(.horizontal, AppLayout.screenMargin)
+                }
+                
                 // Active Boundaries Card
                 BrutalistCard {
                     VStack(spacing: AppLayout.itemSpacing * 2) {
@@ -51,41 +77,39 @@ struct OnboardingView: View {
                         }
                         .tint(AppColor.border)
                         
-                        if isInterCalendar {
-                            Divider()
-                                .background(AppColor.border)
-                            
-                            // Start Time Selection
-                            HStack {
-                                Text("Active Start:")
-                                    .font(.system(.body).weight(.semibold))
-                                    .foregroundStyle(AppColor.textSecondary)
-                                Spacer()
-                                TimeDropdownPicker(hour: $startHour, minute: $startMinute)
-                            }
-                            
-                            Divider()
-                                .background(AppColor.border)
-                            
-                            // End Time Selection
-                            HStack {
-                                Text("Active End:")
-                                    .font(.system(.body).weight(.semibold))
-                                    .foregroundStyle(AppColor.textSecondary)
-                                Spacer()
-                                TimeDropdownPicker(hour: $endHour, minute: $endMinute)
-                            }
-                            
-                            Text("Your active day wraps across midnight (e.g. 7 AM to 2 AM).")
-                                .font(.system(.caption))
+                        Divider()
+                            .background(AppColor.border)
+                        
+                        // Start Time Selection
+                        HStack {
+                            Text("Active Start:")
+                                .font(.system(.body).weight(.semibold))
                                 .foregroundStyle(AppColor.textSecondary)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                        } else {
-                            Text("Your active day follows standard calendar days (resets strictly at Midnight).")
-                                .font(.system(.caption))
-                                .foregroundStyle(AppColor.textSecondary)
-                                .frame(maxWidth: .infinity, alignment: .leading)
+                            Spacer()
+                            TimeDropdownPicker(hour: $startHour, minute: $startMinute)
                         }
+                        
+                        Divider()
+                            .background(AppColor.border)
+                        
+                        // End Time Selection
+                        HStack {
+                            Text("Active End:")
+                                .font(.system(.body).weight(.semibold))
+                                .foregroundStyle(AppColor.textSecondary)
+                            Spacer()
+                            TimeDropdownPicker(hour: $endHour, minute: $endMinute)
+                        }
+                        
+                        Divider()
+                            .background(AppColor.border)
+                        
+                        Text(isInterCalendar
+                             ? "Your active day wraps across midnight (e.g. 1 PM to 1 AM)."
+                             : "Your active day is within a single calendar day (e.g. 9 AM to 6 PM).")
+                            .font(.system(.caption))
+                            .foregroundStyle(AppColor.textSecondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                     }
                 }
                 .padding(.horizontal, AppLayout.screenMargin)
@@ -129,6 +153,21 @@ struct OnboardingView: View {
                 
                 // Finish Button
                 BrutalistButton(title: "START STREAKING") {
+                    if !isInterCalendar {
+                        let endTotal = endHour * 60 + endMinute
+                        let startTotal = startHour * 60 + startMinute
+                        if endTotal <= startTotal {
+                            bannerMessage = "End time must be after start time when Spans Midnight is off."
+                            withAnimation {
+                                showBanner = true
+                            }
+                            // Trigger failure haptic
+                            let feedback = UINotificationFeedbackGenerator()
+                            feedback.notificationOccurred(.error)
+                            return
+                        }
+                    }
+                    
                     settings.activeDayStartHour = startHour
                     settings.activeDayStartMinute = startMinute
                     settings.activeDayEndHour = endHour
