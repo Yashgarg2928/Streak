@@ -73,6 +73,16 @@ This module details task creation, multi-timeframe planning (Daily, Weekly, Mont
   - **4-Segment Main Tab Control:** Switch between `DAILY`, `WEEKLY`, `MONTHLY`, and `TO-DO LIST`.
   - **Date Toggle (Daily Tab):** Switches daily views between Today and Tomorrow.
   - **Progress Header Cards:** Show progress bars and completion percentages for Weekly and Monthly tabs.
-  - **Task Row Quick Action Pills:** `[⚡️ TODAY]` and `[🗓️ TOMORROW]` pills and scope move menu to instantly schedule weekly, monthly, or backlog items.
+  - **Task Row Quick Action Pills:** Quick action pills and scope move menu to schedule weekly, monthly, or backlog items.
   - **Quick Add Bar:** Adds new tasks with inline category pickers tailored to the active tab's timeframe.
+
+### 3. `OverallDetailView` (Streak Chart Screen)
+- **File Path:** [OverallDetailView.swift](file:///Users/madhvan07icloud.coom/self-improvment-app/Streak/Streak/Presentation/Home/OverallDetailView.swift)
+- **Responsibility:** Shows the overall daily tasks x year consistency grid, overall trend graph, and day-by-day task lists.
+- **Key Features:**
+  - **Daily Tasks Heatmap Matrix:** A horizontal timeline scrolling through the weeks of the year, with a fixed left column listing habit routines. Cells display individual task completion status.
+  - **Month Scroll Alignment:** Interactive month header (`< JULY - 2026 >`). Selecting a month scrolls the grid horizontally to focus that month.
+  - **Legend & Info Popovers:** Explains cell state colors. Tapping a cell displays a tooltip popover showing details of the task name, date, and status.
+  - **Overall Trend Line Graph:** Displays the 0% to 100% completion rate trend over the months.
+  - **Add Habit Button:** Inline `[+ ADD HABIT]` button opens the Habit Commitment creation modal directly.
 

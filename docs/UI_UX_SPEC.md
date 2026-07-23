@@ -150,6 +150,28 @@ Cell: 12×12pt square, 3pt gap, 2pt corner radius.
 Month labels above columns. Day-of-week labels on left.  
 Tap a cell → shows date + status in a small popover.
 
+### 5.3a Daily Tasks Heatmap Grid (Matrix Chart)
+A horizontal grid mapping **individual daily habit tasks** (rows) against **days grouped by weeks** (columns) over a scrollable timeline.
+
+```
+TASKS        JUN        | JUL            | AUG
+Workout      ■ ■ ■ □ ■  | ■ ■ ■ ■ □ ■ ■  | ■ ■ ■ ■ ■
+Study        ■ □ ■ ■ ■  | ■ ■ □ ■ ■ ■ □  | ■ ■ ■ □ ■
+Read         □ ■ ■ ■ ■  | ■ ■ ■ ■ ■ ■ ■  | □ ■ ■ ■ ■
+```
+
+- **Row Titles:** Bold task names in a fixed left column (width: 90pt).
+- **Timeline Columns:** Month labels (e.g. `JUN`, `JUL`) centered above columns, with Monday numbers (e.g. `22`, `29`, `6`) centered over week columns.
+- **Cells:** 12x12pt cells with 2pt gap horizontally, grouped in weeks (7 days) with a 6pt gap.
+- **Rules:**
+  - Green cell: Task completed.
+  - Red cell: Task missed and day has ended (`date < activeDate`).
+  - Blank (beige/dark gray): Task not completed and day has not ended yet (`date >= activeDate`), or date is outside task's routine timeline.
+- **Interaction:**
+  - Tapping a cell shows a popover/tooltip containing the task name, date, and status.
+  - Selecting a month in the header (`< JULY - 2026 >`) scrolls the grid horizontally to that month.
+  - `[+ Add Habit]` button at the bottom of the tasks column opens the Habit Routine creation sheet.
+
 ### 5.4 StreakBadge
 ```
 ┌──────────────┐
