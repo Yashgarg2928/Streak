@@ -181,16 +181,26 @@ struct TaskListView: View {
 
     private func toggleButton(title: String, date: Date) -> some View {
         let selected = Calendar.current.isDate(selectedDate ?? activeToday, inSameDayAs: date)
+        let dateString: String = {
+            let f = DateFormatter()
+            f.dateFormat = "EEE, MMM d"
+            return f.string(from: date)
+        }()
         return Button {
             selectedDate = date
             vm?.load(tab: .daily, for: date)
         } label: {
-            Text(title)
-                .font(.system(.subheadline).weight(.semibold))
-                .foregroundStyle(selected ? AppColor.background : AppColor.textPrimary)
-                .frame(maxWidth: .infinity)
-                .frame(height: AppLayout.minTapTarget)
-                .background(selected ? AppColor.border : AppColor.surface)
+            VStack(spacing: 2) {
+                Text(title)
+                    .font(.system(.subheadline).weight(.bold))
+                    .foregroundStyle(selected ? AppColor.background : AppColor.textPrimary)
+                Text(dateString)
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(selected ? AppColor.background.opacity(0.75) : AppColor.textSecondary)
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: AppLayout.minTapTarget + 10)
+            .background(selected ? AppColor.border : AppColor.surface)
         }
     }
 
