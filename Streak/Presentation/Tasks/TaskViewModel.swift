@@ -15,6 +15,7 @@ enum TaskTab: String, CaseIterable, Identifiable {
 @Observable
 final class TaskViewModel {
     private(set) var tasks: [Task] = []
+    private(set) var routines: [HabitRoutine] = []
     private(set) var categories: [Category] = []
     private(set) var errorMessage: String? = nil
 
@@ -27,9 +28,16 @@ final class TaskViewModel {
     func load(tab: TaskTab = .daily, for date: Date = Date()) {
         do {
             categories = try env.categoryRepository.fetchActive()
+            routines = try env.habitRoutineRepository.fetchAll()
+            
             let fetched: [Task]
             switch tab {
             case .daily:
+                let generator = GenerateRoutineTasksUseCase(
+                    habitRoutineRepository: env.habitRoutineRepository,
+                    taskRepository: env.taskRepository
+                )
+                _ = try generator.execute(for: date)
                 fetched = try env.taskRepository.fetchAll(for: date).filter { $0.timeframe == .daily }
             case .weekly:
                 fetched = try env.taskRepository.fetch(timeframe: .weekly)
@@ -45,6 +53,72 @@ final class TaskViewModel {
                 }
                 return !t1.isCompleted && t2.isCompleted
             }
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func addHabitRoutine(
+        title: String,
+        categoryId: UUID?,
+        type: HabitRoutineType,
+        startDate: Date = Date(),
+        endDate: Date = Date(),
+        for currentDate: Date = Date()
+    ) {
+        guard !title.trimmingCharacters(in: .whitespaces).isEmpty else { return }
+        do {
+            let cal = Calendar.current
+            let start: Date
+            let end: Date
+            let isLocked: Bool
+            
+            switch type {
+            case .monthlyFixed:
+                // Full current month range
+                let comps = cal.dateComponents([.year, .month], from: currentDate)
+                start = cal.date(from: comps) ?? currentDate
+                let range = cal.range(of: .day, in: .month, for: currentDate)?.count ?? 30
+                end = cal.date(byAdding: .day, value: range - 1, to: start) ?? currentDate
+                isLocked = true
+            case .customRange:
+                start = cal.startOfDay(for: startDate)
+                end = cal.startOfDay(for: endDate)
+                isLocked = false
+            }
+            
+            let routine = HabitRoutine(
+                title: title,
+                categoryId: categoryId,
+                type: type,
+                startDate: start,
+                endDate: end,
+                isLocked: isLocked
+            )
+            try env.habitRoutineRepository.save(routine)
+            
+            // Auto-generate daily task for current active date
+            let generator = GenerateRoutineTasksUseCase(
+                habitRoutineRepository: env.habitRoutineRepository,
+                taskRepository: env.taskRepository
+            )
+            _ = try generator.execute(for: currentDate)
+            
+            load(tab: .daily, for: currentDate)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func deleteHabitRoutine(id: UUID, for date: Date = Date()) {
+        do {
+            guard let routine = try env.habitRoutineRepository.fetch(id: id) else { return }
+            if routine.isLocked {
+                errorMessage = "Locked monthly commitments cannot be deleted."
+                return
+            }
+            try env.habitRoutineRepository.delete(id: id)
+            load(tab: .daily, for: date)
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -122,6 +196,10 @@ final class TaskViewModel {
     func delete(taskId: UUID, tab: TaskTab = .daily, for date: Date = Date()) {
         do {
             guard let task = try env.taskRepository.fetch(id: taskId) else { return }
+            if task.isLocked {
+                errorMessage = "This task is part of a locked monthly commitment and cannot be deleted."
+                return
+            }
             if task.isDeleted {
                 try env.taskRepository.deletePermanently(id: taskId)
             } else {
@@ -156,6 +234,10 @@ final class TaskViewModel {
     func scheduleTask(taskId: UUID, to targetDate: Date, timeframe: TaskTimeframe, tab: TaskTab = .daily, for date: Date = Date()) {
         do {
             guard var task = try env.taskRepository.fetch(id: taskId) else { return }
+            if task.isLocked {
+                errorMessage = "Locked monthly commitments cannot be rescheduled."
+                return
+            }
             let oldDate = task.targetDate
             let oldCategory = task.categoryId
             let oldTimeframe = task.timeframe
@@ -195,6 +277,12 @@ final class TaskViewModel {
 
     func color(for task: Task) -> Color? {
         guard let catId = task.categoryId,
+              let cat = categories.first(where: { $0.id == catId }) else { return nil }
+        return cat.color
+    }
+
+    func color(for routine: HabitRoutine) -> Color? {
+        guard let catId = routine.categoryId,
               let cat = categories.first(where: { $0.id == catId }) else { return nil }
         return cat.color
     }

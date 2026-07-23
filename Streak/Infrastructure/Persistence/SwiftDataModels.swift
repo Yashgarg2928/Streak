@@ -47,6 +47,8 @@ final class TaskModel {
     var completedAt: Date?
     var createdAt: Date
     var isDeleted: Bool = false
+    var routineId: UUID? = nil
+    var isLocked: Bool = false
 
     var timeframe: TaskTimeframe {
         get { TaskTimeframe(rawValue: timeframeRaw) ?? .daily }
@@ -63,13 +65,16 @@ final class TaskModel {
         self.completedAt = entity.completedAt
         self.createdAt = entity.createdAt
         self.isDeleted = entity.isDeleted
+        self.routineId = entity.routineId
+        self.isLocked = entity.isLocked
     }
 
     func toDomain() -> Task {
         Task(id: id, title: title, categoryId: categoryId,
              targetDate: targetDate, timeframe: timeframe,
              isCompleted: isCompleted, completedAt: completedAt,
-             createdAt: createdAt, isDeleted: isDeleted)
+             createdAt: createdAt, isDeleted: isDeleted,
+             routineId: routineId, isLocked: isLocked)
     }
 
     func update(from entity: Task) {
@@ -80,6 +85,58 @@ final class TaskModel {
         isCompleted = entity.isCompleted
         completedAt = entity.completedAt
         isDeleted = entity.isDeleted
+        routineId = entity.routineId
+        isLocked = entity.isLocked
+    }
+}
+
+@Model
+final class HabitRoutineModel {
+    @Attribute(.unique) var id: UUID
+    var title: String
+    var categoryId: UUID?
+    var typeRaw: String
+    var startDate: Date
+    var endDate: Date
+    var isLocked: Bool
+    var createdAt: Date
+
+    var type: HabitRoutineType {
+        get { HabitRoutineType(rawValue: typeRaw) ?? .monthlyFixed }
+        set { typeRaw = newValue.rawValue }
+    }
+
+    init(from entity: HabitRoutine) {
+        self.id = entity.id
+        self.title = entity.title
+        self.categoryId = entity.categoryId
+        self.typeRaw = entity.type.rawValue
+        self.startDate = entity.startDate
+        self.endDate = entity.endDate
+        self.isLocked = entity.isLocked
+        self.createdAt = entity.createdAt
+    }
+
+    func toDomain() -> HabitRoutine {
+        HabitRoutine(
+            id: id,
+            title: title,
+            categoryId: categoryId,
+            type: type,
+            startDate: startDate,
+            endDate: endDate,
+            isLocked: isLocked,
+            createdAt: createdAt
+        )
+    }
+
+    func update(from entity: HabitRoutine) {
+        title = entity.title
+        categoryId = entity.categoryId
+        typeRaw = entity.type.rawValue
+        startDate = entity.startDate
+        endDate = entity.endDate
+        isLocked = entity.isLocked
     }
 }
 

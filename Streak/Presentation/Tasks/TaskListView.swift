@@ -9,6 +9,7 @@ struct TaskListView: View {
     @State private var selectedDate: Date? = nil
     @State private var newTaskTitle: String = ""
     @State private var newTaskCategoryId: UUID? = nil
+    @State private var showRoutineSheet: Bool = false
     @State private var showCategoryPicker: Bool = false
 
     private var activeToday: Date {
@@ -63,6 +64,30 @@ struct TaskListView: View {
             .background(AppColor.background.ignoresSafeArea())
             .navigationTitle(navigationTitleString)
             .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        showRoutineSheet = true
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "flame.fill")
+                                .font(.system(size: 10, weight: .black))
+                            Text("HABIT COMMITMENT")
+                                .font(.system(size: 10, weight: .black))
+                        }
+                        .foregroundStyle(AppColor.textPrimary)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 5)
+                        .background(AppColor.surface)
+                        .clipShape(RoundedRectangle(cornerRadius: 6))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 6)
+                                .stroke(AppColor.border, lineWidth: 1.5)
+                        )
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
         }
         .onAppear {
             let today = activeToday
@@ -74,6 +99,18 @@ struct TaskListView: View {
             categoryPickerSheet
                 .presentationDetents([.fraction(0.4)])
                 .presentationDragIndicator(.visible)
+        }
+        .sheet(isPresented: $showRoutineSheet) {
+            AddHabitRoutineSheet(categories: vm?.categories ?? []) { title, categoryId, type, startDate, endDate in
+                vm?.addHabitRoutine(
+                    title: title,
+                    categoryId: categoryId,
+                    type: type,
+                    startDate: startDate,
+                    endDate: endDate,
+                    for: selectedDate ?? activeToday
+                )
+            }
         }
     }
 
@@ -465,5 +502,183 @@ struct TaskListView: View {
         )
         newTaskTitle = ""
         newTaskCategoryId = nil
+    }
+}
+
+// MARK: - Add Habit Routine Sheet
+
+struct AddHabitRoutineSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    let categories: [Category]
+    let onSave: (String, UUID?, HabitRoutineType, Date, Date) -> Void
+
+    @State private var title: String = ""
+    @State private var selectedCategoryId: UUID? = nil
+    @State private var routineType: HabitRoutineType = .monthlyFixed
+    @State private var sprintDays: Int = 7
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    // Header Instruction Card
+                    BrutalistCard {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("🔥 DAILY HABIT ROUTINE")
+                                .font(.system(.subheadline, design: .monospaced).weight(.bold))
+                                .foregroundStyle(AppColor.textPrimary)
+                            Text("Build consistency with recurring daily habits (e.g. 2 hrs DSA, hydration, exercise). These automatically appear in your daily task list every day.")
+                                .font(.system(.caption))
+                                .foregroundStyle(AppColor.textSecondary)
+                        }
+                    }
+
+                    // Habit Name Input
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("HABIT NAME")
+                            .font(.system(.caption, design: .monospaced).weight(.bold))
+                            .foregroundStyle(AppColor.textSecondary)
+
+                        TextField("e.g. 2 Hours of DSA, Hydrate 3L, Exercise", text: $title)
+                            .font(.system(.body))
+                            .foregroundStyle(AppColor.textPrimary)
+                            .frame(minHeight: AppLayout.minTapTarget)
+                            .padding(.horizontal, 10)
+                            .background(AppColor.surface)
+                            .clipShape(RoundedRectangle(cornerRadius: AppLayout.cornerRadius))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: AppLayout.cornerRadius)
+                                    .stroke(AppColor.border, lineWidth: AppLayout.borderWidth)
+                            )
+                    }
+
+                    // Category Selector
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("CATEGORY (OPTIONAL)")
+                            .font(.system(.caption, design: .monospaced).weight(.bold))
+                            .foregroundStyle(AppColor.textSecondary)
+
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 8) {
+                                categoryPill(name: "No Category", color: AppColor.neutralDot, isSelected: selectedCategoryId == nil) {
+                                    selectedCategoryId = nil
+                                }
+                                ForEach(categories) { cat in
+                                    categoryPill(name: cat.name, color: cat.color, isSelected: selectedCategoryId == cat.id) {
+                                        selectedCategoryId = cat.id
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Commitment Type Options
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("COMMITMENT TYPE")
+                            .font(.system(.caption, design: .monospaced).weight(.bold))
+                            .foregroundStyle(AppColor.textSecondary)
+
+                        VStack(spacing: 10) {
+                            // Monthly Fixed Commitment (Locked)
+                            Button {
+                                routineType = .monthlyFixed
+                            } label: {
+                                BrutalistCard(borderColor: routineType == .monthlyFixed ? AppColor.border : AppColor.blank) {
+                                    VStack(alignment: .leading, spacing: 6) {
+                                        HStack {
+                                            Text("🔒 ENTIRE MONTH (FIXED & LOCKED)")
+                                                .font(.system(size: 11, weight: .black))
+                                                .foregroundStyle(AppColor.textPrimary)
+                                            Spacer()
+                                            if routineType == .monthlyFixed {
+                                                Image(systemName: "checkmark.circle.fill")
+                                                    .foregroundStyle(AppColor.green)
+                                            }
+                                        }
+                                        Text("Runs every day for the rest of this month. Once locked, this commitment cannot be edited or deleted.")
+                                            .font(.system(.caption))
+                                            .foregroundStyle(AppColor.textSecondary)
+                                    }
+                                }
+                            }
+                            .buttonStyle(.plain)
+
+                            // Custom Habit Sprint
+                            Button {
+                                routineType = .customRange
+                            } label: {
+                                BrutalistCard(borderColor: routineType == .customRange ? AppColor.border : AppColor.blank) {
+                                    VStack(alignment: .leading, spacing: 6) {
+                                        HStack {
+                                            Text("⚡️ HABIT SPRINT (CUSTOM DAYS)")
+                                                .font(.system(size: 11, weight: .black))
+                                                .foregroundStyle(AppColor.textPrimary)
+                                            Spacer()
+                                            if routineType == .customRange {
+                                                Image(systemName: "checkmark.circle.fill")
+                                                    .foregroundStyle(AppColor.green)
+                                            }
+                                        }
+                                        Text("Runs every day for a specific timeframe (e.g. 7 days or 14 days).")
+                                            .font(.system(.caption))
+                                            .foregroundStyle(AppColor.textSecondary)
+
+                                        if routineType == .customRange {
+                                            Picker("Duration", selection: $sprintDays) {
+                                                Text("7 Days (1 Week)").tag(7)
+                                                Text("14 Days (2 Weeks)").tag(14)
+                                                Text("30 Days").tag(30)
+                                            }
+                                            .pickerStyle(.segmented)
+                                            .padding(.top, 4)
+                                        }
+                                    }
+                                }
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+
+                    // Save Button
+                    BrutalistButton(title: routineType == .monthlyFixed ? "LOCK IN MONTHLY COMMITMENT" : "START HABIT SPRINT") {
+                        guard !title.trimmingCharacters(in: .whitespaces).isEmpty else { return }
+                        let today = Date()
+                        let endDate = Calendar.current.date(byAdding: .day, value: sprintDays - 1, to: today) ?? today
+                        onSave(title, selectedCategoryId, routineType, today, endDate)
+                        dismiss()
+                    }
+                    .padding(.top, 10)
+                }
+                .padding(AppLayout.screenMargin)
+            }
+            .background(AppColor.background.ignoresSafeArea())
+            .navigationTitle("NEW HABIT ROUTINE")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+            }
+        }
+    }
+
+    private func categoryPill(name: String, color: Color, isSelected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 6) {
+                Circle().fill(color).frame(width: 10, height: 10)
+                Text(name)
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(isSelected ? AppColor.background : AppColor.textPrimary)
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(isSelected ? AppColor.border : AppColor.surface)
+            .clipShape(RoundedRectangle(cornerRadius: 6))
+            .overlay(
+                RoundedRectangle(cornerRadius: 6)
+                    .stroke(AppColor.border, lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
     }
 }

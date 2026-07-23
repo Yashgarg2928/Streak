@@ -148,6 +148,18 @@ struct TaskRowView: View {
                             Text("(Deleted)")
                                 .font(.system(.caption).weight(.bold))
                                 .foregroundStyle(AppColor.textDisabled)
+                        } else if task.isLocked {
+                            HStack(spacing: 3) {
+                                Image(systemName: "lock.fill")
+                                    .font(.system(size: 9, weight: .bold))
+                                Text("LOCKED")
+                                    .font(.system(size: 9, weight: .black))
+                            }
+                            .foregroundStyle(AppColor.textSecondary)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 3)
+                            .background(AppColor.blank)
+                            .clipShape(RoundedRectangle(cornerRadius: 4))
                         }
                     }
 

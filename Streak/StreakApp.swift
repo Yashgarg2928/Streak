@@ -21,14 +21,16 @@ struct StreakApp: App {
             let dayEntryRepo   = SwiftDataDayEntryRepository(context: ctx)
             let categoryRepo   = SwiftDataCategoryRepository(context: ctx)
             let settingsRepo   = UserDefaultsSettingsRepository()
+            let routineRepo    = SwiftDataHabitRoutineRepository(context: ctx)
             
             self.environment = AppEnvironment(
-                categoryRepository:   categoryRepo,
-                taskRepository:       SwiftDataTaskRepository(context: ctx),
-                goalRepository:       SwiftDataGoalRepository(context: ctx),
-                dayEntryRepository:   dayEntryRepo,
-                reflectionRepository: SwiftDataReflectionRepository(context: ctx),
-                settingsRepository:   settingsRepo
+                categoryRepository:     categoryRepo,
+                taskRepository:         SwiftDataTaskRepository(context: ctx),
+                goalRepository:         SwiftDataGoalRepository(context: ctx),
+                dayEntryRepository:     dayEntryRepo,
+                reflectionRepository:   SwiftDataReflectionRepository(context: ctx),
+                settingsRepository:     settingsRepo,
+                habitRoutineRepository: routineRepo
             )
             
             let container = c

@@ -335,3 +335,69 @@ final class SwiftDataReflectionRepository: ReflectionRepository {
         return models.map { $0.toDomain() }
     }
 }
+
+// MARK: - HabitRoutine
+
+final class SwiftDataHabitRoutineRepository: HabitRoutineRepository {
+    private let context: ModelContext
+
+    init(context: ModelContext) {
+        self.context = context
+    }
+
+    func fetchAll() throws -> [HabitRoutine] {
+        let models = try context.fetch(FetchDescriptor<HabitRoutineModel>(
+            sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
+        ))
+        return models.map { $0.toDomain() }
+    }
+
+    func fetchActive(for date: Date) throws -> [HabitRoutine] {
+        let target = Calendar.current.startOfDay(for: date)
+        let models = try context.fetch(FetchDescriptor<HabitRoutineModel>())
+        return models
+            .map { $0.toDomain() }
+            .filter { routine in
+                let start = Calendar.current.startOfDay(for: routine.startDate)
+                let end = Calendar.current.startOfDay(for: routine.endDate)
+                return target >= start && target <= end
+            }
+    }
+
+    func fetch(id: UUID) throws -> HabitRoutine? {
+        let localId = id
+        let models = try context.fetch(FetchDescriptor<HabitRoutineModel>(
+            predicate: #Predicate { $0.id == localId }
+        ))
+        return models.first?.toDomain()
+    }
+
+    func save(_ routine: HabitRoutine) throws {
+        let localId = routine.id
+        let existing = try context.fetch(FetchDescriptor<HabitRoutineModel>(
+            predicate: #Predicate { $0.id == localId }
+        )).first
+        if let existing {
+            existing.update(from: routine)
+        } else {
+            context.insert(HabitRoutineModel(from: routine))
+        }
+        try context.save()
+    }
+
+    func delete(id: UUID) throws {
+        let localId = id
+        let models = try context.fetch(FetchDescriptor<HabitRoutineModel>(
+            predicate: #Predicate { $0.id == localId }
+        ))
+        guard let existing = models.first else { return }
+        
+        // Locked monthly commitments cannot be deleted
+        if existing.isLocked {
+            return
+        }
+        
+        context.delete(existing)
+        try context.save()
+    }
+}

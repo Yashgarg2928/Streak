@@ -13,6 +13,7 @@ final class AppEnvironment {
     let dayEntryRepository: any DayEntryRepository
     let reflectionRepository: any ReflectionRepository
     let settingsRepository: any SettingsRepository
+    let habitRoutineRepository: any HabitRoutineRepository
 
     init(
         categoryRepository: any CategoryRepository,
@@ -20,7 +21,8 @@ final class AppEnvironment {
         goalRepository: any GoalRepository,
         dayEntryRepository: any DayEntryRepository,
         reflectionRepository: any ReflectionRepository,
-        settingsRepository: any SettingsRepository
+        settingsRepository: any SettingsRepository,
+        habitRoutineRepository: any HabitRoutineRepository
     ) {
         self.categoryRepository = categoryRepository
         self.taskRepository = taskRepository
@@ -28,6 +30,7 @@ final class AppEnvironment {
         self.dayEntryRepository = dayEntryRepository
         self.reflectionRepository = reflectionRepository
         self.settingsRepository = settingsRepository
+        self.habitRoutineRepository = habitRoutineRepository
     }
 
     func syncWidgets() {

@@ -15,6 +15,7 @@ enum ModelContainerFactory {
             GoalModel.self,
             GoalProgressEntryModel.self,
             ReflectionEntryModel.self,
+            HabitRoutineModel.self,
         ])
 
         let config: ModelConfiguration

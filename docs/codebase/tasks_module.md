@@ -34,13 +34,13 @@ This module details task creation, multi-timeframe planning (Daily, Weekly, Mont
   - Verifies that target categories exist and are not archived.
   - Triggers `ResolveDayStatusUseCase` for `.daily` tasks to update completion histories.
 
-### 2. `CompleteTaskUseCase`
-- **File Path:** [CompleteTaskUseCase.swift](file:///Users/madhvan07icloud.coom/self-improvment-app/Streak/Streak/Application/UseCases/Tasks/CompleteTaskUseCase.swift)
-- **Responsibility:** Toggles task completion states.
+### 3. `GenerateRoutineTasksUseCase`
+- **File Path:** [GenerateRoutineTasksUseCase.swift](file:///Users/madhvan07icloud.coom/self-improvment-app/Streak/Streak/Application/UseCases/Tasks/GenerateRoutineTasksUseCase.swift)
+- **Responsibility:** Automatically populates daily tasks for active recurring habit commitments (e.g. Monthly Fixed commitments or Custom Sprints).
 - **Rules & Logic:**
-  - Enforces that future tasks (scheduled for tomorrow) cannot be completed early.
-  - Sets completion flags and timestamps.
-  - Recalculates category day entries and overall master status for daily tasks.
+  - Evaluates active routines covering the target date.
+  - Generates daily `Task` instances with `routineId` and `isLocked` flags.
+  - Locked tasks cannot be edited or deleted once created for monthly commitments.
 
 ---
 

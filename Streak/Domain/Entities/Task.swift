@@ -20,6 +20,8 @@ struct Task: Identifiable, Equatable {
     var completedAt: Date?
     let createdAt: Date
     var isDeleted: Bool
+    var routineId: UUID?        // nil = standalone task, non-nil = auto-generated from HabitRoutine
+    var isLocked: Bool          // true = immutable & un-deletable (e.g. monthly fixed habit)
 
     init(
         id: UUID = UUID(),
@@ -30,7 +32,9 @@ struct Task: Identifiable, Equatable {
         isCompleted: Bool = false,
         completedAt: Date? = nil,
         createdAt: Date = Date(),
-        isDeleted: Bool = false
+        isDeleted: Bool = false,
+        routineId: UUID? = nil,
+        isLocked: Bool = false
     ) {
         self.id = id
         self.title = title
@@ -41,5 +45,7 @@ struct Task: Identifiable, Equatable {
         self.completedAt = completedAt
         self.createdAt = createdAt
         self.isDeleted = isDeleted
+        self.routineId = routineId
+        self.isLocked = isLocked
     }
 }
