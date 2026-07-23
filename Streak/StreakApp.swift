@@ -52,7 +52,7 @@ struct StreakApp: App {
     }
 
     private var themeColorScheme: ColorScheme? {
-        switch environment.settingsRepository.themeMode {
+        switch environment.themeMode {
         case "light": return .light
         case "dark": return .dark
         default: return nil

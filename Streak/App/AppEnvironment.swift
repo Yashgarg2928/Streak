@@ -14,6 +14,12 @@ final class AppEnvironment {
     let reflectionRepository: any ReflectionRepository
     let settingsRepository: any SettingsRepository
     let habitRoutineRepository: any HabitRoutineRepository
+    var themeMode: String {
+        didSet {
+            settingsRepository.themeMode = themeMode
+            settingsRepository.saveAll()
+        }
+    }
 
     init(
         categoryRepository: any CategoryRepository,
@@ -31,6 +37,7 @@ final class AppEnvironment {
         self.reflectionRepository = reflectionRepository
         self.settingsRepository = settingsRepository
         self.habitRoutineRepository = habitRoutineRepository
+        self.themeMode = settingsRepository.themeMode
     }
 
     func syncWidgets() {

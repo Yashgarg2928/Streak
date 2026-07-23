@@ -20,7 +20,6 @@ struct SettingsView: View {
     @State private var reminderEnabled: Bool = true
     @State private var reminderHour: Int
     @State private var reminderMinute: Int
-    @State private var themeMode: String
     
     @Environment(\.modelContext) private var modelContext
     @State private var showBanner: Bool = false
@@ -43,7 +42,6 @@ struct SettingsView: View {
         
         _reminderHour = State(initialValue: env.settingsRepository.planningReminderHour)
         _reminderMinute = State(initialValue: env.settingsRepository.planningReminderMinute)
-        _themeMode = State(initialValue: env.settingsRepository.themeMode)
     }
     
     var body: some View {
@@ -89,7 +87,10 @@ struct SettingsView: View {
                             .font(.system(.headline, design: .monospaced).weight(.bold))
                             .foregroundStyle(AppColor.textPrimary)
 
-                        Picker("Theme Mode", selection: $themeMode) {
+                        Picker("Theme Mode", selection: Binding(
+                            get: { env.themeMode },
+                            set: { env.themeMode = $0 }
+                        )) {
                             Text("System").tag("system")
                             Text("Light").tag("light")
                             Text("Dark").tag("dark")
@@ -280,7 +281,6 @@ struct SettingsView: View {
                     settings.planningDeadlineMinute = planningMinute
                     settings.planningReminderHour = reminderHour
                     settings.planningReminderMinute = reminderMinute
-                    settings.themeMode = themeMode
                     settings.saveAll()
                     
                     rescheduleLocalReminders()
