@@ -129,11 +129,15 @@ Home Screen
     │                   ├── Category Streak Counter
     │                   └── Linked Goals
     │
-    ├── Today's Tasks (floating button or tab)
+    ├── Tasks Tab (Multi-Timeframe Planner)
     │       └── Task List Screen
-    │                   ├── Tasks grouped by category color dot
-    │                   ├── Check/uncheck tasks
-    │                   └── Add task (quick entry)
+    │                   ├── Segment Bar: DAILY | WEEKLY | MONTHLY | TO-DO LIST
+    │                   ├── Daily Tab: Today / Tomorrow toggle, countdown timer, daily task list
+    │                   ├── Weekly Tab: Weekly goals header, progress bar, quick schedule pills ([⚡️ TODAY], [🗓️ TOMORROW])
+    │                   ├── Monthly Tab: Monthly targets header, progress bar, quick schedule pills
+    │                   ├── To-Do List Tab: Timeline-free backlog, pending count, quick schedule pills
+    │                   ├── Check/uncheck tasks & soft-delete (moves to bottom with (Deleted) badge)
+    │                   └── Add task bar (contextual input per timeframe tab)
     │
     ├── Goals Tab
     │       └── Goal List Screen

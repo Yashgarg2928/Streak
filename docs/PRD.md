@@ -89,22 +89,36 @@ A single master graph on the home screen representing the overall consistency ac
 
 ---
 
-### 5.3 Module: Daily To-Do / Goal Planning
+### 5.3 Module: Multi-Timeframe Task & Goal Planning
 **Priority:** P0 — Core
 
 **Description:**  
-A structured nightly planning system. The user sets tasks for tomorrow before a user-defined reminder time.
+A flexible task planning system spanning four distinct timeframes:
+1. **Daily (Today / Tomorrow):** Specific day tasks bound to strict green/red streak evaluations.
+2. **Weekly Plan:** Weekly goals and priorities with progress percentage bars.
+3. **Monthly Plan:** Monthly targets and major call items with completion metrics.
+4. **To-Do List (Backlog):** Timeline-free reminders and ideas with pending counters.
 
 **Task structure:**
 - Task text (required)
 - Category link (optional — can be uncategorized)
+- Timeframe scope (`.daily`, `.weekly`, `.monthly`, `.backlog`)
 - Completion checkbox
-- A task can only belong to one category or be uncategorized
+- Category color dot
 
 **Category color dot:**
 - Every task in the list shows a small filled circle in the category's color
 - Uncategorized tasks show a neutral gray dot
-- This is the only visual separator — no headers, no sections, just colored dots
+
+**Quick Scheduling & Promotion:**
+- Every weekly, monthly, and backlog task features `[⚡️ TODAY]` and `[🗓️ TOMORROW]` quick action pills.
+- Tapping `⚡️ TODAY` or `🗓️ TOMORROW` promotes any weekly, monthly, or backlog task into Today's or Tomorrow's active daily task list.
+- Tasks can also be re-scoped between timeframes via the task row scope menu at any time.
+
+**Soft-Deletion Rules:**
+- Swipe-to-delete on active tasks performs a soft-delete (moves task to bottom with strike-through and `(Deleted)` badge).
+- Soft-deleted tasks do not affect day statuses, streaks, or goal progress calculations.
+- Swiping delete a second time on a soft-deleted task permanently purges it from database storage.
 
 **Planning Reminder:**
 - User sets a reminder time (e.g., 10:00 PM)
@@ -114,9 +128,9 @@ A structured nightly planning system. The user sets tasks for tomorrow before a 
 - If midnight passes with no tasks set, that day is marked red across all categories and the master graph
 
 **Completion logic:**
-- When all tasks for a category are checked, that category's day is marked green
-- If even one task is unchecked, the day remains red (no partial state)
-- Uncategorized tasks contribute only to the master graph
+- When all daily tasks for a category are checked, that category's day is marked green
+- If even one active daily task is unchecked, the day remains red (no partial state)
+- Non-daily tasks (`.weekly`, `.monthly`, `.backlog`) do not affect daily streak calculations unless promoted to `.daily`
 
 ---
 

@@ -74,17 +74,29 @@
 | `title` | String | Task description text |
 | `categoryId` | UUID? | Optional link to a Category. Nil = uncategorized |
 | `targetDate` | Date | The day this task is for (date only, no time) |
+| `timeframe` | TaskTimeframe | `.daily`, `.weekly`, `.monthly`, or `.backlog` |
 | `isCompleted` | Bool | Whether the user checked this off |
 | `completedAt` | Date? | Timestamp when task was completed |
 | `createdAt` | Date | When task was created |
+| `isDeleted` | Bool | Soft-delete flag (excluded from streaks & stats) |
+
+**TaskTimeframe Enum:**
+```swift
+enum TaskTimeframe: String, Codable, CaseIterable {
+    case daily     // Scheduled for specific day (targetDate)
+    case weekly    // Current week goal/task
+    case monthly   // Current month goal/task
+    case backlog   // Timeline-free To-Do list item
+}
+```
 
 **Business rules:**
 - `title` must be non-empty
 - `targetDate` stores date only (time component truncated to midnight)
-- A task belongs to exactly one date
-- Completing a task triggers `ResolveDayStatusUseCase` for its category and the master
-- Uncategorized tasks (nil categoryId) count only toward the master day status
-- Tasks cannot be moved to a different date after creation (can be edited in title only)
+- Soft-deleted tasks (`isDeleted == true`) display at the bottom of lists and do not affect streak calculations or day statuses
+- Non-daily tasks (`.weekly`, `.monthly`, `.backlog`) do not affect daily streak calculations unless scheduled/promoted to `.daily`
+- Completing a daily task triggers `ResolveDayStatusUseCase` for its category and the master
+- Tasks can be scheduled/promoted across timeframes (e.g. from `.weekly` or `.backlog` to `.daily` for Today/Tomorrow) at any time
 
 ---
 

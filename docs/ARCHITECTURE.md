@@ -54,7 +54,7 @@ Orchestrates domain logic. Each use case is a single, focused struct or class.
 | Use Case | Responsibility |
 |----------|---------------|
 | `CreateCategoryUseCase` | Validates and persists a new category |
-| `AddTaskUseCase` | Adds a task to a date, optionally linked to a category |
+| `AddTaskUseCase` | Adds a task across daily, weekly, monthly, or backlog timeframes |
 | `CompleteTaskUseCase` | Marks a task done, triggers day-status recomputation |
 | `ResolveDayStatusUseCase` | Determines green/red for a category or master on a given date |
 | `CalculateStreakUseCase` | Scans DayEntry history and returns current streak |

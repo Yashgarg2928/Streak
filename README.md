@@ -27,10 +27,12 @@ Streak is designed for **extreme accountability**. It enforces a brutal consiste
 
 1. **Habit Categories** – Create custom habit tracks with designated highlight colors, individual heatmaps, and individual streaks.
 2. **Master Consistency Graph** – A unified consistency calendar (GitHub-style heatmap) representing overall success across all categories.
-3. **Daily To-Do Planning** – Dedicated planning windows (e.g. night before or morning of) with custom deadlines to lock in your daily tasks.
-4. **Game-Style Goals** – Track progress across four goal types (consecutive streaks, cumulative days, milestone progress, and task counters).
-5. **Daily Assist** – End-of-day reflection forms to log accomplishments, missed items, and tomorrow's priorities (stored locally).
-6. **Active Day Cycle** – A flexible calendar system. Support for active days that cross calendar midnight (e.g., 1:00 PM to 1:00 AM) so late-night developers can log their habits accurately.
+3. **Multi-Timeframe Task & To-Do Planning** – Seamlessly plan across **Daily** (Today/Tomorrow), **Weekly Goals**, **Monthly Targets**, and a **Timeline-Free To-Do List** (Backlog reminders).
+4. **Quick Task Promotion** – Instantly schedule any Weekly, Monthly, or To-Do list item to Today (`[⚡️ TODAY]`) or Tomorrow (`[🗓️ TOMORROW]`) with one tap.
+5. **Soft-Deletion Protection** – Deleted tasks move to the bottom of the list with a strike-through and `(Deleted)` badge without breaking or ruining historical streaks. Second swipe permanently purges.
+6. **Game-Style Goals** – Track progress across four goal types (consecutive streaks, cumulative days, milestone progress, and task counters).
+7. **Daily Assist** – End-of-day reflection forms to log accomplishments, missed items, and tomorrow's priorities (stored locally).
+8. **Active Day Cycle & Real-time Countdown** – Support for active days crossing calendar midnight with live countdown banners to the daily rollover deadline.
 
 ---
 

@@ -47,8 +47,8 @@ Located in [SharedComponents.swift](file:///Users/madhvan07icloud.coom/self-impr
 - **API:** `init(fraction: Double, label: String, fillColor: Color = AppColor.border)`
 
 ### 5. `TaskRowView`
-- **Responsibility:** The interactive checklist row. Shows completion status via checkbox checkmarks, category colors, and title text. Handles strikethroughs and touch overrides.
-- **API:** `init(task: Task, categoryColor: Color?, onToggle: () -> Void)`
+- **Responsibility:** The interactive checklist row. Shows completion status via checkbox checkmarks, category colors, and title text. Renders soft-deleted tasks at the bottom with strike-through and `(Deleted)` badge. Displays quick action pills (`[⚡️ TODAY]`, `[🗓️ TOMORROW]`) and scope move menus for scheduling tasks across timeframes.
+- **API:** `init(task: Task, categoryColor: Color?, onToggle: () -> Void, onScheduleToday: (() -> Void)?, onScheduleTomorrow: (() -> Void)?, onMoveToTimeframe: ((TaskTimeframe) -> Void)?)`
 
 ### 6. `BrutalistButton`
 - **Responsibility:** Call-to-action button containing bold text, solid border lines, and standard tap feedback.

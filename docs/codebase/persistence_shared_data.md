@@ -22,7 +22,7 @@ Persistent `@Model` representations mirror Domain layer structs. Located in [Swi
 | Model Name | Field Definitions & Types | Domain Mapper |
 | :--- | :--- | :--- |
 | `CategoryModel` | `id: UUID`, `name: String`, `colorHex: String`, `sortOrder: Int`, `isArchived: Bool`, `createdAt: Date` | `toDomain()` -> [Category](file:///Users/madhvan07icloud.coom/self-improvment-app/Streak/Streak/Domain/Entities/Category.swift) |
-| `TaskModel` | `id: UUID`, `title: String`, `categoryId: UUID?`, `targetDate: Date`, `isCompleted: Bool`, `completedAt: Date?`, `createdAt: Date` | `toDomain()` -> [Task](file:///Users/madhvan07icloud.coom/self-improvment-app/Streak/Streak/Domain/Entities/Task.swift) |
+| `TaskModel` | `id: UUID`, `title: String`, `categoryId: UUID?`, `targetDate: Date`, `timeframeRaw: String`, `isCompleted: Bool`, `completedAt: Date?`, `createdAt: Date`, `isDeleted: Bool` | `toDomain()` -> [Task](file:///Users/madhvan07icloud.coom/self-improvment-app/Streak/Streak/Domain/Entities/Task.swift) |
 | `DayEntryModel` | `id: UUID`, `date: Date`, `categoryId: UUID?`, `statusRaw: String`, `taskCount: Int`, `completedCount: Int`, `lastUpdated: Date` | `toDomain()` -> [DayEntry](file:///Users/madhvan07icloud.coom/self-improvment-app/Streak/Streak/Domain/Entities/DayEntry.swift) |
 | `GoalModel` | `id: UUID`, `title: String`, `goalTypeRaw: String`, `categoryId: UUID?`, `targetValue: Double`, `currentValue: Double`, `unit: String`, `startDate: Date`, `targetDate: Date?`, `isCompleted: Bool`, `dailyNotificationTime: Date?`, `createdAt: Date` | `toDomain()` -> [Goal](file:///Users/madhvan07icloud.coom/self-improvment-app/Streak/Streak/Domain/Entities/Goal.swift) |
 | `GoalProgressEntryModel` | `id: UUID`, `goalId: UUID`, `date: Date`, `value: Double`, `note: String?`, `createdAt: Date` | `toDomain()` -> [GoalProgressEntry](file:///Users/madhvan07icloud.coom/self-improvment-app/Streak/Streak/Domain/Entities/GoalProgressEntry.swift) |
@@ -40,7 +40,7 @@ Concrete repository classes implement Domain repository interfaces. Located in [
 
 ### 2. `SwiftDataTaskRepository`
 - Implements [TaskRepository](file:///Users/madhvan07icloud.coom/self-improvment-app/Streak/Streak/Domain/Repositories/TaskRepository.swift).
-- Fetches tasks for a specific date, handles filtering by `categoryId` for categorization checks, inserts new tasks, and deletes items.
+- Fetches tasks for specific dates and timeframes (`.daily`, `.weekly`, `.monthly`, `.backlog`), handles filtering by `categoryId`, supports soft-deletion (`delete(id:)`) and permanent deletion (`deletePermanently(id:)`).
 
 ### 3. `SwiftDataDayEntryRepository`
 - Implements [DayEntryRepository](file:///Users/madhvan07icloud.coom/self-improvment-app/Streak/Streak/Domain/Repositories/DayEntryRepository.swift).
