@@ -148,7 +148,7 @@ struct CategoryDetailView: View {
 
     private func dayBorderColor(status: DayStatus?, cat: Category) -> Color {
         switch status {
-        case .green: return cat.color
+        case .green: return AppColor.green
         case .red:   return AppColor.red
         default:     return AppColor.border
         }

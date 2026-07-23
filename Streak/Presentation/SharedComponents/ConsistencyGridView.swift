@@ -121,7 +121,7 @@ struct ConsistencyGridView: View {
         let day   = Calendar.current.startOfDay(for: date)
         if day > today { return Color.clear }
         switch status {
-        case .green:  return categoryColor ?? AppColor.green
+        case .green:  return AppColor.green
         case .red:    return AppColor.red
         default:      return AppColor.blank.opacity(0.35)
         }

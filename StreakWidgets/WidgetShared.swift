@@ -133,7 +133,7 @@ struct MiniHeatmap: View {
         
         switch recentDays[key] {
         case "green":
-            return renderingMode == .fullColor ? categoryColor : .white
+            return renderingMode == .fullColor ? WColor.green : .white
         case "red":
             return renderingMode == .fullColor ? WColor.red : .white.opacity(0.3)
         default:
