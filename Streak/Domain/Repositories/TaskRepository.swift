@@ -10,5 +10,6 @@ protocol TaskRepository {
     func save(_ task: Task) throws
     func delete(id: UUID) throws
     func deletePermanently(id: UUID) throws
+    func fetch(timeframe: TaskTimeframe) throws -> [Task]
     func fetchAll() throws -> [Task]               // for export
 }

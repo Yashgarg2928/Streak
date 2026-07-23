@@ -8,10 +8,13 @@ struct AddTaskUseCase {
     let resolveDayStatus: ResolveDayStatusUseCase
     let settingsRepository: any SettingsRepository
 
-    func execute(title: String, categoryId: UUID?, targetDate: Date) throws -> Task {
+    func execute(title: String, categoryId: UUID?, targetDate: Date, timeframe: TaskTimeframe = .daily) throws -> Task {
         let trimmed = title.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty else { throw StreakError.emptyTitle }
-        try validateTargetDate(targetDate)
+        
+        if timeframe == .daily {
+            try validateTargetDate(targetDate)
+        }
 
         if let categoryId {
             guard let category = try categoryRepository.fetch(id: categoryId),
@@ -20,10 +23,13 @@ struct AddTaskUseCase {
             }
         }
 
-        let task = Task(title: trimmed, categoryId: categoryId, targetDate: targetDate)
+        let task = Task(title: trimmed, categoryId: categoryId, targetDate: targetDate, timeframe: timeframe)
         try taskRepository.save(task)
-        try resolveDayStatus.execute(date: targetDate, categoryId: categoryId)
-        try resolveDayStatus.execute(date: targetDate, categoryId: nil)
+        
+        if timeframe == .daily {
+            try resolveDayStatus.execute(date: targetDate, categoryId: categoryId)
+            try resolveDayStatus.execute(date: targetDate, categoryId: nil)
+        }
         return task
     }
 

@@ -3,6 +3,15 @@
 import Foundation
 import SwiftUI
 
+enum TaskTab: String, CaseIterable, Identifiable {
+    case daily = "DAILY"
+    case weekly = "WEEKLY"
+    case monthly = "MONTHLY"
+    case backlog = "TO-DO LIST"
+
+    var id: String { rawValue }
+}
+
 @Observable
 final class TaskViewModel {
     private(set) var tasks: [Task] = []
@@ -15,22 +24,33 @@ final class TaskViewModel {
         self.env = env
     }
 
-    func load(for date: Date = Date()) {
+    func load(tab: TaskTab = .daily, for date: Date = Date()) {
         do {
-            tasks = try env.taskRepository.fetchAll(for: date)
-                .sorted { t1, t2 in
-                    if t1.isDeleted != t2.isDeleted {
-                        return !t1.isDeleted && t2.isDeleted
-                    }
-                    return !t1.isCompleted && t2.isCompleted
-                }
             categories = try env.categoryRepository.fetchActive()
+            let fetched: [Task]
+            switch tab {
+            case .daily:
+                fetched = try env.taskRepository.fetchAll(for: date).filter { $0.timeframe == .daily }
+            case .weekly:
+                fetched = try env.taskRepository.fetch(timeframe: .weekly)
+            case .monthly:
+                fetched = try env.taskRepository.fetch(timeframe: .monthly)
+            case .backlog:
+                fetched = try env.taskRepository.fetch(timeframe: .backlog)
+            }
+            
+            tasks = fetched.sorted { t1, t2 in
+                if t1.isDeleted != t2.isDeleted {
+                    return !t1.isDeleted && t2.isDeleted
+                }
+                return !t1.isCompleted && t2.isCompleted
+            }
         } catch {
             errorMessage = error.localizedDescription
         }
     }
 
-    func addTask(title: String, categoryId: UUID?, for date: Date = Date()) {
+    func addTask(title: String, categoryId: UUID?, timeframe: TaskTimeframe = .daily, for date: Date = Date()) {
         guard !title.trimmingCharacters(in: .whitespaces).isEmpty else { return }
         do {
             let resolver = ResolveDayStatusUseCase(
@@ -45,7 +65,7 @@ final class TaskViewModel {
                 resolveDayStatus: resolver,
                 settingsRepository: env.settingsRepository
             )
-            _ = try useCase.execute(title: title, categoryId: categoryId, targetDate: date)
+            _ = try useCase.execute(title: title, categoryId: categoryId, targetDate: date, timeframe: timeframe)
             
             let syncGoals = SyncGoalProgressUseCase(
                 goalRepository: env.goalRepository,
@@ -55,13 +75,21 @@ final class TaskViewModel {
             try syncGoals.execute()
             
             env.syncWidgets()
-            load(for: date)
+            
+            let tab: TaskTab
+            switch timeframe {
+            case .daily: tab = .daily
+            case .weekly: tab = .weekly
+            case .monthly: tab = .monthly
+            case .backlog: tab = .backlog
+            }
+            load(tab: tab, for: date)
         } catch {
             errorMessage = error.localizedDescription
         }
     }
 
-    func toggle(taskId: UUID, for date: Date = Date()) {
+    func toggle(taskId: UUID, tab: TaskTab = .daily, for date: Date = Date()) {
         do {
             guard let task = tasks.first(where: { $0.id == taskId }) else { return }
             let resolver = ResolveDayStatusUseCase(
@@ -85,13 +113,13 @@ final class TaskViewModel {
             try syncGoals.execute()
             
             env.syncWidgets()
-            load(for: date)
+            load(tab: tab, for: date)
         } catch {
             errorMessage = error.localizedDescription
         }
     }
 
-    func delete(taskId: UUID, for date: Date = Date()) {
+    func delete(taskId: UUID, tab: TaskTab = .daily, for date: Date = Date()) {
         do {
             guard let task = try env.taskRepository.fetch(id: taskId) else { return }
             if task.isDeleted {
@@ -100,14 +128,16 @@ final class TaskViewModel {
                 try env.taskRepository.delete(id: taskId)
             }
             
-            let resolver = ResolveDayStatusUseCase(
-                taskRepository: env.taskRepository,
-                categoryRepository: env.categoryRepository,
-                dayEntryRepository: env.dayEntryRepository,
-                settingsRepository: env.settingsRepository
-            )
-            try resolver.execute(date: task.targetDate, categoryId: task.categoryId)
-            try resolver.execute(date: task.targetDate, categoryId: nil)
+            if task.timeframe == .daily {
+                let resolver = ResolveDayStatusUseCase(
+                    taskRepository: env.taskRepository,
+                    categoryRepository: env.categoryRepository,
+                    dayEntryRepository: env.dayEntryRepository,
+                    settingsRepository: env.settingsRepository
+                )
+                try resolver.execute(date: task.targetDate, categoryId: task.categoryId)
+                try resolver.execute(date: task.targetDate, categoryId: nil)
+            }
             
             let syncGoals = SyncGoalProgressUseCase(
                 goalRepository: env.goalRepository,
@@ -117,7 +147,47 @@ final class TaskViewModel {
             try syncGoals.execute()
             
             env.syncWidgets()
-            load(for: date)
+            load(tab: tab, for: date)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func scheduleTask(taskId: UUID, to targetDate: Date, timeframe: TaskTimeframe, tab: TaskTab = .daily, for date: Date = Date()) {
+        do {
+            guard var task = try env.taskRepository.fetch(id: taskId) else { return }
+            let oldDate = task.targetDate
+            let oldCategory = task.categoryId
+            let oldTimeframe = task.timeframe
+            
+            task.timeframe = timeframe
+            task.targetDate = Calendar.current.startOfDay(for: targetDate)
+            try env.taskRepository.save(task)
+            
+            let resolver = ResolveDayStatusUseCase(
+                taskRepository: env.taskRepository,
+                categoryRepository: env.categoryRepository,
+                dayEntryRepository: env.dayEntryRepository,
+                settingsRepository: env.settingsRepository
+            )
+            if timeframe == .daily {
+                try resolver.execute(date: task.targetDate, categoryId: task.categoryId)
+                try resolver.execute(date: task.targetDate, categoryId: nil)
+            }
+            if oldTimeframe == .daily {
+                try resolver.execute(date: oldDate, categoryId: oldCategory)
+                try resolver.execute(date: oldDate, categoryId: nil)
+            }
+            
+            let syncGoals = SyncGoalProgressUseCase(
+                goalRepository: env.goalRepository,
+                dayEntryRepository: env.dayEntryRepository,
+                taskRepository: env.taskRepository
+            )
+            try syncGoals.execute()
+            
+            env.syncWidgets()
+            load(tab: tab, for: date)
         } catch {
             errorMessage = error.localizedDescription
         }

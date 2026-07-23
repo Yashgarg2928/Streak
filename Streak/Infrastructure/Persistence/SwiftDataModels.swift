@@ -42,16 +42,23 @@ final class TaskModel {
     var title: String
     var categoryId: UUID?
     var targetDate: Date
+    var timeframeRaw: String = TaskTimeframe.daily.rawValue
     var isCompleted: Bool
     var completedAt: Date?
     var createdAt: Date
     var isDeleted: Bool = false
+
+    var timeframe: TaskTimeframe {
+        get { TaskTimeframe(rawValue: timeframeRaw) ?? .daily }
+        set { timeframeRaw = newValue.rawValue }
+    }
 
     init(from entity: Task) {
         self.id = entity.id
         self.title = entity.title
         self.categoryId = entity.categoryId
         self.targetDate = entity.targetDate
+        self.timeframeRaw = entity.timeframe.rawValue
         self.isCompleted = entity.isCompleted
         self.completedAt = entity.completedAt
         self.createdAt = entity.createdAt
@@ -60,15 +67,16 @@ final class TaskModel {
 
     func toDomain() -> Task {
         Task(id: id, title: title, categoryId: categoryId,
-             targetDate: targetDate, isCompleted: isCompleted,
-             completedAt: completedAt, createdAt: createdAt,
-             isDeleted: isDeleted)
+             targetDate: targetDate, timeframe: timeframe,
+             isCompleted: isCompleted, completedAt: completedAt,
+             createdAt: createdAt, isDeleted: isDeleted)
     }
 
     func update(from entity: Task) {
         title = entity.title
         categoryId = entity.categoryId
         targetDate = entity.targetDate
+        timeframeRaw = entity.timeframe.rawValue
         isCompleted = entity.isCompleted
         completedAt = entity.completedAt
         isDeleted = entity.isDeleted

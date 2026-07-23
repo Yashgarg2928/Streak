@@ -24,6 +24,7 @@ struct ResolveDayStatusUseCase {
         
         let activeTasks = tasks.filter { task in
             if task.isDeleted { return false }
+            if task.timeframe != .daily { return false }
             if let catId = task.categoryId {
                 return activeCategoryIds.contains(catId)
             }

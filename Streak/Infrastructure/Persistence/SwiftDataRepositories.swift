@@ -82,8 +82,9 @@ final class SwiftDataTaskRepository: TaskRepository {
 
     func fetchAll(for date: Date) throws -> [Task] {
         let day = Calendar.current.startOfDay(for: date)
+        let dailyRaw = TaskTimeframe.daily.rawValue
         let models = try context.fetch(FetchDescriptor<TaskModel>(
-            predicate: #Predicate { $0.targetDate == day }
+            predicate: #Predicate { $0.targetDate == day && $0.timeframeRaw == dailyRaw }
         ))
         return models.map { $0.toDomain() }
     }
@@ -91,8 +92,17 @@ final class SwiftDataTaskRepository: TaskRepository {
     func fetchAll(for date: Date, categoryId: UUID) throws -> [Task] {
         let day = Calendar.current.startOfDay(for: date)
         let localCatId = categoryId
+        let dailyRaw = TaskTimeframe.daily.rawValue
         let models = try context.fetch(FetchDescriptor<TaskModel>(
-            predicate: #Predicate { $0.targetDate == day && $0.categoryId == localCatId }
+            predicate: #Predicate { $0.targetDate == day && $0.categoryId == localCatId && $0.timeframeRaw == dailyRaw }
+        ))
+        return models.map { $0.toDomain() }
+    }
+
+    func fetch(timeframe: TaskTimeframe) throws -> [Task] {
+        let raw = timeframe.rawValue
+        let models = try context.fetch(FetchDescriptor<TaskModel>(
+            predicate: #Predicate { $0.timeframeRaw == raw }
         ))
         return models.map { $0.toDomain() }
     }
