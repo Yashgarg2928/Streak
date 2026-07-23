@@ -17,29 +17,14 @@ The app is designed as a **super-app scaffold** — the core three modules ship 
 
 ## 2. Problem Statement
 
-Existing habit tracker apps are either too gamified (cluttered, noisy) or too minimal (no depth). There is no app that combines:
-- GitHub-style consistency graphs per habit category
-- A structured nightly to-do planning system tied to consistency
-- Game-like goal tracking with progress bars
-- iOS-native features: widgets, lock screen widgets, Shortcuts, notifications
-- Brutalist, paper-aesthetic UI — minimal, bold, no noise
-
----
-
-## 3. Target Users
-
-- Primary: The app owner (single user, personal device)
-- Secondary: A small group of friends (3–10 people), each running their own fully independent copy, sideloaded via their own Apple ID
-
-No shared data in v1. Friend accountability is a future module.
-
----
-
-## 4. Core Principles
-
-1. **Local-first.** No backend, no accounts, no internet requirement.
-2. **Documentation-first.** Every feature is documented before code is written.
-3. **Extensible by design.** New feature modules plug in without touching existing ones.
+1. **Strict Binary Consistency Rules:**
+   - **Green:** A day turns Green when ALL tasks scheduled for that day (for a specific category or overall across all categories) are completed (`completedCount == taskCount && taskCount > 0`).
+   - **Red (Checked strictly at 2 times):**
+     1. When the planning deadline has passed and no tasks were scheduled (Lockout condition).
+     2. When the active day has ended and tasks were left incomplete.
+   - **Blank:** Active in-progress days with pending tasks remain Blank (`#D0C9B8` / `#2C2C2E`) until completed or until the day ends.
+2. **Task Immutability:** Tasks cannot be edited or deleted once created. Creation UI displays explicit warning text (`⚠️ Tasks cannot be edited or deleted once created`).
+3. **Local-first.** No backend, no accounts, no internet requirement.
 4. **SOLID + Domain-driven.** Each domain (Habits, Goals, Tasks, Notifications) is isolated.
 5. **Minimal UI.** Neo-Brutalist aesthetic. Nothing on screen that doesn't need to be there.
 

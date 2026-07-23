@@ -194,85 +194,11 @@ final class TaskViewModel {
     }
 
     func delete(taskId: UUID, tab: TaskTab = .daily, for date: Date = Date()) {
-        do {
-            guard let task = try env.taskRepository.fetch(id: taskId) else { return }
-            if task.isLocked {
-                errorMessage = "This task is part of a locked monthly commitment and cannot be deleted."
-                return
-            }
-            if task.isDeleted {
-                try env.taskRepository.deletePermanently(id: taskId)
-            } else {
-                try env.taskRepository.delete(id: taskId)
-            }
-            
-            if task.timeframe == .daily {
-                let resolver = ResolveDayStatusUseCase(
-                    taskRepository: env.taskRepository,
-                    categoryRepository: env.categoryRepository,
-                    dayEntryRepository: env.dayEntryRepository,
-                    settingsRepository: env.settingsRepository
-                )
-                try resolver.execute(date: task.targetDate, categoryId: task.categoryId)
-                try resolver.execute(date: task.targetDate, categoryId: nil)
-            }
-            
-            let syncGoals = SyncGoalProgressUseCase(
-                goalRepository: env.goalRepository,
-                dayEntryRepository: env.dayEntryRepository,
-                taskRepository: env.taskRepository
-            )
-            try syncGoals.execute()
-            
-            env.syncWidgets()
-            load(tab: tab, for: date)
-        } catch {
-            errorMessage = error.localizedDescription
-        }
+        errorMessage = "⚠️ Tasks cannot be deleted or edited once created."
     }
 
     func scheduleTask(taskId: UUID, to targetDate: Date, timeframe: TaskTimeframe, tab: TaskTab = .daily, for date: Date = Date()) {
-        do {
-            guard var task = try env.taskRepository.fetch(id: taskId) else { return }
-            if task.isLocked {
-                errorMessage = "Locked monthly commitments cannot be rescheduled."
-                return
-            }
-            let oldDate = task.targetDate
-            let oldCategory = task.categoryId
-            let oldTimeframe = task.timeframe
-            
-            task.timeframe = timeframe
-            task.targetDate = Calendar.current.startOfDay(for: targetDate)
-            try env.taskRepository.save(task)
-            
-            let resolver = ResolveDayStatusUseCase(
-                taskRepository: env.taskRepository,
-                categoryRepository: env.categoryRepository,
-                dayEntryRepository: env.dayEntryRepository,
-                settingsRepository: env.settingsRepository
-            )
-            if timeframe == .daily {
-                try resolver.execute(date: task.targetDate, categoryId: task.categoryId)
-                try resolver.execute(date: task.targetDate, categoryId: nil)
-            }
-            if oldTimeframe == .daily {
-                try resolver.execute(date: oldDate, categoryId: oldCategory)
-                try resolver.execute(date: oldDate, categoryId: nil)
-            }
-            
-            let syncGoals = SyncGoalProgressUseCase(
-                goalRepository: env.goalRepository,
-                dayEntryRepository: env.dayEntryRepository,
-                taskRepository: env.taskRepository
-            )
-            try syncGoals.execute()
-            
-            env.syncWidgets()
-            load(tab: tab, for: date)
-        } catch {
-            errorMessage = error.localizedDescription
-        }
+        errorMessage = "⚠️ Tasks cannot be edited or rescheduled once created."
     }
 
     func color(for task: Task) -> Color? {

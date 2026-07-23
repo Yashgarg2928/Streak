@@ -35,11 +35,20 @@ The app dynamically adapts between **Light Neo-Brutalism** and **Dark Neo-Brutal
 | `border` | `#1A1A1A` | `#F5F0E8` | High-contrast 2.5pt borders & dividers |
 | `text-primary` | `#1A1A1A` | `#F5F0E8` | Primary text, headings |
 | `text-secondary` | `#4A4A4A` | `#A0A0A0` | Secondary text, labels, hints |
-| `text-disabled` | `#9A9A9A` | `#666666` | Placeholder text, inactive labels, soft-deleted items |
-| `green` | `#2D7A2D` | `#34C759` | Completed day marker & strict heatmap status |
-| `red` | `#C0392B` | `#FF3B30` | Missed/red day marker & strict heatmap status |
-| `blank` | `#D0C9B8` | `#2C2C2E` | Future day / no data |
+| `text-disabled` | `#9A9A9A` | `#666666` | Placeholder text, inactive labels |
+| `green` | `#2D7A2D` | `#34C759` | Completed day marker & heatmaps |
+| `red` | `#C0392B` | `#FF3B30` | Missed day marker (deadline passed with 0 tasks OR day ended) |
+| `blank` | `#D0C9B8` | `#2C2C2E` | Active in-progress day & future days |
 | `neutral-dot` | `#8A8A8A` | `#999999` | Uncategorized task dot |
+
+### 2.2 Consistency Heatmap Rules & Warnings
+
+1. **Active Day In-Progress:** Stays **BLANK** (neutral sand fill) while tasks are pending before the day ends.
+2. **Turning Green:** Turns Green when **ALL** scheduled tasks for the category / master list are completed.
+3. **Turning Red:** Checked at exactly **2 specific times**:
+   - **Time 1:** When the planning deadline passes with **0 tasks** scheduled (Lockout).
+   - **Time 2:** When the active day has **ended** with incomplete tasks.
+4. **Task Immutability:** Tasks **cannot be edited or deleted** once created. Creation UI displays warning text `⚠️ Tasks cannot be edited or deleted once created`.
 
 ### 2.2 Category Colors
 

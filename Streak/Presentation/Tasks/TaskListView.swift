@@ -375,44 +375,51 @@ struct TaskListView: View {
             }
         }()
 
-        return HStack(spacing: AppLayout.itemSpacing) {
-            Button { showCategoryPicker = true } label: {
-                CategoryDot(color: dotColor)
-                    .frame(width: AppLayout.minTapTarget, height: AppLayout.minTapTarget)
+        return VStack(spacing: 4) {
+            HStack(spacing: AppLayout.itemSpacing) {
+                Button { showCategoryPicker = true } label: {
+                    CategoryDot(color: dotColor)
+                        .frame(width: AppLayout.minTapTarget, height: AppLayout.minTapTarget)
+                        .background(AppColor.surface)
+                        .clipShape(RoundedRectangle(cornerRadius: AppLayout.cornerRadius))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: AppLayout.cornerRadius)
+                                .stroke(
+                                    newTaskCategoryId != nil ? dotColor : AppColor.border,
+                                    lineWidth: AppLayout.borderWidth
+                                )
+                        )
+                }
+                .buttonStyle(.plain)
+
+                TextField(placeholder, text: $newTaskTitle)
+                    .font(.system(.body))
+                    .foregroundStyle(AppColor.textPrimary)
+                    .frame(minHeight: AppLayout.minTapTarget)
+                    .padding(.horizontal, 10)
                     .background(AppColor.surface)
                     .clipShape(RoundedRectangle(cornerRadius: AppLayout.cornerRadius))
                     .overlay(
                         RoundedRectangle(cornerRadius: AppLayout.cornerRadius)
-                            .stroke(
-                                newTaskCategoryId != nil ? dotColor : AppColor.border,
-                                lineWidth: AppLayout.borderWidth
-                            )
+                            .stroke(AppColor.border, lineWidth: AppLayout.borderWidth)
                     )
-            }
-            .buttonStyle(.plain)
+                    .onSubmit { addTask() }
 
-            TextField(placeholder, text: $newTaskTitle)
-                .font(.system(.body))
-                .foregroundStyle(AppColor.textPrimary)
-                .frame(minHeight: AppLayout.minTapTarget)
-                .padding(.horizontal, 10)
-                .background(AppColor.surface)
-                .clipShape(RoundedRectangle(cornerRadius: AppLayout.cornerRadius))
-                .overlay(
-                    RoundedRectangle(cornerRadius: AppLayout.cornerRadius)
-                        .stroke(AppColor.border, lineWidth: AppLayout.borderWidth)
-                )
-                .onSubmit { addTask() }
-
-            Button { addTask() } label: {
-                Image(systemName: "plus")
-                    .fontWeight(.semibold)
-                    .foregroundStyle(AppColor.background)
-                    .frame(width: AppLayout.minTapTarget, height: AppLayout.minTapTarget)
-                    .background(AppColor.border)
-                    .clipShape(RoundedRectangle(cornerRadius: AppLayout.cornerRadius))
+                Button { addTask() } label: {
+                    Image(systemName: "plus")
+                        .fontWeight(.semibold)
+                        .foregroundStyle(AppColor.background)
+                        .frame(width: AppLayout.minTapTarget, height: AppLayout.minTapTarget)
+                        .background(AppColor.border)
+                        .clipShape(RoundedRectangle(cornerRadius: AppLayout.cornerRadius))
+                }
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
+
+            Text("⚠️ Tasks cannot be edited or deleted once created.")
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundStyle(AppColor.textSecondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 

@@ -117,38 +117,32 @@ struct TaskRowView: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            Button(action: { if !isFuture && !task.isDeleted { onToggle() } }) {
+            Button(action: { if !isFuture { onToggle() } }) {
                 HStack(spacing: 10) {
-                    // Checkbox — greyed out for future/deleted tasks
+                    // Checkbox — greyed out for future tasks
                     Image(systemName: task.isCompleted ? "checkmark.square.fill" : "square")
                         .font(.system(size: 22, weight: .medium))
                         .foregroundStyle(
-                            task.isDeleted ? AppColor.textDisabled.opacity(0.6) :
                             isFuture ? AppColor.textDisabled :
                             task.isCompleted ? AppColor.green : AppColor.textSecondary
                         )
                         .frame(width: 28, height: 28)
 
                     // Category dot
-                    CategoryDot(color: task.isDeleted ? AppColor.neutralDot.opacity(0.4) : (categoryColor ?? AppColor.neutralDot))
+                    CategoryDot(color: categoryColor ?? AppColor.neutralDot)
 
-                    // Task title + Deleted label
+                    // Task title
                     HStack(spacing: 6) {
                         Text(task.title)
                             .font(.system(.body).weight(.medium))
                             .foregroundStyle(
-                                task.isDeleted ? AppColor.textDisabled :
                                 isFuture ? AppColor.textSecondary : AppColor.textPrimary
                             )
-                            .strikethrough(task.isCompleted || task.isDeleted, color: AppColor.textDisabled)
+                            .strikethrough(task.isCompleted, color: AppColor.textDisabled)
                             .lineLimit(nil)
                             .multilineTextAlignment(.leading)
                         
-                        if task.isDeleted {
-                            Text("(Deleted)")
-                                .font(.system(.caption).weight(.bold))
-                                .foregroundStyle(AppColor.textDisabled)
-                        } else if task.isLocked {
+                        if task.isLocked {
                             HStack(spacing: 3) {
                                 Image(systemName: "lock.fill")
                                     .font(.system(size: 9, weight: .bold))
@@ -169,87 +163,7 @@ struct TaskRowView: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .disabled(task.isDeleted)
 
-            // Promotion / Schedule Pills for Weekly/Monthly/Backlog tasks
-            if !task.isDeleted && !task.isCompleted {
-                HStack(spacing: 6) {
-                    if let onScheduleToday {
-                        Button(action: onScheduleToday) {
-                            HStack(spacing: 3) {
-                                Image(systemName: "bolt.fill")
-                                    .font(.system(size: 9, weight: .black))
-                                Text("TODAY")
-                                    .font(.system(size: 9, weight: .black))
-                            }
-                            .foregroundStyle(AppColor.textPrimary)
-                            .padding(.horizontal, 7)
-                            .padding(.vertical, 4)
-                            .background(AppColor.surface)
-                            .clipShape(RoundedRectangle(cornerRadius: 6))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 6)
-                                    .stroke(AppColor.border, lineWidth: 1)
-                            )
-                        }
-                        .buttonStyle(.plain)
-                    }
-
-                    if let onScheduleTomorrow {
-                        Button(action: onScheduleTomorrow) {
-                            HStack(spacing: 3) {
-                                Image(systemName: "calendar")
-                                    .font(.system(size: 9, weight: .bold))
-                                Text("TOMORROW")
-                                    .font(.system(size: 9, weight: .black))
-                            }
-                            .foregroundStyle(AppColor.textPrimary)
-                            .padding(.horizontal, 7)
-                            .padding(.vertical, 4)
-                            .background(AppColor.surface)
-                            .clipShape(RoundedRectangle(cornerRadius: 6))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 6)
-                                    .stroke(AppColor.border, lineWidth: 1)
-                            )
-                        }
-                        .buttonStyle(.plain)
-                    }
-
-                    if onMoveToTimeframe != nil {
-                        Menu {
-                            if let onScheduleToday {
-                                Button(action: onScheduleToday) {
-                                    Label("Schedule for Today", systemImage: "bolt.fill")
-                                }
-                            }
-                            if let onScheduleTomorrow {
-                                Button(action: onScheduleTomorrow) {
-                                    Label("Schedule for Tomorrow", systemImage: "calendar")
-                                }
-                            }
-                            if let onMoveToTimeframe {
-                                Section("Move to Scope") {
-                                    Button(action: { onMoveToTimeframe(.weekly) }) {
-                                        Label("Move to Weekly", systemImage: "calendar.badge.clock")
-                                    }
-                                    Button(action: { onMoveToTimeframe(.monthly) }) {
-                                        Label("Move to Monthly", systemImage: "calendar")
-                                    }
-                                    Button(action: { onMoveToTimeframe(.backlog) }) {
-                                        Label("Move to To-Do List", systemImage: "tray")
-                                    }
-                                }
-                            }
-                        } label: {
-                            Image(systemName: "ellipsis.circle")
-                                .font(.system(size: 18, weight: .medium))
-                                .foregroundStyle(AppColor.textSecondary)
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
-            }
         }
     }
 }
