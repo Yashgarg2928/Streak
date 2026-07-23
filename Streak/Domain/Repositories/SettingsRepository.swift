@@ -25,4 +25,5 @@ public protocol SettingsRepository: AnyObject {
     var timezoneGraceExtension: Double { get set }
     
     func saveAll()
+    func resetAll()
 }

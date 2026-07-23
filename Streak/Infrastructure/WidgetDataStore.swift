@@ -67,4 +67,10 @@ enum WidgetDataStore {
               let decoded = try? JSONDecoder().decode(WidgetData.self, from: data) else { return nil }
         return decoded
     }
+
+    static func clearAll() {
+        guard let defaults = UserDefaults(suiteName: appGroupID) else { return }
+        defaults.removeObject(forKey: key)
+        defaults.synchronize()
+    }
 }

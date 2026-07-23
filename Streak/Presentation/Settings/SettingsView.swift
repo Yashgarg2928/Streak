@@ -20,8 +20,10 @@ struct SettingsView: View {
     @State private var reminderHour: Int
     @State private var reminderMinute: Int
     
+    @Environment(\.modelContext) private var modelContext
     @State private var showBanner: Bool = false
     @State private var bannerMessage: String = ""
+    @State private var showResetConfirmation: Bool = false
     
     init(env: AppEnvironment) {
         self.env = env
@@ -238,7 +240,6 @@ struct SettingsView: View {
                             withAnimation {
                                 showBanner = true
                             }
-                            // Trigger failure haptic
                             let feedback = UINotificationFeedbackGenerator()
                             feedback.notificationOccurred(.error)
                             return
@@ -257,7 +258,6 @@ struct SettingsView: View {
                     settings.planningReminderMinute = reminderMinute
                     settings.saveAll()
                     
-                    // Reschedule reminders
                     rescheduleLocalReminders()
                     
                     bannerMessage = "Configuration saved successfully!"
@@ -265,12 +265,40 @@ struct SettingsView: View {
                         showBanner = true
                     }
                     
-                    // Trigger haptic
                     let feedback = UINotificationFeedbackGenerator()
                     feedback.notificationOccurred(.success)
                     
-                    // Sync widgets
                     env.syncWidgets()
+                }
+                .padding(.horizontal, AppLayout.screenMargin)
+
+                // Danger Zone Card
+                BrutalistCard(borderColor: AppColor.red) {
+                    VStack(alignment: .leading, spacing: AppLayout.itemSpacing) {
+                        Text("DANGER ZONE")
+                            .font(.system(.headline, design: .monospaced).weight(.bold))
+                            .foregroundStyle(AppColor.red)
+                        
+                        Text("Permanently erase all tasks, categories, goals, reflection logs, and streak history.")
+                            .font(.system(.caption))
+                            .foregroundStyle(AppColor.textSecondary)
+                        
+                        Button {
+                            showResetConfirmation = true
+                        } label: {
+                            HStack {
+                                Image(systemName: "trash.fill")
+                                Text("RESET ALL APP DATA")
+                                    .font(.system(.subheadline, design: .monospaced).weight(.bold))
+                            }
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: AppLayout.minTapTarget)
+                            .background(AppColor.red)
+                            .clipShape(RoundedRectangle(cornerRadius: AppLayout.cornerRadius))
+                        }
+                        .buttonStyle(.plain)
+                    }
                 }
                 .padding(.horizontal, AppLayout.screenMargin)
                 .padding(.bottom, 30)
@@ -278,6 +306,14 @@ struct SettingsView: View {
             .padding(.vertical)
         }
         .background(AppColor.background.ignoresSafeArea())
+        .alert("Erase All Data?", isPresented: $showResetConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Erase Everything", role: .destructive) {
+                resetAllAppData()
+            }
+        } message: {
+            Text("This will permanently delete all tasks, categories, goals, and history. This action cannot be undone.")
+        }
         .onAppear {
             checkForTimeZoneShift()
         }
@@ -332,6 +368,22 @@ struct SettingsView: View {
             )
             
             UNUserNotificationCenter.current().add(request)
+        }
+    }
+    
+    private func resetAllAppData() {
+        let useCase = ResetAllDataUseCase(context: modelContext, settingsRepository: settings)
+        do {
+            try useCase.execute()
+            bannerMessage = "All app data erased successfully. Restarting..."
+            withAnimation { showBanner = true }
+            let feedback = UINotificationFeedbackGenerator()
+            feedback.notificationOccurred(.success)
+        } catch {
+            bannerMessage = "Failed to erase data: \(error.localizedDescription)"
+            withAnimation { showBanner = true }
+            let feedback = UINotificationFeedbackGenerator()
+            feedback.notificationOccurred(.error)
         }
     }
 }

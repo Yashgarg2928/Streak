@@ -130,4 +130,12 @@ public final class UserDefaultsSettingsRepository: SettingsRepository {
         // UserDefaults automatically saves, but we can call synchronize for instant write verification.
         defaults.synchronize()
     }
+    
+    public func resetAll() {
+        if let domain = Bundle.main.bundleIdentifier {
+            defaults.removePersistentDomain(forName: domain)
+        }
+        defaults.removePersistentDomain(forName: "group.com.madhvan.streak")
+        defaults.synchronize()
+    }
 }
