@@ -28,6 +28,10 @@ struct TaskListView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
+                headerBar
+                    .padding(.horizontal, AppLayout.screenMargin)
+                    .padding(.top, AppLayout.itemSpacing)
+
                 mainTabControl
                     .padding(.horizontal, AppLayout.screenMargin)
                     .padding(.top, AppLayout.itemSpacing)
@@ -62,32 +66,7 @@ struct TaskListView: View {
                     .padding(.vertical, AppLayout.itemSpacing)
             }
             .background(AppColor.background.ignoresSafeArea())
-            .navigationTitle(navigationTitleString)
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showRoutineSheet = true
-                    } label: {
-                        HStack(spacing: 4) {
-                            Image(systemName: "flame.fill")
-                                .font(.system(size: 10, weight: .black))
-                            Text("HABIT COMMITMENT")
-                                .font(.system(size: 10, weight: .black))
-                        }
-                        .foregroundStyle(AppColor.textPrimary)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 5)
-                        .background(AppColor.surface)
-                        .clipShape(RoundedRectangle(cornerRadius: 6))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 6)
-                                .stroke(AppColor.border, lineWidth: 1.5)
-                        )
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
+            .toolbar(.hidden, for: .navigationBar)
         }
         .onAppear {
             let today = activeToday
@@ -111,6 +90,39 @@ struct TaskListView: View {
                     for: selectedDate ?? activeToday
                 )
             }
+        }
+    }
+
+    // MARK: - Header Bar
+
+    private var headerBar: some View {
+        HStack {
+            Text(navigationTitleString)
+                .font(.system(.title2, design: .monospaced).weight(.black))
+                .foregroundStyle(AppColor.textPrimary)
+
+            Spacer()
+
+            Button {
+                showRoutineSheet = true
+            } label: {
+                HStack(spacing: 5) {
+                    Image(systemName: "flame.fill")
+                        .font(.system(size: 11, weight: .bold))
+                    Text("HABIT COMMITMENT")
+                        .font(.system(size: 10, weight: .bold))
+                }
+                .foregroundStyle(AppColor.textPrimary)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 7)
+                .background(AppColor.surface)
+                .clipShape(RoundedRectangle(cornerRadius: AppLayout.cornerRadius))
+                .overlay(
+                    RoundedRectangle(cornerRadius: AppLayout.cornerRadius)
+                        .stroke(AppColor.border, lineWidth: AppLayout.borderWidth)
+                )
+            }
+            .buttonStyle(.plain)
         }
     }
 
