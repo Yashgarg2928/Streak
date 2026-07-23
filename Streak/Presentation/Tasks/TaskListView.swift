@@ -309,15 +309,22 @@ struct TaskListView: View {
                             onToggle: {
                                 vm?.toggle(taskId: task.id, tab: selectedTab, for: selectedDate ?? activeToday)
                             },
-                            onScheduleToday: selectedTab == .daily ? nil : {
-                                vm?.scheduleTask(taskId: task.id, to: activeToday, timeframe: .daily, tab: selectedTab, for: selectedDate ?? activeToday)
-                            },
-                            onScheduleTomorrow: selectedTab == .daily ? nil : {
-                                vm?.scheduleTask(taskId: task.id, to: tomorrow, timeframe: .daily, tab: selectedTab, for: selectedDate ?? activeToday)
-                            },
-                            onMoveToTimeframe: { targetTimeframe in
-                                vm?.scheduleTask(taskId: task.id, to: activeToday, timeframe: targetTimeframe, tab: selectedTab, for: selectedDate ?? activeToday)
-                            }
+                            onScheduleToday: selectedTab == .backlog ? {
+                                vm?.promoteToDaily(
+                                    taskId: task.id,
+                                    targetDate: activeToday,
+                                    currentTab: selectedTab,
+                                    for: selectedDate ?? activeToday
+                                )
+                            } : nil,
+                            onScheduleTomorrow: selectedTab == .backlog ? {
+                                vm?.promoteToDaily(
+                                    taskId: task.id,
+                                    targetDate: tomorrow,
+                                    currentTab: selectedTab,
+                                    for: selectedDate ?? activeToday
+                                )
+                            } : nil
                         )
                         .listRowBackground(AppColor.background)
                         .listRowSeparatorTint(AppColor.blank)

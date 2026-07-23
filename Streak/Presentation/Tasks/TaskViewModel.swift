@@ -201,6 +201,44 @@ final class TaskViewModel {
         errorMessage = "⚠️ Tasks cannot be edited or rescheduled once created."
     }
 
+    /// Creates a new daily task from a backlog/weekly/monthly item for today or tomorrow.
+    /// Does NOT modify the original task — the original remains in the backlog.
+    func promoteToDaily(taskId: UUID, targetDate: Date, currentTab: TaskTab, for date: Date = Date()) {
+        do {
+            guard let original = tasks.first(where: { $0.id == taskId }) else { return }
+            let resolver = ResolveDayStatusUseCase(
+                taskRepository: env.taskRepository,
+                categoryRepository: env.categoryRepository,
+                dayEntryRepository: env.dayEntryRepository,
+                settingsRepository: env.settingsRepository
+            )
+            let useCase = AddTaskUseCase(
+                taskRepository: env.taskRepository,
+                categoryRepository: env.categoryRepository,
+                resolveDayStatus: resolver,
+                settingsRepository: env.settingsRepository
+            )
+            _ = try useCase.execute(
+                title: original.title,
+                categoryId: original.categoryId,
+                targetDate: targetDate,
+                timeframe: .daily
+            )
+            
+            let syncGoals = SyncGoalProgressUseCase(
+                goalRepository: env.goalRepository,
+                dayEntryRepository: env.dayEntryRepository,
+                taskRepository: env.taskRepository
+            )
+            try syncGoals.execute()
+            
+            env.syncWidgets()
+            load(tab: currentTab, for: date)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
     func color(for task: Task) -> Color? {
         guard let catId = task.categoryId,
               let cat = categories.first(where: { $0.id == catId }) else { return nil }

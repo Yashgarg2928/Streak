@@ -116,54 +116,99 @@ struct TaskRowView: View {
     }
 
     var body: some View {
-        HStack(spacing: 10) {
-            Button(action: { if !isFuture { onToggle() } }) {
-                HStack(spacing: 10) {
-                    // Checkbox — greyed out for future tasks
-                    Image(systemName: task.isCompleted ? "checkmark.square.fill" : "square")
-                        .font(.system(size: 22, weight: .medium))
-                        .foregroundStyle(
-                            isFuture ? AppColor.textDisabled :
-                            task.isCompleted ? AppColor.green : AppColor.textSecondary
-                        )
-                        .frame(width: 28, height: 28)
-
-                    // Category dot
-                    CategoryDot(color: categoryColor ?? AppColor.neutralDot)
-
-                    // Task title
-                    HStack(spacing: 6) {
-                        Text(task.title)
-                            .font(.system(.body).weight(.medium))
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 10) {
+                Button(action: { if !isFuture { onToggle() } }) {
+                    HStack(spacing: 10) {
+                        // Checkbox — greyed out for future tasks
+                        Image(systemName: task.isCompleted ? "checkmark.square.fill" : "square")
+                            .font(.system(size: 22, weight: .medium))
                             .foregroundStyle(
-                                isFuture ? AppColor.textSecondary : AppColor.textPrimary
+                                isFuture ? AppColor.textDisabled :
+                                task.isCompleted ? AppColor.green : AppColor.textSecondary
                             )
-                            .strikethrough(task.isCompleted, color: AppColor.textDisabled)
-                            .lineLimit(nil)
-                            .multilineTextAlignment(.leading)
-                        
-                        if task.isLocked {
-                            HStack(spacing: 3) {
-                                Image(systemName: "lock.fill")
-                                    .font(.system(size: 9, weight: .bold))
-                                Text("LOCKED")
+                            .frame(width: 28, height: 28)
+
+                        // Category dot
+                        CategoryDot(color: categoryColor ?? AppColor.neutralDot)
+
+                        // Task title
+                        HStack(spacing: 6) {
+                            Text(task.title)
+                                .font(.system(.body).weight(.medium))
+                                .foregroundStyle(
+                                    isFuture ? AppColor.textSecondary : AppColor.textPrimary
+                                )
+                                .strikethrough(task.isCompleted, color: AppColor.textDisabled)
+                                .lineLimit(nil)
+                                .multilineTextAlignment(.leading)
+                            
+                            if task.isLocked {
+                                HStack(spacing: 3) {
+                                    Image(systemName: "lock.fill")
+                                        .font(.system(size: 9, weight: .bold))
+                                    Text("LOCKED")
+                                        .font(.system(size: 9, weight: .black))
+                                }
+                                .foregroundStyle(AppColor.textSecondary)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 3)
+                                .background(AppColor.blank)
+                                .clipShape(RoundedRectangle(cornerRadius: 4))
+                            }
+                        }
+
+                        Spacer(minLength: 4)
+                    }
+                    .frame(minHeight: AppLayout.minTapTarget)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
+
+            // Promotion pills: [⚡ TODAY] [📅 TOMORROW] — only shown for backlog/weekly/monthly tasks
+            if !task.isCompleted && (onScheduleToday != nil || onScheduleTomorrow != nil) {
+                HStack(spacing: 8) {
+                    if let onScheduleToday {
+                        Button(action: onScheduleToday) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "bolt.fill")
+                                    .font(.system(size: 9, weight: .black))
+                                Text("ADD TO TODAY")
                                     .font(.system(size: 9, weight: .black))
                             }
-                            .foregroundStyle(AppColor.textSecondary)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 3)
-                            .background(AppColor.blank)
-                            .clipShape(RoundedRectangle(cornerRadius: 4))
+                            .foregroundStyle(AppColor.background)
+                            .padding(.horizontal, 9)
+                            .padding(.vertical, 5)
+                            .background(AppColor.border)
+                            .clipShape(RoundedRectangle(cornerRadius: 5))
                         }
+                        .buttonStyle(.plain)
                     }
 
-                    Spacer(minLength: 4)
+                    if let onScheduleTomorrow {
+                        Button(action: onScheduleTomorrow) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "calendar")
+                                    .font(.system(size: 9, weight: .bold))
+                                Text("ADD TO TOMORROW")
+                                    .font(.system(size: 9, weight: .black))
+                            }
+                            .foregroundStyle(AppColor.textPrimary)
+                            .padding(.horizontal, 9)
+                            .padding(.vertical, 5)
+                            .background(AppColor.surface)
+                            .clipShape(RoundedRectangle(cornerRadius: 5))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 5)
+                                    .stroke(AppColor.border, lineWidth: 1.5)
+                            )
+                        }
+                        .buttonStyle(.plain)
+                    }
                 }
-                .frame(minHeight: AppLayout.minTapTarget)
-                .contentShape(Rectangle())
+                .padding(.leading, 38) // align with task title
             }
-            .buttonStyle(.plain)
-
         }
     }
 }
