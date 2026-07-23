@@ -37,6 +37,19 @@ struct CategoryDetailView: View {
                         }
                     }
 
+                    // Streak History
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("STREAK HISTORY")
+                            .font(.system(.caption).weight(.semibold))
+                            .foregroundStyle(AppColor.textSecondary)
+
+                        StreakHistoryView(
+                            runs: vm?.streakHistory ?? [],
+                            highStreak: vm?.highStreak ?? 0,
+                            accentColor: cat.color
+                        )
+                    }
+
                     // Linked goals
                     if let goals = vm?.linkedGoals, !goals.isEmpty {
                         VStack(alignment: .leading, spacing: AppLayout.itemSpacing) {

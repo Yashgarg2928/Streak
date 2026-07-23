@@ -20,6 +20,10 @@ final class OverallDetailViewModel {
     var tasksForSelectedDate: [Task] = []
     var categoriesMap: [UUID: Category] = [:]
     
+    // Overall streak history
+    var overallHighStreak: Int = 0
+    var overallStreakHistory: [StreakRun] = []
+    
     // Habit routines data for matrix
     var routines: [HabitRoutine] = []
     var allDailyTasks: [Task] = []
@@ -49,6 +53,18 @@ final class OverallDetailViewModel {
         loadTasksForSelectedDate()
         loadRoutinesAndAllTasks()
         generateYearTimeline()
+        loadOverallStreakHistory()
+    }
+    
+    private func loadOverallStreakHistory() {
+        do {
+            let result = try CalculateStreakHistoryUseCase(dayEntryRepository: env.dayEntryRepository)
+                .execute(categoryId: nil)
+            overallStreakHistory = result.runs
+            overallHighStreak    = result.highStreak
+        } catch {
+            print("Failed to load overall streak history: \(error)")
+        }
     }
     
     private func loadCategories() {
@@ -274,6 +290,19 @@ struct OverallDetailView: View {
                         .foregroundStyle(AppColor.textSecondary)
                 }
                 
+                // Streak History
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("STREAK HISTORY")
+                        .font(.system(.caption).weight(.semibold))
+                        .foregroundStyle(AppColor.textSecondary)
+
+                    StreakHistoryView(
+                        runs: vm.overallStreakHistory,
+                        highStreak: vm.overallHighStreak,
+                        accentColor: AppColor.border
+                    )
+                }
+
                 // Month Selector Navigation Header
                 monthNavigationHeader
                 

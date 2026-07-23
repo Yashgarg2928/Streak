@@ -6,6 +6,8 @@ import Foundation
 final class CategoryViewModel {
     private(set) var category: Category? = nil
     private(set) var streak: Int = 0
+    private(set) var highStreak: Int = 0
+    private(set) var streakHistory: [StreakRun] = []
     private(set) var entries: [Date: DayStatus] = [:]
     private(set) var linkedGoals: [Goal] = []
     private(set) var taskHistory: [Date: [Task]] = [:]   // date → tasks, sorted newest first
@@ -27,6 +29,11 @@ final class CategoryViewModel {
 
             streak = try CalculateStreakUseCase(dayEntryRepository: env.dayEntryRepository)
                 .execute(categoryId: categoryId)
+
+            let historyResult = try CalculateStreakHistoryUseCase(dayEntryRepository: env.dayEntryRepository)
+                .execute(categoryId: categoryId)
+            streakHistory = historyResult.runs
+            highStreak    = historyResult.highStreak
 
             let syncUseCase = SyncGoalProgressUseCase(
                 goalRepository: env.goalRepository,
