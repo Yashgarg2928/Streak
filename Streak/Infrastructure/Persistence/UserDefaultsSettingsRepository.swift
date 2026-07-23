@@ -26,6 +26,7 @@ public final class UserDefaultsSettingsRepository: SettingsRepository {
         
         static let lastKnownTimeZone = "lastKnownTimeZone"
         static let timezoneGraceExtension = "timezoneGraceExtension"
+        static let themeMode = "themeMode"
     }
     
     public init() {
@@ -47,7 +48,8 @@ public final class UserDefaultsSettingsRepository: SettingsRepository {
             Keys.planningDeadlineHour: 10,
             Keys.planningDeadlineMinute: 0,
             Keys.isOnboardingCompleted: false,
-            Keys.timezoneGraceExtension: 0.0
+            Keys.timezoneGraceExtension: 0.0,
+            Keys.themeMode: "system"
         ])
     }
     
@@ -124,6 +126,11 @@ public final class UserDefaultsSettingsRepository: SettingsRepository {
     public var timezoneGraceExtension: Double {
         get { defaults.double(forKey: Keys.timezoneGraceExtension) }
         set { defaults.set(newValue, forKey: Keys.timezoneGraceExtension) }
+    }
+
+    public var themeMode: String {
+        get { defaults.string(forKey: Keys.themeMode) ?? "system" }
+        set { defaults.set(newValue, forKey: Keys.themeMode) }
     }
     
     public func saveAll() {

@@ -10,16 +10,17 @@ This module outlines the visual styling foundation of the application, mapping N
 - **File Path:** [DesignTokens.swift](file:///Users/madhvan07icloud.coom/self-improvment-app/Streak/Streak/Presentation/SharedComponents/DesignTokens.swift)
 - **Type:** `enum` namespaces
 - **Responsibility:** Serves as the single source of truth for design tokens. Custom Color and Category helper extensions are located here.
-- **Color Palettes:**
-  - `background` (`#F5F0E8`): Warm paper background.
-  - `surface` (`#EFEFDF`): Standard card/control filler.
-  - `border` & `textPrimary` (`#1A1A1A`): Primary line outlines and dark text.
-  - `textSecondary` (`#4A4A4A`), `textDisabled` (`#9A9A9A`).
-  - `green` (`#2D7A2D`): Completion color.
-  - `red` (`#C0392B`): Break/missed day color.
-  - `blank` (`#D0C9B8`): Empty future cells.
+- **Color Palettes (Dynamic Light & Dark Trait Support):**
+  - `background`: Light `#F5F0E8` (Vanilla Paper) / Dark `#121212` (Dark Obsidian).
+  - `surface`: Light `#EFEFDF` (Muted Sand) / Dark `#1E1E1E` (Dark Surface).
+  - `border` & `textPrimary`: Light `#1A1A1A` / Dark `#F5F0E8` (Vanilla Cream high-contrast borders & text).
+  - `textSecondary`: Light `#4A4A4A` / Dark `#A0A0A0`.
+  - `textDisabled`: Light `#9A9A9A` / Dark `#666666` (Strikethrough and soft-deleted items).
+  - `green`: Light `#2D7A2D` / Dark `#34C759` (Vivid completion green).
+  - `red`: Light `#C0392B` / Dark `#FF3B30` (Vivid missed day red).
+  - `blank`: Light `#D0C9B8` / Dark `#2C2C2E` (Future empty cells).
 - **Layout System:**
-  - `borderWidth` (`2.5pt`): Thick black borders.
+  - `borderWidth` (`2.5pt`): Thick black / cream high-contrast borders.
   - `cornerRadius` (`6pt`): Subtle rounding.
   - `minTapTarget` (`44pt`): Safe interaction boundaries.
   - `heatmapCell` (`12pt`) & `heatmapGap` (`3pt`): Sizing grids.

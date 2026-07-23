@@ -23,6 +23,7 @@ public protocol SettingsRepository: AnyObject {
     
     var lastKnownTimeZone: String? { get set }
     var timezoneGraceExtension: Double { get set }
+    var themeMode: String { get set }
     
     func saveAll()
     func resetAll()

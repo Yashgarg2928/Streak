@@ -228,10 +228,11 @@ Stored in `UserDefaults`. Not a SwiftData entity.
 | `planningWindowMode` | String | "currentDay" | "currentDay" (plan morning of) or "previousDay" (plan night before) |
 | `planningDeadlineHour` | Int | 10 | Planning window deadline hour (0-23) |
 | `planningDeadlineMinute` | Int | 0 | Planning window deadline minute (0-59) |
+| `themeMode` | String | "system" | "system", "light", or "dark" |
+| `isOnboardingCompleted` | Bool | false | Has user completed initial setup? |
 | `dailyAssistHour` | Int | 22 | Reflection reminder hour (0-23) |
 | `dailyAssistMinute` | Int | 30 | Reflection reminder minute (0-59) |
 | `iCloudSyncEnabled` | Bool | false | Triggers SwiftData CloudKit backend |
-| `isOnboardingCompleted` | Bool | false | True if user configured active times |
 | `lastKnownTimeZone` | String | device default | For tracking time zone travel shifts |
 | `timezoneGraceExtension` | Double | 0.0 | Grace extension time (seconds) |
 | `appGroupIdentifier` | String | group.com.madhvan.streak | Shared container group suite identifier |

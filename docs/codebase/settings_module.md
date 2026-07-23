@@ -20,6 +20,7 @@ Settings are persisted in the shared App Group `UserDefaults` (`group.com.madhva
 | `planningWindowMode` | String | `"currentDay"` | `"currentDay"` (plan morning of) or `"previousDay"` (plan night before) |
 | `planningDeadlineHour` | Int | `10` | Hour of planning deadline (0-23) |
 | `planningDeadlineMinute` | Int | `0` | Minute of planning deadline (0-59) |
+| `themeMode` | String | `"system"` | `"system"`, `"light"`, or `"dark"` theme setting |
 | `isOnboardingCompleted` | Bool | `false` | True if user completed the initial active time setup |
 
 ---

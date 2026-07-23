@@ -51,10 +51,18 @@ struct StreakApp: App {
         }
     }
 
+    private var themeColorScheme: ColorScheme? {
+        switch environment.settingsRepository.themeMode {
+        case "light": return .light
+        case "dark": return .dark
+        default: return nil
+        }
+    }
+
     var body: some Scene {
         WindowGroup {
             RootView()
-                .preferredColorScheme(.light)
+                .preferredColorScheme(themeColorScheme)
                 .environment(environment)
                 .environment(router)
                 .modelContainer(container)

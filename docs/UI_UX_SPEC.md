@@ -24,20 +24,22 @@ The app follows the **Neo-Brutalist** design philosophy applied to digital inter
 
 ## 2. Color Palette
 
-### 2.1 Base Palette
+### 2.1 Dynamic Neo-Brutalist Color Palette (Light & Dark)
 
-| Token | Value | Use |
-|-------|-------|-----|
-| `background` | `#F5F0E8` | App background (warm paper/cream) |
-| `surface` | `#EFEFDF` | Card/widget background (slightly warmer) |
-| `border` | `#1A1A1A` | All borders, dividers, outlines |
-| `text-primary` | `#1A1A1A` | Primary text, headings |
-| `text-secondary` | `#4A4A4A` | Secondary text, labels, hints |
-| `text-disabled` | `#9A9A9A` | Placeholder text, inactive labels |
-| `green` | `#2D7A2D` | Completed day marker |
-| `red` | `#C0392B` | Missed/red day marker |
-| `blank` | `#D0C9B8` | Future day / no data |
-| `neutral-dot` | `#8A8A8A` | Uncategorized task dot |
+The app dynamically adapts between **Light Neo-Brutalism** and **Dark Neo-Brutalism**:
+
+| Token | Light Mode Value | Dark Mode Value | Use |
+|-------|-------|-------|-----|
+| `background` | `#F5F0E8` | `#121212` | App background canvas |
+| `surface` | `#EFEFDF` | `#1E1E1E` | Card/widget background |
+| `border` | `#1A1A1A` | `#F5F0E8` | High-contrast 2.5pt borders & dividers |
+| `text-primary` | `#1A1A1A` | `#F5F0E8` | Primary text, headings |
+| `text-secondary` | `#4A4A4A` | `#A0A0A0` | Secondary text, labels, hints |
+| `text-disabled` | `#9A9A9A` | `#666666` | Placeholder text, inactive labels, soft-deleted items |
+| `green` | `#2D7A2D` | `#34C759` | Completed day marker & strict heatmap status |
+| `red` | `#C0392B` | `#FF3B30` | Missed/red day marker & strict heatmap status |
+| `blank` | `#D0C9B8` | `#2C2C2E` | Future day / no data |
+| `neutral-dot` | `#8A8A8A` | `#999999` | Uncategorized task dot |
 
 ### 2.2 Category Colors
 

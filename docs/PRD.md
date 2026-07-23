@@ -195,7 +195,33 @@ Allows the user to define their custom wake-cycle (Active Start and End times) w
 - **Active Time Period:** Start and End time configuration. The End Time (deadline) acts as the rollover boundary for streaks.
 - **Lockout Rule:** If no tasks are scheduled for the upcoming active day before the End Time, the day is locked as Missed (Red), resetting the streak. Any tasks added afterwards are marked late and do not count toward the streak.
 - **Onboarding Flow:** Fullscreen overlay on first run to configure start/end times before accessing the app.
-- **Settings Screen:** Accessed from the "More" tab to configure active times, manage categories, and export/import data.
+- **Settings Screen:** Accessed from the "More" tab to configure active times, manage categories, toggle Appearance Theme (System/Light/Dark), and Danger Zone data reset.
+
+---
+
+### 5.7 Module: Daily Habit Commitments & Sprints
+**Priority:** P1 — Core
+
+**Description:**  
+Enables users to establish recurring daily habit commitments (e.g. 2 hours of DSA, hydration, exercise).
+
+**Key Features:**
+- **Monthly Fixed Commitments:** Runs every day for the current month. Strictly locked (`isLocked = true`) — once created, it cannot be edited or deleted.
+- **Habit Sprints:** Custom timeframe routines (e.g., 7 days or 14 days) for short-term daily habit sprints.
+- **Auto Task Generation:** `GenerateRoutineTasksUseCase` automatically populates daily checklist items for active routines upon app launch/viewing.
+
+---
+
+### 5.8 Module: Dynamic Light & Dark Neo-Brutalist Theme System
+**Priority:** P1 — Core
+
+**Description:**  
+Provides high-contrast Neo-Brutalist visual design across both Light Mode (Paper `#F5F0E8`) and Dark Mode (Obsidian `#121212`).
+
+**Key Features:**
+- **Dynamic Token Architecture:** `AppColor` and `WColor` tokens resolve dynamically based on system trait collections.
+- **Theme Selection:** User preference in Settings for System Automatic, Always Light, or Always Dark.
+- **Widget Adaptability:** Home screen widgets automatically adapt to dark mode and tinted icon settings.
 
 ---
 

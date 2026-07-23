@@ -6,16 +6,44 @@ import WidgetKit
 
 // MARK: - Colors (duplicated from main app — widgets can't import main target)
 
+import UIKit
+
 enum WColor {
-    static let background  = Color(hex: "#F5F0E8")
-    static let surface     = Color(hex: "#EFEFDF")
-    static let border      = Color(hex: "#1A1A1A")
-    static let textPrimary = Color(hex: "#1A1A1A")
-    static let textSecondary = Color(hex: "#4A4A4A")
-    static let textDisabled  = Color(hex: "#9A9A9A")
-    static let green         = Color(hex: "#2D7A2D")
-    static let red           = Color(hex: "#C0392B")
-    static let blank         = Color(hex: "#D0C9B8")
+    static let background = Color(uiColor: UIColor { trait in
+        trait.userInterfaceStyle == .dark ? UIColor(Color(hex: "#121212")) : UIColor(Color(hex: "#F5F0E8"))
+    })
+
+    static let surface = Color(uiColor: UIColor { trait in
+        trait.userInterfaceStyle == .dark ? UIColor(Color(hex: "#1E1E1E")) : UIColor(Color(hex: "#EFEFDF"))
+    })
+
+    static let border = Color(uiColor: UIColor { trait in
+        trait.userInterfaceStyle == .dark ? UIColor(Color(hex: "#F5F0E8")) : UIColor(Color(hex: "#1A1A1A"))
+    })
+
+    static let textPrimary = Color(uiColor: UIColor { trait in
+        trait.userInterfaceStyle == .dark ? UIColor(Color(hex: "#F5F0E8")) : UIColor(Color(hex: "#1A1A1A"))
+    })
+
+    static let textSecondary = Color(uiColor: UIColor { trait in
+        trait.userInterfaceStyle == .dark ? UIColor(Color(hex: "#A0A0A0")) : UIColor(Color(hex: "#4A4A4A"))
+    })
+
+    static let textDisabled = Color(uiColor: UIColor { trait in
+        trait.userInterfaceStyle == .dark ? UIColor(Color(hex: "#666666")) : UIColor(Color(hex: "#9A9A9A"))
+    })
+
+    static let green = Color(uiColor: UIColor { trait in
+        trait.userInterfaceStyle == .dark ? UIColor(Color(hex: "#34C759")) : UIColor(Color(hex: "#2D7A2D"))
+    })
+
+    static let red = Color(uiColor: UIColor { trait in
+        trait.userInterfaceStyle == .dark ? UIColor(Color(hex: "#FF3B30")) : UIColor(Color(hex: "#C0392B"))
+    })
+
+    static let blank = Color(uiColor: UIColor { trait in
+        trait.userInterfaceStyle == .dark ? UIColor(Color(hex: "#2C2C2E")) : UIColor(Color(hex: "#D0C9B8"))
+    })
 }
 
 extension Color {
