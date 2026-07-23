@@ -329,13 +329,6 @@ struct TaskListView: View {
                         .listRowBackground(AppColor.background)
                         .listRowSeparatorTint(AppColor.blank)
                     }
-                    .onDelete { indexSet in
-                        indexSet.forEach { i in
-                            if let tasks = vm?.tasks {
-                                vm?.delete(taskId: tasks[i].id, tab: selectedTab, for: selectedDate ?? activeToday)
-                            }
-                        }
-                    }
                 }
                 .listStyle(.plain)
                 .background(AppColor.background)
