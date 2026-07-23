@@ -1,6 +1,7 @@
 // Presentation/Settings/SettingsView.swift
 
 import SwiftUI
+import SwiftData
 
 struct SettingsView: View {
     let settings: any SettingsRepository

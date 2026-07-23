@@ -20,8 +20,6 @@ final class GenerateRoutineTasksUseCase {
         let activeRoutines = try habitRoutineRepository.fetchActive(for: normalizedDate)
         let existingTasks = try taskRepository.fetchAll(for: normalizedDate)
 
-        var generatedAny = false
-
         for routine in activeRoutines {
             let alreadyExists = existingTasks.contains { task in
                 task.routineId == routine.id && !task.isDeleted
@@ -38,7 +36,6 @@ final class GenerateRoutineTasksUseCase {
                     isLocked: routine.isLocked
                 )
                 try taskRepository.save(newTask)
-                generatedAny = true
             }
         }
 
