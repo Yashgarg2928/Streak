@@ -19,59 +19,40 @@ struct ProfileView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: AppLayout.sectionSpacing) {
-                    if let vm {
-                        // Header Profile Card
-                        headerProfileCard(vm: vm)
+            VStack(spacing: 0) {
+                headerBar
+                    .padding(.horizontal, AppLayout.screenMargin)
+                    .padding(.top, AppLayout.itemSpacing)
 
-                        // Segmented Switcher
-                        sectionControl
+                ScrollView {
+                    VStack(alignment: .leading, spacing: AppLayout.sectionSpacing) {
+                        if let vm {
+                            // Header Profile Card
+                            headerProfileCard(vm: vm)
 
-                        // Content Section
-                        switch selectedSection {
-                        case .shop:
-                            shopContent(vm: vm)
-                        case .badges:
-                            badgesContent(vm: vm)
-                        case .log:
-                            xpLogContent(vm: vm)
+                            // Segmented Switcher
+                            sectionControl
+
+                            // Content Section
+                            switch selectedSection {
+                            case .shop:
+                                shopContent(vm: vm)
+                            case .badges:
+                                badgesContent(vm: vm)
+                            case .log:
+                                xpLogContent(vm: vm)
+                            }
+                        } else {
+                            ProgressView()
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
                         }
-                    } else {
-                        ProgressView()
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
+                    .padding(.horizontal, AppLayout.screenMargin)
+                    .padding(.vertical, AppLayout.sectionSpacing)
                 }
-                .padding(.horizontal, AppLayout.screenMargin)
-                .padding(.vertical, AppLayout.sectionSpacing)
             }
             .background(AppColor.background.ignoresSafeArea())
-            .navigationTitle("PROFILE & SHOP")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        showSettingsSheet = true
-                    } label: {
-                        HStack(spacing: 4) {
-                            Image(systemName: "gearshape.fill")
-                                .font(.system(size: 14, weight: .bold))
-                            Text("SETTINGS")
-                                .font(.system(size: 10, weight: .bold))
-                        }
-                        .foregroundStyle(AppColor.textPrimary)
-                        .padding(.horizontal, 9)
-                        .padding(.vertical, 6)
-                        .background(AppColor.surface)
-                        .clipShape(RoundedRectangle(cornerRadius: AppLayout.cornerRadius))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: AppLayout.cornerRadius)
-                                .stroke(AppColor.border, lineWidth: 1.5)
-                        )
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
+            .toolbar(.hidden, for: .navigationBar)
             .onAppear {
                 if vm == nil { vm = ProfileViewModel(env: env) }
                 vm?.load()
@@ -112,6 +93,39 @@ struct ProfileView: View {
                     Text(succ)
                 }
             }
+        }
+    }
+
+    // MARK: - Header Bar
+
+    private var headerBar: some View {
+        HStack {
+            Text("PROFILE & SHOP")
+                .font(.system(.title2, design: .monospaced).weight(.black))
+                .foregroundStyle(AppColor.textPrimary)
+
+            Spacer()
+
+            Button {
+                showSettingsSheet = true
+            } label: {
+                HStack(spacing: 5) {
+                    Image(systemName: "gearshape.fill")
+                        .font(.system(size: 11, weight: .bold))
+                    Text("SETTINGS")
+                        .font(.system(size: 10, weight: .bold))
+                }
+                .foregroundStyle(AppColor.textPrimary)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 7)
+                .background(AppColor.surface)
+                .clipShape(RoundedRectangle(cornerRadius: AppLayout.cornerRadius))
+                .overlay(
+                    RoundedRectangle(cornerRadius: AppLayout.cornerRadius)
+                        .stroke(AppColor.border, lineWidth: AppLayout.borderWidth)
+                )
+            }
+            .buttonStyle(.plain)
         }
     }
 
