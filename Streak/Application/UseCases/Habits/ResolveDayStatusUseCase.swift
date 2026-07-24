@@ -38,20 +38,13 @@ struct ResolveDayStatusUseCase {
         let planningDeadline = ActiveDayResolver.planningDeadline(for: date, settings: settingsRepository)
         let isDeadlinePassed = now > planningDeadline
 
-        var status = DayStatus.resolve(
+        let status = DayStatus.resolve(
             taskCount: taskCount,
             completedCount: completedCount,
             date: date,
             activeDate: activeDate,
             isPlanningDeadlinePassed: isDeadlinePassed
         )
-
-        if status == .green {
-            let hasLateTasks = activeTasks.contains { $0.createdAt > planningDeadline }
-            if hasLateTasks {
-                status = .red
-            }
-        }
 
         let entry = DayEntry(
             date: date,
