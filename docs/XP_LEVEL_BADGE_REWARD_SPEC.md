@@ -205,36 +205,40 @@ Badges are **permanent** — once earned, they never go away, even if XP/level d
 
 ### 7.1 Fixed Rewards (Defined by the system)
 
-These are unlocked only at specific **minimum levels** AND purchased with XP.
+These are unlocked only at specific **minimum levels** AND purchased with XP. (Costs are tuned high to keep rewards meaningful and earned).
 
 | Reward | XP Cost | Min Level | Effect |
 |---|---|---|---|
-| ⛄ **Streak Freeze** | 200 XP | Level 3 | Protects streak for 1 missed day. Must equip before day ends. Max 2 owned at once. |
-| ⚡ **XP Boost (24h)** | 300 XP | Level 5 | All XP earned in next 24h is doubled. |
-| 🔄 **Double Habit Day** | 400 XP | Level 8 | One day where all habit XP is ×3. |
-| 📅 **Weekend Shield** | 500 XP | Level 10 | Protects streak across Sat + Sun (2-day freeze, used as single unit). |
-| 🌙 **Binge Night Pass** | 600 XP | Level 15 | One guilt-free night off — streak stays intact, but no XP earned or lost. |
-| 💤 **Rest Day Pass** | 350 XP | Level 12 | Similar to Binge Night, but covers a full calendar day. |
-| 🎯 **XP Multiplier (1 Week)** | 1,500 XP | Level 25 | 1.5× XP multiplier for 7 days. |
-| 🏆 **Prestige Badge Slot** | 2,000 XP | Level 30 | Unlocks a custom badge display slot on your profile. |
-| ☄️ **Legendary Streak Armor** | 5,000 XP | Level 50 | Protects a 30-day or longer streak for up to 3 missed days in a month. |
+| ⛄ **Streak Freeze** | 500 XP | Level 3 | Protects streak for 1 missed day. Must equip before day ends. Max 2 owned at once. |
+| ⚡ **XP Boost (24h)** | 750 XP | Level 5 | All XP earned in next 24h is doubled. |
+| 🔄 **Double Habit Day** | 1,000 XP | Level 8 | One day where all habit XP is ×3. |
+| 📅 **Weekend Shield** | 1,250 XP | Level 10 | Protects streak across Sat + Sun (2-day freeze, used as single unit). |
+| 🌙 **Binge Night Pass** | 1,500 XP | Level 15 | One guilt-free night off — streak stays intact, but no XP earned or lost. |
+| 💤 **Rest Day Pass** | 1,000 XP | Level 12 | Similar to Binge Night, but covers a full calendar day. |
+| 🎯 **XP Multiplier (1 Week)** | 3,500 XP | Level 25 | 1.5× XP multiplier for 7 days. |
+| 🏆 **Prestige Badge Slot** | 5,000 XP | Level 30 | Unlocks a custom badge display slot on your profile. |
+| ☄️ **Legendary Streak Armor** | 12,000 XP | Level 50 | Protects a 30-day or longer streak for up to 3 missed days in a month. |
 
 > **Cap rules:** Streak Freeze max owned = 2. Binge/Rest passes max owned = 1.
 
 ### 7.2 User-Defined Rewards (Custom)
 
-The user creates their own rewards with a self-chosen name and description, but the XP price is chosen from **fixed tiers** — the system enforces these tiers to prevent the economy from collapsing.
+Users create their own custom rewards tied to specific habit categories (or overall), but the XP price is enforced through **fixed price tiers** to maintain economic balance.
 
 | Tier | XP Cost | Intended for |
 |---|---|---|
-| 🟢 **Snack** | 150 XP | Small treats — a coffee, 30 min YouTube, dessert |
-| 🔵 **Leisure** | 400 XP | A gaming session, episode binge, a good meal out |
-| 🟡 **Experience** | 800 XP | A day trip, a movie theatre visit, a restaurant |
-| 🟠 **Splurge** | 1,500 XP | A weekend activity, a new book/game, a spa day |
-| 🔴 **Milestone** | 3,000 XP | A big personal reward — trip planning, major purchase |
-| 👑 **Dream** | 7,000 XP | Something the user saves up for long-term |
+| 🟢 **Snack** | 400 XP | Small treats — a gourmet coffee, 30 min YouTube, dessert |
+| 🔵 **Leisure** | 1,000 XP | A gaming session, episode binge, a good meal out |
+| 🟡 **Experience** | 2,000 XP | A day trip, a movie theatre visit, a restaurant |
+| 🟠 **Splurge** | 4,000 XP | A weekend activity, a new book/game, a spa day |
+| 🔴 **Milestone** | 8,000 XP | A big personal reward — trip planning, major purchase |
+| 👑 **Dream** | 15,000 XP | Something the user saves up for long-term |
 
-> Users name the reward (e.g. "Binge GOT season", "Buy new sneakers") but must pick one of these tiers. They cannot enter an arbitrary number.
+#### 🔒 Monthly Lock & Category Rules for Custom Rewards
+1. **Category Association:** Each custom reward can be associated with a specific Category (e.g. Coding, Fitness, Reading) or Overall.
+2. **Monthly Immutability:** Once defined for the current month, custom rewards are **locked**. They cannot be edited or deleted mid-month.
+3. **Month-Boundary Editing Window:** At the start of a new calendar month, users can edit, reconfigure, or add new custom rewards for that month.
+4. **No Auto-Reset / Persistence:** Unredeemed custom rewards do **NOT** expire or reset at month end. They persist indefinitely until redeemed.
 
 ---
 
@@ -272,8 +276,11 @@ CustomReward
   - id: UUID
   - title: String
   - description: String
+  - categoryId: UUID?       // associated category (nil = overall)
   - tier: CustomRewardTier (enum: snack, leisure, experience, splurge, milestone, dream)
   - xpCost: Int             // fixed by tier, not user input
+  - targetMonth: Date       // start of month date when created/configured
+  - isLocked: Bool          // locked during active month
   - redeemedAt: Date?       // nil = not yet redeemed
   - createdAt: Date
 ```
