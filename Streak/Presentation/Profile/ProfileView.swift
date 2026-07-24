@@ -15,6 +15,7 @@ struct ProfileView: View {
     @State private var vm: ProfileViewModel?
     @State private var selectedSection: ProfileTabSection = .shop
     @State private var showAddRewardSheet: Bool = false
+    @State private var showSettingsSheet: Bool = false
 
     var body: some View {
         NavigationStack {
@@ -47,9 +48,46 @@ struct ProfileView: View {
             .background(AppColor.background.ignoresSafeArea())
             .navigationTitle("PROFILE & SHOP")
             .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        showSettingsSheet = true
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "gearshape.fill")
+                                .font(.system(size: 14, weight: .bold))
+                            Text("SETTINGS")
+                                .font(.system(size: 10, weight: .bold))
+                        }
+                        .foregroundStyle(AppColor.textPrimary)
+                        .padding(.horizontal, 9)
+                        .padding(.vertical, 6)
+                        .background(AppColor.surface)
+                        .clipShape(RoundedRectangle(cornerRadius: AppLayout.cornerRadius))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: AppLayout.cornerRadius)
+                                .stroke(AppColor.border, lineWidth: 1.5)
+                        )
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
             .onAppear {
                 if vm == nil { vm = ProfileViewModel(env: env) }
                 vm?.load()
+            }
+            .sheet(isPresented: $showSettingsSheet) {
+                NavigationStack {
+                    SettingsView(env: env)
+                        .toolbar {
+                            ToolbarItem(placement: .cancellationAction) {
+                                Button("Done") {
+                                    showSettingsSheet = false
+                                }
+                                .fontWeight(.bold)
+                            }
+                        }
+                }
             }
             .sheet(isPresented: $showAddRewardSheet) {
                 if let vm {
