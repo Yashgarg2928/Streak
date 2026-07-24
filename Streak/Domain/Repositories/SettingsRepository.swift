@@ -25,6 +25,16 @@ public protocol SettingsRepository: AnyObject {
     var timezoneGraceExtension: Double { get set }
     var themeMode: String { get set }
     
+    // Spicy & Gemini AI Notifications
+    var isAiNotificationsEnabled: Bool { get set }
+    var geminiApiKey: String { get set }
+    var notificationPersona: String { get set }
+    var spicinessLevel: String { get set }
+    var isMorningHypeEnabled: Bool { get set }
+    var isMiddayNudgeEnabled: Bool { get set }
+    var isPlanningAlertEnabled: Bool { get set }
+    var isEmergencyCutoffEnabled: Bool { get set }
+
     func saveAll()
     func resetAll()
 }

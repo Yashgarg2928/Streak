@@ -21,6 +21,16 @@ struct SettingsView: View {
     @State private var reminderHour: Int
     @State private var reminderMinute: Int
     
+    // Spicy & Gemini AI Notifications
+    @State private var isAiNotificationsEnabled: Bool
+    @State private var geminiApiKey: String
+    @State private var notificationPersona: String
+    @State private var isMorningHypeEnabled: Bool
+    @State private var isMiddayNudgeEnabled: Bool
+    @State private var isEmergencyCutoffEnabled: Bool
+    @State private var apiTestResult: String? = nil
+    @State private var isTestingApiKey: Bool = false
+    
     @Environment(\.modelContext) private var modelContext
     @State private var showBanner: Bool = false
     @State private var bannerMessage: String = ""
@@ -42,6 +52,13 @@ struct SettingsView: View {
         
         _reminderHour = State(initialValue: env.settingsRepository.planningReminderHour)
         _reminderMinute = State(initialValue: env.settingsRepository.planningReminderMinute)
+
+        _isAiNotificationsEnabled = State(initialValue: env.settingsRepository.isAiNotificationsEnabled)
+        _geminiApiKey = State(initialValue: env.settingsRepository.geminiApiKey)
+        _notificationPersona = State(initialValue: env.settingsRepository.notificationPersona)
+        _isMorningHypeEnabled = State(initialValue: env.settingsRepository.isMorningHypeEnabled)
+        _isMiddayNudgeEnabled = State(initialValue: env.settingsRepository.isMiddayNudgeEnabled)
+        _isEmergencyCutoffEnabled = State(initialValue: env.settingsRepository.isEmergencyCutoffEnabled)
     }
     
     var body: some View {
@@ -221,6 +238,127 @@ struct SettingsView: View {
                     }
                 }
                 .padding(.horizontal, AppLayout.screenMargin)
+
+                // Spicy Notification Engine & Optional Gemini AI Card
+                BrutalistCard {
+                    VStack(alignment: .leading, spacing: AppLayout.itemSpacing * 2) {
+                        HStack {
+                            Text("🌶️ SPICY NOTIFICATIONS")
+                                .font(.system(.headline, design: .monospaced).weight(.bold))
+                                .foregroundStyle(AppColor.textPrimary)
+                            Spacer()
+                        }
+                        
+                        Text("Multi-touchpoint notifications powered by built-in templates or optional Gemini AI.")
+                            .font(.system(.caption))
+                            .foregroundStyle(AppColor.textSecondary)
+
+                        // Motivation Persona
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("MOTIVATION PERSONA:")
+                                .font(.system(size: 11, weight: .bold, design: .monospaced))
+                                .foregroundStyle(AppColor.textSecondary)
+                            
+                            Picker("Persona", selection: $notificationPersona) {
+                                Text("🔥 Savage Roast").tag("savage")
+                                Text("⚔️ Drill Sergeant").tag("goggins")
+                                Text("🎮 RPG Lore").tag("rpg")
+                                Text("🧘 Zen Coach").tag("zen")
+                            }
+                            .pickerStyle(.segmented)
+                        }
+
+                        Divider().background(AppColor.border)
+
+                        // Touchpoints Toggles
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("NOTIFICATION TOUCHPOINTS:")
+                                .font(.system(size: 11, weight: .bold, design: .monospaced))
+                                .foregroundStyle(AppColor.textSecondary)
+
+                            Toggle("🚀 Morning Hype (08:00 AM)", isOn: $isMorningHypeEnabled)
+                                .font(.system(.subheadline, design: .monospaced))
+                                .tint(AppColor.border)
+
+                            Toggle("⚠️ Mid-Day Streak Nudge (03:00 PM)", isOn: $isMiddayNudgeEnabled)
+                                .font(.system(.subheadline, design: .monospaced))
+                                .tint(AppColor.border)
+
+                            Toggle("🚨 Active Day Emergency (1h before cutoff)", isOn: $isEmergencyCutoffEnabled)
+                                .font(.system(.subheadline, design: .monospaced))
+                                .tint(AppColor.border)
+                        }
+
+                        Divider().background(AppColor.border)
+
+                        // Optional Gemini AI Section
+                        VStack(alignment: .leading, spacing: 10) {
+                            Toggle("🤖 Enable Gemini AI Notifications (Optional)", isOn: $isAiNotificationsEnabled)
+                                .font(.system(.body, design: .monospaced).weight(.bold))
+                                .foregroundStyle(AppColor.textPrimary)
+                                .tint(AppColor.green)
+
+                            if isAiNotificationsEnabled {
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text("Free API Key from Google AI Studio:")
+                                        .font(.system(size: 11, weight: .bold))
+                                        .foregroundStyle(AppColor.textSecondary)
+
+                                    SecureField("AIZA...", text: $geminiApiKey)
+                                        .textFieldStyle(.plain)
+                                        .padding(10)
+                                        .background(AppColor.surface)
+                                        .clipShape(RoundedRectangle(cornerRadius: 6))
+                                        .overlay(RoundedRectangle(cornerRadius: 6).stroke(AppColor.border, lineWidth: 1.5))
+
+                                    HStack {
+                                        Button {
+                                            isTestingApiKey = true
+                                            Swift.Task {
+                                                do {
+                                                    let res = try await GeminiNotificationService.shared.testApiKey(geminiApiKey)
+                                                    apiTestResult = "✅ Connected! Preview: \"\(res)\""
+                                                } catch {
+                                                    apiTestResult = "❌ \(error.localizedDescription)"
+                                                }
+                                                isTestingApiKey = false
+                                            }
+                                        } label: {
+                                            HStack(spacing: 4) {
+                                                if isTestingApiKey {
+                                                    ProgressView().scaleEffect(0.7)
+                                                }
+                                                Text("TEST API KEY & PREVIEW")
+                                                    .font(.system(size: 10, weight: .black))
+                                            }
+                                            .foregroundStyle(AppColor.background)
+                                            .padding(.horizontal, 10)
+                                            .padding(.vertical, 6)
+                                            .background(AppColor.border)
+                                            .clipShape(RoundedRectangle(cornerRadius: 6))
+                                        }
+                                        .disabled(geminiApiKey.isEmpty || isTestingApiKey)
+                                        .buttonStyle(.plain)
+
+                                        Spacer()
+                                    }
+
+                                    if let apiTestResult {
+                                        Text(apiTestResult)
+                                            .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                                            .foregroundStyle(apiTestResult.contains("✅") ? AppColor.green : AppColor.red)
+                                    }
+
+                                    Text("🔒 100% Private: Your API Key is saved locally on your iPhone and never uploaded to any server. Used exclusively for generating local notifications.")
+                                        .font(.system(size: 10))
+                                        .foregroundStyle(AppColor.textSecondary)
+                                }
+                                .padding(.top, 4)
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal, AppLayout.screenMargin)
                 
                 // Continuous Alarm Preview Card
                 BrutalistCard {
@@ -281,9 +419,17 @@ struct SettingsView: View {
                     settings.planningDeadlineMinute = planningMinute
                     settings.planningReminderHour = reminderHour
                     settings.planningReminderMinute = reminderMinute
+                    
+                    settings.isAiNotificationsEnabled = isAiNotificationsEnabled
+                    settings.geminiApiKey = geminiApiKey
+                    settings.notificationPersona = notificationPersona
+                    settings.isMorningHypeEnabled = isMorningHypeEnabled
+                    settings.isMiddayNudgeEnabled = isMiddayNudgeEnabled
+                    settings.isEmergencyCutoffEnabled = isEmergencyCutoffEnabled
+                    
                     settings.saveAll()
                     
-                    rescheduleLocalReminders()
+                    SpicyNotificationScheduler.reschedule(env: env)
                     
                     bannerMessage = "Configuration saved successfully!"
                     withAnimation {

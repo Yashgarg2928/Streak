@@ -27,6 +27,15 @@ public final class UserDefaultsSettingsRepository: SettingsRepository {
         static let lastKnownTimeZone = "lastKnownTimeZone"
         static let timezoneGraceExtension = "timezoneGraceExtension"
         static let themeMode = "themeMode"
+        
+        static let isAiNotificationsEnabled = "isAiNotificationsEnabled"
+        static let geminiApiKey = "geminiApiKey"
+        static let notificationPersona = "notificationPersona"
+        static let spicinessLevel = "spicinessLevel"
+        static let isMorningHypeEnabled = "isMorningHypeEnabled"
+        static let isMiddayNudgeEnabled = "isMiddayNudgeEnabled"
+        static let isPlanningAlertEnabled = "isPlanningAlertEnabled"
+        static let isEmergencyCutoffEnabled = "isEmergencyCutoffEnabled"
     }
     
     public init() {
@@ -49,7 +58,15 @@ public final class UserDefaultsSettingsRepository: SettingsRepository {
             Keys.planningDeadlineMinute: 0,
             Keys.isOnboardingCompleted: false,
             Keys.timezoneGraceExtension: 0.0,
-            Keys.themeMode: "system"
+            Keys.themeMode: "system",
+            Keys.isAiNotificationsEnabled: false,
+            Keys.geminiApiKey: "",
+            Keys.notificationPersona: "savage",
+            Keys.spicinessLevel: "spicy",
+            Keys.isMorningHypeEnabled: true,
+            Keys.isMiddayNudgeEnabled: true,
+            Keys.isPlanningAlertEnabled: true,
+            Keys.isEmergencyCutoffEnabled: true
         ])
     }
     
@@ -131,6 +148,46 @@ public final class UserDefaultsSettingsRepository: SettingsRepository {
     public var themeMode: String {
         get { defaults.string(forKey: Keys.themeMode) ?? "system" }
         set { defaults.set(newValue, forKey: Keys.themeMode) }
+    }
+
+    public var isAiNotificationsEnabled: Bool {
+        get { defaults.bool(forKey: Keys.isAiNotificationsEnabled) }
+        set { defaults.set(newValue, forKey: Keys.isAiNotificationsEnabled) }
+    }
+
+    public var geminiApiKey: String {
+        get { defaults.string(forKey: Keys.geminiApiKey) ?? "" }
+        set { defaults.set(newValue, forKey: Keys.geminiApiKey) }
+    }
+
+    public var notificationPersona: String {
+        get { defaults.string(forKey: Keys.notificationPersona) ?? "savage" }
+        set { defaults.set(newValue, forKey: Keys.notificationPersona) }
+    }
+
+    public var spicinessLevel: String {
+        get { defaults.string(forKey: Keys.spicinessLevel) ?? "spicy" }
+        set { defaults.set(newValue, forKey: Keys.spicinessLevel) }
+    }
+
+    public var isMorningHypeEnabled: Bool {
+        get { defaults.bool(forKey: Keys.isMorningHypeEnabled) }
+        set { defaults.set(newValue, forKey: Keys.isMorningHypeEnabled) }
+    }
+
+    public var isMiddayNudgeEnabled: Bool {
+        get { defaults.bool(forKey: Keys.isMiddayNudgeEnabled) }
+        set { defaults.set(newValue, forKey: Keys.isMiddayNudgeEnabled) }
+    }
+
+    public var isPlanningAlertEnabled: Bool {
+        get { defaults.bool(forKey: Keys.isPlanningAlertEnabled) }
+        set { defaults.set(newValue, forKey: Keys.isPlanningAlertEnabled) }
+    }
+
+    public var isEmergencyCutoffEnabled: Bool {
+        get { defaults.bool(forKey: Keys.isEmergencyCutoffEnabled) }
+        set { defaults.set(newValue, forKey: Keys.isEmergencyCutoffEnabled) }
     }
     
     public func saveAll() {
