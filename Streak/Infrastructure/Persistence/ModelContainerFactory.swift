@@ -16,6 +16,11 @@ enum ModelContainerFactory {
             GoalProgressEntryModel.self,
             ReflectionEntryModel.self,
             HabitRoutineModel.self,
+            PlayerProfileModel.self,
+            BadgeModel.self,
+            XPTransactionModel.self,
+            ShopItemModel.self,
+            CustomRewardModel.self,
         ])
 
         let config: ModelConfiguration

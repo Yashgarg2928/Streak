@@ -307,3 +307,160 @@ final class ReflectionEntryModel {
         updatedAt = entity.updatedAt
     }
 }
+
+// MARK: - Gamification Models
+
+@Model
+final class PlayerProfileModel {
+    @Attribute(.unique) var id: UUID
+    var totalXP: Int
+    var streakFreezes: Int
+    var activeBoostExpiry: Date?
+    var lastUpdated: Date
+
+    init(from entity: PlayerProfile) {
+        self.id = entity.id
+        self.totalXP = entity.totalXP
+        self.streakFreezes = entity.streakFreezes
+        self.activeBoostExpiry = entity.activeBoostExpiry
+        self.lastUpdated = entity.lastUpdated
+    }
+
+    func toDomain() -> PlayerProfile {
+        PlayerProfile(id: id, totalXP: totalXP, streakFreezes: streakFreezes,
+                      activeBoostExpiry: activeBoostExpiry, lastUpdated: lastUpdated)
+    }
+
+    func update(from entity: PlayerProfile) {
+        totalXP = entity.totalXP
+        streakFreezes = entity.streakFreezes
+        activeBoostExpiry = entity.activeBoostExpiry
+        lastUpdated = entity.lastUpdated
+    }
+}
+
+@Model
+final class BadgeModel {
+    @Attribute(.unique) var id: UUID
+    @Attribute(.unique) var badgeKey: String
+    var earnedAt: Date
+
+    init(from entity: Badge) {
+        self.id = entity.id
+        self.badgeKey = entity.badgeKey
+        self.earnedAt = entity.earnedAt
+    }
+
+    func toDomain() -> Badge {
+        Badge(id: id, badgeKey: badgeKey, earnedAt: earnedAt)
+    }
+}
+
+@Model
+final class XPTransactionModel {
+    @Attribute(.unique) var id: UUID
+    var date: Date
+    var amount: Int
+    var reasonRaw: String
+    var note: String?
+
+    var reason: XPTransactionReason {
+        get { XPTransactionReason(rawValue: reasonRaw) ?? .taskCompleted }
+        set { reasonRaw = newValue.rawValue }
+    }
+
+    init(from entity: XPTransaction) {
+        self.id = entity.id
+        self.date = entity.date
+        self.amount = entity.amount
+        self.reasonRaw = entity.reason.rawValue
+        self.note = entity.note
+    }
+
+    func toDomain() -> XPTransaction {
+        XPTransaction(id: id, date: date, amount: amount,
+                      reason: reason, note: note)
+    }
+}
+
+@Model
+final class ShopItemModel {
+    @Attribute(.unique) var id: UUID
+    var itemTypeRaw: String
+    var purchasedAt: Date
+    var usedAt: Date?
+    var expiresAt: Date?
+
+    var itemType: FixedShopItemType {
+        get { FixedShopItemType(rawValue: itemTypeRaw) ?? .streakFreeze }
+        set { itemTypeRaw = newValue.rawValue }
+    }
+
+    init(from entity: ShopItem) {
+        self.id = entity.id
+        self.itemTypeRaw = entity.itemType.rawValue
+        self.purchasedAt = entity.purchasedAt
+        self.usedAt = entity.usedAt
+        self.expiresAt = entity.expiresAt
+    }
+
+    func toDomain() -> ShopItem {
+        ShopItem(id: id, itemType: itemType, purchasedAt: purchasedAt,
+                 usedAt: usedAt, expiresAt: expiresAt)
+    }
+
+    func update(from entity: ShopItem) {
+        usedAt = entity.usedAt
+        expiresAt = entity.expiresAt
+    }
+}
+
+@Model
+final class CustomRewardModel {
+    @Attribute(.unique) var id: UUID
+    var title: String
+    var rewardDescription: String
+    var categoryId: UUID?
+    var tierRaw: String
+    var xpCost: Int
+    var targetMonth: Date
+    var isLocked: Bool
+    var redeemedAt: Date?
+    var createdAt: Date
+
+    var tier: CustomRewardTier {
+        get { CustomRewardTier(rawValue: tierRaw) ?? .snack }
+        set { tierRaw = newValue.rawValue }
+    }
+
+    init(from entity: CustomReward) {
+        self.id = entity.id
+        self.title = entity.title
+        self.rewardDescription = entity.rewardDescription
+        self.categoryId = entity.categoryId
+        self.tierRaw = entity.tier.rawValue
+        self.xpCost = entity.xpCost
+        self.targetMonth = entity.targetMonth
+        self.isLocked = entity.isLocked
+        self.redeemedAt = entity.redeemedAt
+        self.createdAt = entity.createdAt
+    }
+
+    func toDomain() -> CustomReward {
+        CustomReward(id: id, title: title, rewardDescription: rewardDescription,
+                     categoryId: categoryId, tier: tier, targetMonth: targetMonth,
+                     isLocked: isLocked, redeemedAt: redeemedAt, createdAt: createdAt)
+    }
+
+    func update(from entity: CustomReward) {
+        title = entity.title
+        rewardDescription = entity.rewardDescription
+        categoryId = entity.categoryId
+        tierRaw = entity.tier.rawValue
+        xpCost = entity.xpCost
+        targetMonth = entity.targetMonth
+        isLocked = entity.isLocked
+        redeemedAt = entity.redeemedAt
+    }
+}
+

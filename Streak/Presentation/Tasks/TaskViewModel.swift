@@ -175,7 +175,13 @@ final class TaskViewModel {
             let useCase = CompleteTaskUseCase(
                 taskRepository: env.taskRepository,
                 resolveDayStatus: resolver,
-                settingsRepository: env.settingsRepository
+                settingsRepository: env.settingsRepository,
+                playerProfileRepository: env.playerProfileRepository,
+                xpTransactionRepository: env.xpTransactionRepository,
+                badgeRepository: env.badgeRepository,
+                goalRepository: env.goalRepository,
+                habitRoutineRepository: env.habitRoutineRepository,
+                dayEntryRepository: env.dayEntryRepository
             )
             try useCase.execute(taskId: taskId, completed: !task.isCompleted)
             

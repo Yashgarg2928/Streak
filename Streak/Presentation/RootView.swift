@@ -24,6 +24,10 @@ struct RootView: View {
                 .tabItem { Label("Goals", systemImage: "flag") }
                 .tag(Tab.goals)
 
+            ProfileView()
+                .tabItem { Label("Profile & Shop", systemImage: "person.crop.circle.badge.custombadge") }
+                .tag(Tab.profile)
+
             SettingsView(env: env)
                 .tabItem { Label("More", systemImage: "ellipsis") }
                 .tag(Tab.more)

@@ -30,7 +30,12 @@ struct StreakApp: App {
                 dayEntryRepository:     dayEntryRepo,
                 reflectionRepository:   SwiftDataReflectionRepository(context: ctx),
                 settingsRepository:     settingsRepo,
-                habitRoutineRepository: routineRepo
+                habitRoutineRepository: routineRepo,
+                playerProfileRepository: SwiftDataPlayerProfileRepository(context: ctx),
+                badgeRepository:         SwiftDataBadgeRepository(context: ctx),
+                xpTransactionRepository: SwiftDataXPTransactionRepository(context: ctx),
+                shopItemRepository:     SwiftDataShopItemRepository(context: ctx),
+                customRewardRepository: SwiftDataCustomRewardRepository(context: ctx)
             )
             
             let container = c

@@ -8,6 +8,7 @@ enum Tab: Hashable {
     case home
     case tasks
     case goals
+    case profile
     case more
 }
 
