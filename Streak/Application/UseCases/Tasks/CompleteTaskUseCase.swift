@@ -48,8 +48,10 @@ struct CompleteTaskUseCase {
         task.completedAt = completed ? Date() : nil
         try taskRepository.save(task)
 
-        try resolveDayStatus.execute(date: task.targetDate, categoryId: task.categoryId)
-        try resolveDayStatus.execute(date: task.targetDate, categoryId: nil)
+        if task.timeframe == .daily {
+            try resolveDayStatus.execute(date: task.targetDate, categoryId: task.categoryId)
+            try resolveDayStatus.execute(date: task.targetDate, categoryId: nil)
+        }
 
         // Award XP on new task completion if repositories are wired
         if isNewCompletion,

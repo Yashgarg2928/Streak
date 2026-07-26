@@ -45,9 +45,9 @@ final class CategoryViewModel {
             linkedGoals = try env.goalRepository.fetchAll()
                 .filter { $0.categoryId == categoryId }
 
-            // All tasks for this category, grouped by date, past only, newest first
+            // All daily tasks for this category, grouped by date, past only, newest first
             let allTasks = try env.taskRepository.fetchAll()
-                .filter { $0.categoryId == categoryId }
+                .filter { $0.categoryId == categoryId && $0.timeframe == .daily && !$0.isDeleted }
             let today = ActiveDayResolver.resolveActiveDate(for: Date(), settings: env.settingsRepository)
             let pastTasks = allTasks.filter { $0.targetDate <= today }
 

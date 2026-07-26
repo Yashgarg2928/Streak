@@ -34,6 +34,7 @@ struct SyncGoalProgressUseCase {
                     let tasks = try taskRepository.fetchAll()
                     let count = tasks.filter { 
                         !$0.isDeleted &&
+                        $0.timeframe == .daily &&
                         $0.categoryId == categoryId && 
                         $0.isCompleted && 
                         $0.targetDate >= Calendar.current.startOfDay(for: goal.startDate) 
