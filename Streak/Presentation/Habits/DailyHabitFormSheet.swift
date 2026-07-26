@@ -250,6 +250,7 @@ struct DailyHabitFormSheet: View {
                 )
             }
 
+            env.syncWidgets()
             dismiss()
         } catch {
             print("Failed to save habit check-in: \(error)")
