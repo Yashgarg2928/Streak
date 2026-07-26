@@ -185,6 +185,13 @@ final class TaskViewModel {
             )
             try useCase.execute(taskId: taskId, completed: !task.isCompleted)
             
+            // If completing a backlog task, auto-remove it from the to-do list
+            if tab == .backlog || task.timeframe == .backlog {
+                if !task.isCompleted { // Was toggled from incomplete -> complete
+                    try? env.taskRepository.deletePermanently(id: taskId)
+                }
+            }
+
             let syncGoals = SyncGoalProgressUseCase(
                 goalRepository: env.goalRepository,
                 dayEntryRepository: env.dayEntryRepository,
@@ -200,7 +207,16 @@ final class TaskViewModel {
     }
 
     func delete(taskId: UUID, tab: TaskTab = .daily, for date: Date = Date()) {
-        errorMessage = "⚠️ Tasks cannot be deleted or edited once created."
+        if tab == .backlog {
+            do {
+                try env.taskRepository.deletePermanently(id: taskId)
+                load(tab: .backlog, for: date)
+            } catch {
+                errorMessage = error.localizedDescription
+            }
+        } else {
+            errorMessage = "⚠️ Daily/Weekly/Monthly tasks cannot be deleted or edited once created."
+        }
     }
 
     func scheduleTask(taskId: UUID, to targetDate: Date, timeframe: TaskTimeframe, tab: TaskTab = .daily, for date: Date = Date()) {

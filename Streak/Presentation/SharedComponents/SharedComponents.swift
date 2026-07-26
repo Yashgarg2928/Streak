@@ -107,6 +107,7 @@ struct TaskRowView: View {
     var onScheduleToday: (() -> Void)? = nil
     var onScheduleTomorrow: (() -> Void)? = nil
     var onMoveToTimeframe: ((TaskTimeframe) -> Void)? = nil
+    var onDelete: (() -> Void)? = nil
 
     private var isFuture: Bool {
         let activeToday = env.settingsRepository.isOnboardingCompleted
@@ -164,6 +165,23 @@ struct TaskRowView: View {
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
+
+                if let onDelete {
+                    Button(action: onDelete) {
+                        Image(systemName: "trash")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundStyle(AppColor.red)
+                            .frame(width: 28, height: 28)
+                            .background(AppColor.surface)
+                            .clipShape(RoundedRectangle(cornerRadius: 4))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 4)
+                                    .stroke(AppColor.border, lineWidth: 1)
+                            )
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Delete to-do task")
+                }
             }
 
             // Promotion pills: [⚡ TODAY] [📅 TOMORROW] — only shown for backlog/weekly/monthly tasks

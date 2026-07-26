@@ -334,10 +334,23 @@ struct TaskListView: View {
                                     currentTab: selectedTab,
                                     for: selectedDate ?? activeToday
                                 )
+                            } : nil,
+                            onDelete: selectedTab == .backlog ? {
+                                vm?.delete(taskId: task.id, tab: selectedTab, for: selectedDate ?? activeToday)
                             } : nil
                         )
                         .listRowBackground(AppColor.background)
                         .listRowSeparatorTint(AppColor.blank)
+                    }
+                    .onDelete { offsets in
+                        if selectedTab == .backlog, let tasks = vm?.tasks {
+                            for index in offsets {
+                                if index < tasks.count {
+                                    let task = tasks[index]
+                                    vm?.delete(taskId: task.id, tab: selectedTab, for: selectedDate ?? activeToday)
+                                }
+                            }
+                        }
                     }
                 }
                 .listStyle(.plain)
