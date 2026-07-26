@@ -6,6 +6,7 @@ struct HomeView: View {
     @Environment(AppEnvironment.self) private var env
     @Environment(AppRouter.self) private var router
     @State private var vm: HomeViewModel?
+    @State private var showHabitFormSheet: Bool = false
 
     var body: some View {
         @Bindable var router = router
@@ -13,7 +14,38 @@ struct HomeView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: AppLayout.sectionSpacing) {
                     ActiveDayCountdownView(settings: env.settingsRepository)
-                    
+
+                    // End-of-Day Habit Check-In Card
+                    Button {
+                        showHabitFormSheet = true
+                    } label: {
+                        BrutalistCard {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("📋 END-OF-DAY HABIT FORM")
+                                        .font(.system(.headline, design: .monospaced).weight(.bold))
+                                        .foregroundStyle(AppColor.textPrimary)
+                                    Text("Check in with ✅ and ❌ for your daily core habits")
+                                        .font(.system(size: 11))
+                                        .foregroundStyle(AppColor.textSecondary)
+                                }
+                                Spacer()
+                                HStack(spacing: 4) {
+                                    Text("OPEN FORM")
+                                        .font(.system(size: 10, weight: .black))
+                                    Image(systemName: "chevron.right")
+                                        .font(.system(size: 10, weight: .bold))
+                                }
+                                .foregroundStyle(AppColor.background)
+                                .padding(.horizontal, 9)
+                                .padding(.vertical, 5)
+                                .background(AppColor.border)
+                                .clipShape(RoundedRectangle(cornerRadius: 6))
+                            }
+                        }
+                    }
+                    .buttonStyle(.plain)
+
                     Button {
                         router.showOverallDetail = true
                     } label: {
@@ -28,6 +60,12 @@ struct HomeView: View {
             .background(AppColor.background.ignoresSafeArea())
             .navigationTitle("STREAK")
             .navigationBarTitleDisplayMode(.large)
+            .sheet(isPresented: $showHabitFormSheet) {
+                let activeToday = env.settingsRepository.isOnboardingCompleted
+                    ? ActiveDayResolver.resolveActiveDate(for: Date(), settings: env.settingsRepository)
+                    : Date()
+                DailyHabitFormSheet(date: activeToday)
+            }
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {

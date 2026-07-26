@@ -21,6 +21,8 @@ enum ModelContainerFactory {
             XPTransactionModel.self,
             ShopItemModel.self,
             CustomRewardModel.self,
+            CoreHabitModel.self,
+            DailyHabitLogModel.self,
         ])
 
         let config: ModelConfiguration

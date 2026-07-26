@@ -610,3 +610,107 @@ final class SwiftDataCustomRewardRepository: CustomRewardRepository {
     }
 }
 
+// MARK: - Core Habits & Daily Habit Check-In Repositories
+
+final class SwiftDataCoreHabitRepository: CoreHabitRepository {
+    private let context: ModelContext
+
+    init(context: ModelContext) {
+        self.context = context
+    }
+
+    func fetchAllActive() throws -> [CoreHabit] {
+        let models = try context.fetch(FetchDescriptor<CoreHabitModel>(
+            predicate: #Predicate { !$0.isArchived },
+            sortBy: [SortDescriptor(\.createdAt, order: .forward)]
+        ))
+        if models.isEmpty {
+            // Seed default core lifestyle habits if empty
+            let defaultHabits = [
+                CoreHabit(title: "No Reels / Short Form Content"),
+                CoreHabit(title: "No Wasted Money"),
+                CoreHabit(title: "No Unhealthy Fast Food"),
+                CoreHabit(title: "Morning Exercise / Walk"),
+                CoreHabit(title: "Read 15+ Minutes")
+            ]
+            for habit in defaultHabits {
+                context.insert(CoreHabitModel(from: habit))
+            }
+            try context.save()
+            return defaultHabits
+        }
+        return models.map { $0.toDomain() }
+    }
+
+    func fetchAll() throws -> [CoreHabit] {
+        let models = try context.fetch(FetchDescriptor<CoreHabitModel>(
+            sortBy: [SortDescriptor(\.createdAt, order: .forward)]
+        ))
+        return models.map { $0.toDomain() }
+    }
+
+    func save(_ habit: CoreHabit) throws {
+        let localId = habit.id
+        let existing = try context.fetch(FetchDescriptor<CoreHabitModel>(
+            predicate: #Predicate { $0.id == localId }
+        )).first
+        if let existing {
+            existing.update(from: habit)
+        } else {
+            context.insert(CoreHabitModel(from: habit))
+        }
+        try context.save()
+    }
+
+    func archive(id: UUID) throws {
+        let localId = id
+        let models = try context.fetch(FetchDescriptor<CoreHabitModel>(
+            predicate: #Predicate { $0.id == localId }
+        ))
+        if let existing = models.first {
+            existing.isArchived = true
+            try context.save()
+        }
+    }
+}
+
+final class SwiftDataDailyHabitLogRepository: DailyHabitLogRepository {
+    private let context: ModelContext
+
+    init(context: ModelContext) {
+        self.context = context
+    }
+
+    func fetchLogs(for date: Date) throws -> [DailyHabitLog] {
+        let targetDate = Calendar.current.startOfDay(for: date)
+        let models = try context.fetch(FetchDescriptor<DailyHabitLogModel>(
+            predicate: #Predicate { $0.date == targetDate }
+        ))
+        return models.map { $0.toDomain() }
+    }
+
+    func fetchLog(habitId: UUID, date: Date) throws -> DailyHabitLog? {
+        let targetDate = Calendar.current.startOfDay(for: date)
+        let localHabitId = habitId
+        let models = try context.fetch(FetchDescriptor<DailyHabitLogModel>(
+            predicate: #Predicate { $0.date == targetDate && $0.habitId == localHabitId }
+        ))
+        return models.first?.toDomain()
+    }
+
+    func save(_ log: DailyHabitLog) throws {
+        let targetDate = Calendar.current.startOfDay(for: log.date)
+        let localHabitId = log.habitId
+        let existing = try context.fetch(FetchDescriptor<DailyHabitLogModel>(
+            predicate: #Predicate { $0.date == targetDate && $0.habitId == localHabitId }
+        )).first
+        if let existing {
+            existing.update(from: log)
+        } else {
+            context.insert(DailyHabitLogModel(from: log))
+        }
+        try context.save()
+    }
+}
+
+

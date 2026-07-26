@@ -464,3 +464,62 @@ final class CustomRewardModel {
     }
 }
 
+@Model
+final class CoreHabitModel {
+    @Attribute(.unique) var id: UUID
+    var title: String
+    var categoryId: UUID?
+    var isArchived: Bool
+    var createdAt: Date
+
+    init(from entity: CoreHabit) {
+        self.id = entity.id
+        self.title = entity.title
+        self.categoryId = entity.categoryId
+        self.isArchived = entity.isArchived
+        self.createdAt = entity.createdAt
+    }
+
+    func toDomain() -> CoreHabit {
+        CoreHabit(id: id, title: title, categoryId: categoryId, isArchived: isArchived, createdAt: createdAt)
+    }
+
+    func update(from entity: CoreHabit) {
+        title = entity.title
+        categoryId = entity.categoryId
+        isArchived = entity.isArchived
+    }
+}
+
+@Model
+final class DailyHabitLogModel {
+    @Attribute(.unique) var id: UUID
+    var date: Date
+    var habitId: UUID
+    var statusRaw: String
+    var updatedAt: Date
+
+    var status: HabitCheckStatus {
+        get { HabitCheckStatus(rawValue: statusRaw) ?? .pending }
+        set { statusRaw = newValue.rawValue }
+    }
+
+    init(from entity: DailyHabitLog) {
+        self.id = entity.id
+        self.date = entity.date
+        self.habitId = entity.habitId
+        self.statusRaw = entity.status.rawValue
+        self.updatedAt = entity.updatedAt
+    }
+
+    func toDomain() -> DailyHabitLog {
+        DailyHabitLog(id: id, date: date, habitId: habitId, status: status, updatedAt: updatedAt)
+    }
+
+    func update(from entity: DailyHabitLog) {
+        statusRaw = entity.status.rawValue
+        updatedAt = entity.updatedAt
+    }
+}
+
+

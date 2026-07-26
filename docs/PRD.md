@@ -25,9 +25,10 @@ The app is designed as a **super-app scaffold** — the core three modules ship 
    - **Blank:** Active in-progress days with pending tasks remain Blank (`#D0C9B8` / `#2C2C2E`) until completed or until the day ends.
 2. **Task Immutability:** Tasks cannot be edited or deleted once created. Creation UI displays explicit warning text (`⚠️ Tasks cannot be edited or deleted once created`).
 3. **Gamification & Progression Economy:** XP earned for completing tasks/habits, polynomial level progression ($XP = 100 \times Level^{1.8}$), 13 prestige title tiers, 30+ badges, System Shop, and Category-Bound Monthly Custom Rewards with monthly lock & persistence rules.
-4. **Local-first.** No backend, no accounts, no internet requirement.
-5. **SOLID + Domain-driven.** Each domain (Habits, Goals, Tasks, Notifications, Gamification) is isolated.
-6. **Minimal UI.** Neo-Brutalist aesthetic. Nothing on screen that doesn't need to be there.
+4. **End-of-Day Habit Reflection Form:** Core lifelong lifestyle habits evaluated every night with tactile `[ ✅ FOLLOWED ]` and `[ ❌ NOT FOLLOWED ]` buttons.
+5. **Local-first.** No backend, no accounts, no internet requirement.
+6. **SOLID + Domain-driven.** Each domain (Habits, Goals, Tasks, Notifications, Gamification) is isolated.
+7. **Minimal UI.** Neo-Brutalist aesthetic. Nothing on screen that doesn't need to be there.
 
 ---
 
