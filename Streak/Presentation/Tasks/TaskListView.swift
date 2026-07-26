@@ -312,44 +312,58 @@ struct TaskListView: View {
         Group {
             if let tasks = vm?.tasks, !tasks.isEmpty {
                 List {
-                    ForEach(tasks) { task in
-                        TaskRowView(
-                            task: task,
-                            categoryColor: vm?.color(for: task),
-                            onToggle: {
-                                vm?.toggle(taskId: task.id, tab: selectedTab, for: selectedDate ?? activeToday)
-                            },
-                            onScheduleToday: selectedTab == .backlog ? {
-                                vm?.promoteToDaily(
-                                    taskId: task.id,
-                                    targetDate: activeToday,
-                                    currentTab: selectedTab,
-                                    for: selectedDate ?? activeToday
-                                )
-                            } : nil,
-                            onScheduleTomorrow: selectedTab == .backlog ? {
-                                vm?.promoteToDaily(
-                                    taskId: task.id,
-                                    targetDate: tomorrow,
-                                    currentTab: selectedTab,
-                                    for: selectedDate ?? activeToday
-                                )
-                            } : nil,
-                            onDelete: selectedTab == .backlog ? {
-                                vm?.delete(taskId: task.id, tab: selectedTab, for: selectedDate ?? activeToday)
-                            } : nil
-                        )
-                        .listRowBackground(AppColor.background)
-                        .listRowSeparatorTint(AppColor.blank)
-                    }
-                    .onDelete { offsets in
-                        if selectedTab == .backlog, let tasks = vm?.tasks {
-                            for index in offsets {
-                                if index < tasks.count {
-                                    let task = tasks[index]
+                    if selectedTab == .backlog {
+                        ForEach(tasks) { task in
+                            TaskRowView(
+                                task: task,
+                                categoryColor: vm?.color(for: task),
+                                onToggle: {
+                                    vm?.toggle(taskId: task.id, tab: selectedTab, for: selectedDate ?? activeToday)
+                                },
+                                onScheduleToday: {
+                                    vm?.promoteToDaily(
+                                        taskId: task.id,
+                                        targetDate: activeToday,
+                                        currentTab: selectedTab,
+                                        for: selectedDate ?? activeToday
+                                    )
+                                },
+                                onScheduleTomorrow: {
+                                    vm?.promoteToDaily(
+                                        taskId: task.id,
+                                        targetDate: tomorrow,
+                                        currentTab: selectedTab,
+                                        for: selectedDate ?? activeToday
+                                    )
+                                },
+                                onDelete: {
                                     vm?.delete(taskId: task.id, tab: selectedTab, for: selectedDate ?? activeToday)
                                 }
+                            )
+                            .listRowBackground(AppColor.background)
+                            .listRowSeparatorTint(AppColor.blank)
+                        }
+                        .onDelete { offsets in
+                            if let tasks = vm?.tasks {
+                                for index in offsets {
+                                    if index < tasks.count {
+                                        let task = tasks[index]
+                                        vm?.delete(taskId: task.id, tab: selectedTab, for: selectedDate ?? activeToday)
+                                    }
+                                }
                             }
+                        }
+                    } else {
+                        ForEach(tasks) { task in
+                            TaskRowView(
+                                task: task,
+                                categoryColor: vm?.color(for: task),
+                                onToggle: {
+                                    vm?.toggle(taskId: task.id, tab: selectedTab, for: selectedDate ?? activeToday)
+                                }
+                            )
+                            .listRowBackground(AppColor.background)
+                            .listRowSeparatorTint(AppColor.blank)
                         }
                     }
                 }
@@ -724,3 +738,4 @@ struct AddHabitRoutineSheet: View {
         .buttonStyle(.plain)
     }
 }
+
