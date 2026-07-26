@@ -7,38 +7,37 @@ struct DailyHabitFormSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     let date: Date
-    @State private var habits: [CoreHabit] = []
+    @State private var routines: [HabitRoutine] = []
     @State private var habitStatuses: [UUID: HabitCheckStatus] = [:]
-    @State private var showAddHabitField: Bool = false
-    @State private var newHabitTitle: String = ""
-    @State private var isSaved: Bool = false
+    @State private var categories: [Category] = []
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: AppLayout.sectionSpacing) {
-                    // Header Banner Card
+                    // Header Card
                     headerCard
 
-                    // Habits List with Tick & Cross Buttons
-                    VStack(alignment: .leading, spacing: AppLayout.itemSpacing) {
-                        Text("TODAY'S HABITS CHECK-IN")
-                            .font(.system(.subheadline, design: .monospaced).weight(.bold))
-                            .foregroundStyle(AppColor.textSecondary)
+                    // Habit Commitments List
+                    if routines.isEmpty {
+                        emptyRoutinesCard
+                    } else {
+                        VStack(alignment: .leading, spacing: AppLayout.itemSpacing) {
+                            Text("MONTHLY HABIT COMMITMENTS")
+                                .font(.system(.subheadline, design: .monospaced).weight(.bold))
+                                .foregroundStyle(AppColor.textSecondary)
 
-                        ForEach(habits) { habit in
-                            habitRow(habit)
+                            ForEach(routines) { routine in
+                                routineRow(routine)
+                            }
                         }
-                    }
 
-                    // Add New Core Habit
-                    addHabitSection
-
-                    // Save Button
-                    BrutalistButton(title: "SAVE END OF DAY CHECK-IN", borderColor: AppColor.green) {
-                        saveCheckIn()
+                        // Save Button
+                        BrutalistButton(title: "SAVE END OF DAY CHECK-IN", borderColor: AppColor.green) {
+                            saveCheckIn()
+                        }
+                        .padding(.top, 10)
                     }
-                    .padding(.top, 10)
                 }
                 .padding(.horizontal, AppLayout.screenMargin)
                 .padding(.vertical, AppLayout.sectionSpacing)
@@ -60,7 +59,7 @@ struct DailyHabitFormSheet: View {
     private var headerCard: some View {
         let followedCount = habitStatuses.values.filter { $0 == .followed }.count
         let failedCount = habitStatuses.values.filter { $0 == .failed }.count
-        let totalCount = habits.count
+        let totalCount = routines.count
 
         return BrutalistCard {
             VStack(alignment: .leading, spacing: 8) {
@@ -69,7 +68,7 @@ struct DailyHabitFormSheet: View {
                         Text("DAILY HABIT REFLECTION")
                             .font(.system(.headline, design: .monospaced).weight(.bold))
                             .foregroundStyle(AppColor.textPrimary)
-                        Text("Be honest with yourself. Small daily habits shape your life.")
+                        Text("Check off your monthly habit commitments for today.")
                             .font(.system(size: 11))
                             .foregroundStyle(AppColor.textSecondary)
                     }
@@ -103,19 +102,36 @@ struct DailyHabitFormSheet: View {
         }
     }
 
-    private func habitRow(_ habit: CoreHabit) -> some View {
-        let currentStatus = habitStatuses[habit.id] ?? .pending
+    private var emptyRoutinesCard: some View {
+        BrutalistCard {
+            VStack(alignment: .leading, spacing: 10) {
+                Text("NO ACTIVE HABIT COMMITMENTS")
+                    .font(.system(.headline, design: .monospaced).weight(.bold))
+                    .foregroundStyle(AppColor.textPrimary)
+                Text("You haven't set your habit commitments for this month yet. Create your monthly habit commitments in the Tasks tab to fill out this end-of-day form.")
+                    .font(.system(size: 12))
+                    .foregroundStyle(AppColor.textSecondary)
+            }
+        }
+    }
+
+    private func routineRow(_ routine: HabitRoutine) -> some View {
+        let currentStatus = habitStatuses[routine.id] ?? .pending
+        let categoryColor = categoryColor(for: routine.categoryId)
 
         return BrutalistCard(borderColor: currentStatus == .followed ? AppColor.green : (currentStatus == .failed ? AppColor.red : AppColor.border)) {
             VStack(alignment: .leading, spacing: 10) {
-                Text(habit.title)
-                    .font(.system(.body).weight(.bold))
-                    .foregroundStyle(AppColor.textPrimary)
+                HStack(spacing: 8) {
+                    CategoryDot(color: categoryColor)
+                    Text(routine.title)
+                        .font(.system(.body).weight(.bold))
+                        .foregroundStyle(AppColor.textPrimary)
+                }
 
                 HStack(spacing: 12) {
                     // Tick Button (Followed)
                     Button {
-                        habitStatuses[habit.id] = (currentStatus == .followed) ? .pending : .followed
+                        habitStatuses[routine.id] = (currentStatus == .followed) ? .pending : .followed
                     } label: {
                         HStack(spacing: 6) {
                             Text("✅")
@@ -136,7 +152,7 @@ struct DailyHabitFormSheet: View {
 
                     // Cross Button (Not Followed / Failed)
                     Button {
-                        habitStatuses[habit.id] = (currentStatus == .failed) ? .pending : .failed
+                        habitStatuses[routine.id] = (currentStatus == .failed) ? .pending : .failed
                     } label: {
                         HStack(spacing: 6) {
                             Text("❌")
@@ -159,109 +175,64 @@ struct DailyHabitFormSheet: View {
         }
     }
 
-    private var addHabitSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if showAddHabitField {
-                BrutalistCard {
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("ADD NEW HABIT")
-                            .font(.system(size: 11, weight: .bold, design: .monospaced))
-                            .foregroundStyle(AppColor.textSecondary)
-
-                        TextField("e.g., No Masturbation, Cold Shower...", text: $newHabitTitle)
-                            .textFieldStyle(.plain)
-                            .padding(8)
-                            .background(AppColor.surface)
-                            .clipShape(RoundedRectangle(cornerRadius: 6))
-                            .overlay(RoundedRectangle(cornerRadius: 6).stroke(AppColor.border, lineWidth: 1.5))
-
-                        HStack {
-                            Button("Cancel") {
-                                showAddHabitField = false
-                                newHabitTitle = ""
-                            }
-                            .foregroundStyle(AppColor.textSecondary)
-                            .font(.system(size: 11, weight: .bold))
-
-                            Spacer()
-
-                            Button("Add Habit") {
-                                addHabit()
-                            }
-                            .font(.system(size: 11, weight: .black))
-                            .foregroundStyle(AppColor.background)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 6)
-                            .background(AppColor.border)
-                            .clipShape(RoundedRectangle(cornerRadius: 6))
-                            .disabled(newHabitTitle.trimmingCharacters(in: .whitespaces).isEmpty)
-                        }
-                    }
-                }
-            } else {
-                Button {
-                    showAddHabitField = true
-                } label: {
-                    HStack(spacing: 6) {
-                        Image(systemName: "plus")
-                            .font(.system(size: 11, weight: .bold))
-                        Text("ADD CUSTOM LIFELONG HABIT")
-                            .font(.system(size: 10, weight: .bold))
-                    }
-                    .foregroundStyle(AppColor.textPrimary)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 7)
-                    .background(AppColor.surface)
-                    .clipShape(RoundedRectangle(cornerRadius: AppLayout.cornerRadius))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: AppLayout.cornerRadius)
-                            .stroke(AppColor.border, lineWidth: 1.5)
-                    )
-                }
-                .buttonStyle(.plain)
-            }
-        }
+    private func categoryColor(for categoryId: UUID?) -> Color {
+        guard let categoryId else { return AppColor.neutralDot }
+        return categories.first(where: { $0.id == categoryId })?.color ?? AppColor.neutralDot
     }
 
     private func loadData() {
         do {
-            habits = try env.coreHabitRepository.fetchAllActive()
+            categories = try env.categoryRepository.fetchAll()
+            routines = try env.habitRoutineRepository.fetchActive(for: date)
             let existingLogs = try env.dailyHabitLogRepository.fetchLogs(for: date)
             for log in existingLogs {
                 habitStatuses[log.habitId] = log.status
             }
         } catch {
-            print("Failed to load habits: \(error)")
-        }
-    }
-
-    private func addHabit() {
-        let trimmed = newHabitTitle.trimmingCharacters(in: .whitespaces)
-        guard !trimmed.isEmpty else { return }
-        do {
-            let newHabit = CoreHabit(title: trimmed)
-            try env.coreHabitRepository.save(newHabit)
-            newHabitTitle = ""
-            showAddHabitField = false
-            loadData()
-        } catch {
-            print("Failed to save core habit: \(error)")
+            print("Failed to load routines: \(error)")
         }
     }
 
     private func saveCheckIn() {
         do {
             var followedCount = 0
-            for habit in habits {
-                let status = habitStatuses[habit.id] ?? .pending
-                let log = DailyHabitLog(date: date, habitId: habit.id, status: status)
+            let resolver = ResolveDayStatusUseCase(
+                taskRepository: env.taskRepository,
+                categoryRepository: env.categoryRepository,
+                dayEntryRepository: env.dayEntryRepository,
+                settingsRepository: env.settingsRepository
+            )
+            let completeUseCase = CompleteTaskUseCase(
+                taskRepository: env.taskRepository,
+                resolveDayStatus: resolver,
+                settingsRepository: env.settingsRepository,
+                playerProfileRepository: env.playerProfileRepository,
+                xpTransactionRepository: env.xpTransactionRepository,
+                badgeRepository: env.badgeRepository,
+                goalRepository: env.goalRepository,
+                habitRoutineRepository: env.habitRoutineRepository,
+                dayEntryRepository: env.dayEntryRepository
+            )
+
+            // Fetch daily tasks for date to sync routine completion
+            let tasksForDate = try env.taskRepository.fetchAll(for: date)
+
+            for routine in routines {
+                let status = habitStatuses[routine.id] ?? .pending
+                let log = DailyHabitLog(date: date, habitId: routine.id, status: status)
                 try env.dailyHabitLogRepository.save(log)
+
                 if status == .followed {
                     followedCount += 1
+
+                    // Sync corresponding routine task if created
+                    if let matchingTask = tasksForDate.first(where: { $0.title == routine.title && !$0.isCompleted }) {
+                        try completeUseCase.execute(taskId: matchingTask.id, completed: true)
+                    }
                 }
             }
 
-            // Award XP for followed habits
+            // Award XP for followed habits if not already completed via task list
             if followedCount > 0 {
                 let awardUseCase = AwardXPUseCase(
                     playerProfileRepository: env.playerProfileRepository,
@@ -275,7 +246,7 @@ struct DailyHabitFormSheet: View {
                 _ = try awardUseCase.execute(
                     amount: followedCount * 15,
                     reason: .habitCompleted,
-                    note: "Daily Habit Check-in (\(followedCount) Followed)"
+                    note: "End-of-day Habit Form (\(followedCount) Followed)"
                 )
             }
 
