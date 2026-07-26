@@ -10,6 +10,8 @@ struct WidgetData: Codable {
     var masterRecentDays: [String: String]
     var tasksToday: TaskSummary
     var taskItems: [TaskItem]                  // actual task list for today
+    var habitSummary: HabitCommitmentSummary
+    var habitCommitments: [HabitCommitmentItem]
     var categories: [CategoryWidgetData]
     var goals: [GoalWidgetData]
     var lastUpdated: Date
@@ -24,6 +26,20 @@ struct WidgetData: Codable {
         var title: String
         var isCompleted: Bool
         var categoryColorHex: String?
+    }
+
+    struct HabitCommitmentSummary: Codable {
+        var total: Int
+        var followed: Int
+        var failed: Int
+        var pending: Int
+    }
+
+    struct HabitCommitmentItem: Codable, Identifiable {
+        var id: String
+        var title: String
+        var categoryColorHex: String?
+        var status: String                     // "FOLLOWED" | "FAILED" | "PENDING"
     }
 
     struct CategoryWidgetData: Codable, Identifiable {

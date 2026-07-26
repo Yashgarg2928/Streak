@@ -68,7 +68,9 @@ final class AppEnvironment {
             taskRepository: taskRepository,
             dayEntryRepository: dayEntryRepository,
             goalRepository: goalRepository,
-            settingsRepository: settingsRepository
+            settingsRepository: settingsRepository,
+            habitRoutineRepository: habitRoutineRepository,
+            dailyHabitLogRepository: dailyHabitLogRepository
         )
         if let data = useCase.execute() {
             WidgetDataStore.save(data)

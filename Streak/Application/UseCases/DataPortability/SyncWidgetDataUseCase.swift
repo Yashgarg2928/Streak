@@ -8,6 +8,26 @@ struct SyncWidgetDataUseCase {
     let dayEntryRepository: any DayEntryRepository
     let goalRepository: any GoalRepository
     let settingsRepository: any SettingsRepository
+    let habitRoutineRepository: (any HabitRoutineRepository)?
+    let dailyHabitLogRepository: (any DailyHabitLogRepository)?
+
+    init(
+        categoryRepository: any CategoryRepository,
+        taskRepository: any TaskRepository,
+        dayEntryRepository: any DayEntryRepository,
+        goalRepository: any GoalRepository,
+        settingsRepository: any SettingsRepository,
+        habitRoutineRepository: (any HabitRoutineRepository)? = nil,
+        dailyHabitLogRepository: (any DailyHabitLogRepository)? = nil
+    ) {
+        self.categoryRepository = categoryRepository
+        self.taskRepository = taskRepository
+        self.dayEntryRepository = dayEntryRepository
+        self.goalRepository = goalRepository
+        self.settingsRepository = settingsRepository
+        self.habitRoutineRepository = habitRoutineRepository
+        self.dailyHabitLogRepository = dailyHabitLogRepository
+    }
 
     func execute() -> WidgetData? {
         try? buildWidgetData()
@@ -88,6 +108,46 @@ struct SyncWidgetDataUseCase {
             )
         }
 
+        // Build habit commitment widget data
+        let habitRoutines = (try? habitRoutineRepository?.fetchActive(for: today)) ?? []
+        let habitLogs = (try? dailyHabitLogRepository?.fetchLogs(for: today)) ?? []
+        let logMap = Dictionary(uniqueKeysWithValues: habitLogs.map { ($0.habitId, $0.status) })
+
+        var habitItems: [WidgetData.HabitCommitmentItem] = []
+        var followedCount = 0
+        var failedCount = 0
+        var pendingCount = 0
+
+        for routine in habitRoutines {
+            let status = logMap[routine.id] ?? .pending
+            let statusString: String
+            switch status {
+            case .followed:
+                statusString = "FOLLOWED"
+                followedCount += 1
+            case .failed:
+                statusString = "FAILED"
+                failedCount += 1
+            case .pending:
+                statusString = "PENDING"
+                pendingCount += 1
+            }
+
+            habitItems.append(WidgetData.HabitCommitmentItem(
+                id: routine.id.uuidString,
+                title: routine.title,
+                categoryColorHex: routine.categoryId.flatMap { catColorMap[$0] },
+                status: statusString
+            ))
+        }
+
+        let habitSummary = WidgetData.HabitCommitmentSummary(
+            total: habitRoutines.count,
+            followed: followedCount,
+            failed: failedCount,
+            pending: pendingCount
+        )
+
         return WidgetData(
             masterStreak: masterStreak,
             masterStatusToday: masterEntry?.status.rawValue ?? "future",
@@ -97,6 +157,8 @@ struct SyncWidgetDataUseCase {
                 completed: todayTasks.filter { $0.isCompleted }.count
             ),
             taskItems: taskItems,
+            habitSummary: habitSummary,
+            habitCommitments: habitItems,
             categories: catData,
             goals: goalData,
             lastUpdated: Date(),
