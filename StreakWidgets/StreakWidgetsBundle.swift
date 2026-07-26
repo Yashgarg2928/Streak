@@ -7,6 +7,7 @@ import SwiftUI
 struct StreakWidgetsBundle: WidgetBundle {
     var body: some Widget {
         MasterStreakWidget()
+        HabitChartWidget()
         CategoryWidget()
         TasksWidget()
         MultiCategoryWidget()
