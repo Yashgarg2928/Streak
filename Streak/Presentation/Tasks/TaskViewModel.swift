@@ -184,13 +184,6 @@ final class TaskViewModel {
                 dayEntryRepository: env.dayEntryRepository
             )
             try useCase.execute(taskId: taskId, completed: !task.isCompleted)
-            
-            // If completing a backlog task, auto-remove it from the to-do list
-            if tab == .backlog || task.timeframe == .backlog {
-                if !task.isCompleted { // Was toggled from incomplete -> complete
-                    try? env.taskRepository.deletePermanently(id: taskId)
-                }
-            }
 
             let syncGoals = SyncGoalProgressUseCase(
                 goalRepository: env.goalRepository,
