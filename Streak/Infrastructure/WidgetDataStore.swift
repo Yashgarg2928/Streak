@@ -68,7 +68,9 @@ struct WidgetData: Codable {
 // MARK: - App Group key + helpers
 
 enum WidgetDataStore {
-    static let appGroupID = "group.com.madhvan.streak"
+    static var appGroupID: String {
+        ProcessInfo.processInfo.environment["APP_GROUP_ID"] ?? "group.com.madhvan.streak"
+    }
     static let key = "widgetData"
 
     static func save(_ data: WidgetData) {

@@ -39,7 +39,7 @@ public final class UserDefaultsSettingsRepository: SettingsRepository {
     }
     
     public init() {
-        let appGroupID = "group.com.madhvan.streak"
+        let appGroupID = AppConfig.appGroupID
         self.defaults = UserDefaults(suiteName: appGroupID) ?? .standard
         
         // Register default values
@@ -199,7 +199,7 @@ public final class UserDefaultsSettingsRepository: SettingsRepository {
         if let domain = Bundle.main.bundleIdentifier {
             defaults.removePersistentDomain(forName: domain)
         }
-        defaults.removePersistentDomain(forName: "group.com.madhvan.streak")
+        defaults.removePersistentDomain(forName: AppConfig.appGroupID)
         defaults.synchronize()
     }
 }

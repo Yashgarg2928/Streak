@@ -1,0 +1,28 @@
+# Xcode & macOS
+.DS_Store
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+*.xcuserdata
+xcuserdata/
+*.xccheckout
+*.moved-aside
+DerivedData/
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+build/
+
+# Environment Configuration Files (Gitignored so local setups don't collide when pulling)
+.env
+.env.local
+.env.development
+.env.production
+AppConfig.plist
+
+# Swift Package Manager
+.build/
+Packages/
+.swiftpm/

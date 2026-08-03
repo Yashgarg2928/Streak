@@ -43,7 +43,7 @@ struct StreakApp: App {
             let container = c
             let env = self.environment
             
-            BGTaskScheduler.shared.register(forTaskWithIdentifier: "com.madhvan.streak.lockoutSweep", using: nil) { task in
+            BGTaskScheduler.shared.register(forTaskWithIdentifier: AppConfig.backgroundTaskId, using: nil) { task in
                 task.expirationHandler = {
                     // Task expired, clean up if needed
                 }
@@ -96,7 +96,7 @@ struct StreakApp: App {
     }
     
     private static func scheduleLockoutSweep(environment: AppEnvironment) {
-        let request = BGProcessingTaskRequest(identifier: "com.madhvan.streak.lockoutSweep")
+        let request = BGProcessingTaskRequest(identifier: AppConfig.backgroundTaskId)
         request.requiresNetworkConnectivity = false
         request.requiresExternalPower = false
         
@@ -173,7 +173,7 @@ struct StreakApp: App {
         
         let currentActiveDate = ActiveDayResolver.resolveActiveDate(for: Date(), settings: settings)
         
-        let defaults = UserDefaults(suiteName: "group.com.madhvan.streak") ?? .standard
+        let defaults = UserDefaults(suiteName: AppConfig.appGroupID) ?? .standard
         let lastActiveDateKey = "lastActiveDateString"
         let fmt = DateFormatter()
         fmt.dateFormat = "yyyy-MM-dd"

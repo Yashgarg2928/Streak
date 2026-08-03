@@ -96,21 +96,19 @@ graph TD
 * Xcode 15.0+ (Swift 5.9+)
 * An iOS 17.0+ Simulator or physical device
 
-### Xcode Project Setup
+### Xcode Project Setup & Environment Configuration (.env)
 1. Clone the repository:
    ```bash
    git clone https://github.com/yourusername/streak.git
-   ```
-2. Open the Xcode workspace:
-   ```bash
    cd streak/Streak
-   open Streak.xcodeproj
    ```
-3. Ensure the active build target is set to **Streak** and select a simulator (e.g. iPhone 17).
-4. Run the project (**Command + R**).
-
-> [!TIP]
-> The app relies on a shared App Group `group.com.madhvan.streak` to synchronise widget states. Xcode will compile locally out-of-the-box, but you may need to update the Bundle Identifiers and App Group settings under *Signing & Capabilities* if you plan to sideload onto a physical device.
+2. Copy the template configuration file `.env.example` to `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+   *`.env` is automatically gitignored, allowing open-source contributors to customize App Group IDs, Background Task IDs, and API keys without creating merge conflicts when pulling new features.*
+3. Open `Streak.xcodeproj` in Xcode.
+4. Select the **Streak** scheme and build target, and run (**Command + R**).
 
 ---
 
