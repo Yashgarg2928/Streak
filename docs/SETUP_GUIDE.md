@@ -120,6 +120,19 @@ GEMINI_API_KEY=
 > 
 > The app reads these configuration values at runtime via [AppConfig.swift](file:///Users/madhvan07icloud.coom/self-improvment-app/Streak/Streak/Infrastructure/Config/AppConfig.swift) and falls back gracefully to default constants if `.env` is omitted.
 
+### Step 3: How to Obtain & Find Each `.env` Value
+
+| Key | Description | How to Find / Obtain | Example Value |
+|---|---|---|---|
+| **`APP_GROUP_ID`** | Shared App Group Identifier between App and Widgets | Open **Xcode** > Select **Streak** target > **Signing & Capabilities** > Scroll to **App Groups**. Copy the container name string starting with `group.` (e.g. `group.com.yourname.streak`). | `group.com.john.streak` |
+| **`BACKGROUND_TASK_ID`** | Background task scheduler identifier | Open **Xcode** > Select `Streak/Info.plist` > Expand **Permitted background task scheduler identifiers** (`BGTaskSchedulerPermittedIdentifiers`). Use your matching task identifier string. | `com.john.streak.lockoutSweep` |
+| **`ACTIVE_DAY_START_HOUR`** | Active day start boundary (0–23) | Set your preferred day start hour (e.g. `4` for 4:00 AM). | `4` |
+| **`ACTIVE_DAY_END_HOUR`** | Active day cutoff boundary (0–23) | Set your preferred day cutoff hour (e.g. `23` for 11:00 PM). | `23` |
+| **`PLANNING_REMINDER_HOUR`** | Default planning reminder hour (0–23) | Set your preferred planning alert hour (e.g. `22` for 10:00 PM). | `22` |
+| **`PLANNING_REMINDER_MINUTE`** | Default planning reminder minute (0–59) | Set your preferred planning alert minute (e.g. `0` for :00). | `0` |
+| **`NOTIFICATION_PERSONA`** | Notification motivation style | Choose one: `savage` (Savage Roast), `drill` (Drill Sergeant), `rpg` (RPG Lore), or `zen` (Zen Coach). | `savage` |
+| **`GEMINI_API_KEY`** | Optional API Key for dynamic AI notifications | 1. Open [Google AI Studio (aistudio.google.com)](https://aistudio.google.com/).<br>2. Click **Get API Key** and sign in.<br>3. Click **Create API Key** and copy the generated key (`AIZA...`).<br>4. Paste into `GEMINI_API_KEY=`. *(100% free, stored locally on device).* | `AIZASyD...` |
+
 ---
 
 ## Part 4: Preparing your iPhone
