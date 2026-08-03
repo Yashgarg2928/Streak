@@ -78,28 +78,47 @@ App Groups enable the main app and widget extension to share data securely.
 
 ---
 
-## Part 3: Updating the Codebase
+## Part 3: Zero-Conflict Environment Configuration (.env)
 
-You must update the App Group identifier in the source code so the app reads and writes from your new shared container.
+Streak features a zero-conflict `.env` environment configuration system. Instead of modifying Swift source files (which creates merge conflicts when pulling new upstream releases), you configure your setup using a local `.env` file.
 
-### Step 1: Update App Group Constants
-Update the App Group ID string in the following files:
+### Step 1: Create your local `.env` File
+In your terminal, navigate to the `Streak` project directory and copy `.env.example`:
 
-1. **[WidgetDataStore.swift](file:///Users/madhvan07icloud.coom/self-improvment-app/Streak/Streak/Infrastructure/WidgetDataStore.swift#L54)**:
-   ```swift
-   // Change:
-   static let appGroupID = "group.com.madhvan.streak"
-   // To:
-   static let appGroupID = "group.com.yourname.streak"
-   ```
+```bash
+cd self-improvement-app/Streak
+cp .env.example .env
+```
 
-2. **[UserDefaultsSettingsRepository.swift](file:///Users/madhvan07icloud.coom/self-improvment-app/Streak/Streak/Infrastructure/Persistence/UserDefaultsSettingsRepository.swift#L32)**:
-   ```swift
-   // Change:
-   let appGroupID = "group.com.madhvan.streak"
-   // To:
-   let appGroupID = "group.com.yourname.streak"
-   ```
+### Step 2: Configure your App Group & Identifiers in `.env`
+Open `.env` in any text editor and update your configuration values:
+
+```env
+# App Group Identifier matching your Xcode Signing & Capabilities setup
+APP_GROUP_ID=group.com.yourname.streak
+
+# Background Task Identifier
+BACKGROUND_TASK_ID=com.yourname.streak.lockoutSweep
+
+# Active Day Boundaries (24-hour format)
+ACTIVE_DAY_START_HOUR=4
+ACTIVE_DAY_END_HOUR=23
+
+# Planning Reminder Notification Defaults
+PLANNING_REMINDER_HOUR=22
+PLANNING_REMINDER_MINUTE=0
+
+# Default Motivation Persona (savage | drill | rpg | zen)
+NOTIFICATION_PERSONA=savage
+
+# Optional Gemini AI Key for Dynamic Spicy Notifications
+GEMINI_API_KEY=
+```
+
+> [!NOTE]
+> `.env` is automatically added to `.gitignore`. You can customize your App Group ID, Background Task IDs, and API keys without creating git diffs or merge conflicts when pulling new feature updates.
+> 
+> The app reads these configuration values at runtime via [AppConfig.swift](file:///Users/madhvan07icloud.coom/self-improvment-app/Streak/Streak/Infrastructure/Config/AppConfig.swift) and falls back gracefully to default constants if `.env` is omitted.
 
 ---
 
