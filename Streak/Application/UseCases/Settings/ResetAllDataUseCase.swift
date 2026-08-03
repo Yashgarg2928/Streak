@@ -14,12 +14,21 @@ final class ResetAllDataUseCase {
     }
 
     func execute() throws {
+        // Delete all SwiftData models across all modules
         try context.delete(model: TaskModel.self)
         try context.delete(model: CategoryModel.self)
         try context.delete(model: DayEntryModel.self)
         try context.delete(model: GoalModel.self)
         try context.delete(model: GoalProgressEntryModel.self)
         try context.delete(model: ReflectionEntryModel.self)
+        try context.delete(model: HabitRoutineModel.self)
+        try context.delete(model: PlayerProfileModel.self)
+        try context.delete(model: BadgeModel.self)
+        try context.delete(model: XPTransactionModel.self)
+        try context.delete(model: ShopItemModel.self)
+        try context.delete(model: CustomRewardModel.self)
+        try context.delete(model: CoreHabitModel.self)
+        try context.delete(model: DailyHabitLogModel.self)
         try context.save()
 
         // Clear shared widget data store & refresh widget timelines
