@@ -45,6 +45,10 @@ struct TaskListView: View {
                     dateToggle
                         .padding(.horizontal, AppLayout.screenMargin)
                         .padding(.top, AppLayout.itemSpacing)
+
+                    planningDeadlineLockoutBanner
+                        .padding(.horizontal, AppLayout.screenMargin)
+                        .padding(.top, AppLayout.itemSpacing)
                 case .weekly:
                     weeklyHeaderCard
                         .padding(.horizontal, AppLayout.screenMargin)
@@ -453,10 +457,73 @@ struct TaskListView: View {
                 .buttonStyle(.plain)
             }
 
-            Text("⚠️ Tasks cannot be edited or deleted once created.")
-                .font(.system(size: 10, weight: .semibold))
-                .foregroundStyle(AppColor.textSecondary)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            let deadline = ActiveDayResolver.planningDeadline(for: activeToday, settings: env.settingsRepository)
+            let isDeadlinePassed = isToday && selectedTab == .daily && Date() > deadline
+            let cutoffStr = ActiveDayResolver.formattedPlanningDeadline(settings: env.settingsRepository)
+
+            if isDeadlinePassed {
+                Text("⚠️ Cutoff (\(cutoffStr)) passed: Tasks added now will be marked [ADDED LATE] and cannot save today's streak.")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundStyle(AppColor.red)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            } else {
+                Text("⚠️ Tasks cannot be edited or deleted once created.")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(AppColor.textSecondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+    }
+
+    // MARK: - Lockout Banner
+
+    @ViewBuilder
+    private var planningDeadlineLockoutBanner: some View {
+        if isToday {
+            let deadline = ActiveDayResolver.planningDeadline(for: activeToday, settings: env.settingsRepository)
+            let isDeadlinePassed = Date() > deadline
+            let cutoffStr = ActiveDayResolver.formattedPlanningDeadline(settings: env.settingsRepository)
+            let tasks = (vm?.tasks ?? []).filter { !$0.isDeleted && $0.timeframe == .daily }
+            let earlyTasks = tasks.filter { $0.createdAt <= deadline }
+            
+            if isDeadlinePassed {
+                if earlyTasks.isEmpty {
+                    BrutalistCard(borderColor: AppColor.red) {
+                        VStack(alignment: .leading, spacing: 6) {
+                            HStack(spacing: 6) {
+                                Image(systemName: "lock.fill")
+                                    .font(.system(size: 13, weight: .bold))
+                                    .foregroundStyle(AppColor.red)
+                                Text("ACTIVE DAY LOCKED (RED STATUS)")
+                                    .font(.system(size: 11, weight: .black, design: .monospaced))
+                                    .foregroundStyle(AppColor.red)
+                            }
+                            Text("Planning cutoff (\(cutoffStr)) passed with 0 tasks scheduled. Today is locked as RED. Tasks added now will be marked [ADDED LATE] and cannot save today's streak.")
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundStyle(AppColor.textPrimary)
+                        }
+                    }
+                } else {
+                    let hasLateTasks = tasks.contains { $0.createdAt > deadline }
+                    if hasLateTasks {
+                        BrutalistCard(borderColor: AppColor.red) {
+                            VStack(alignment: .leading, spacing: 6) {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "exclamationmark.triangle.fill")
+                                        .font(.system(size: 13, weight: .bold))
+                                        .foregroundStyle(AppColor.red)
+                                    Text("LATE TASKS DETECTED")
+                                        .font(.system(size: 11, weight: .black, design: .monospaced))
+                                        .foregroundStyle(AppColor.red)
+                                }
+                                Text("Tasks were added after the planning cutoff (\(cutoffStr)). Tasks marked [ADDED LATE] cannot turn today GREEN.")
+                                    .font(.system(size: 11, weight: .medium))
+                                    .foregroundStyle(AppColor.textPrimary)
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 

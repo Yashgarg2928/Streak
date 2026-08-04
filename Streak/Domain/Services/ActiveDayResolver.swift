@@ -83,6 +83,14 @@ public final class ActiveDayResolver {
             return calendar.date(from: components) ?? activeDate
         }
     }
+
+    public static func formattedPlanningDeadline(settings: SettingsRepository) -> String {
+        let hour = settings.planningDeadlineHour
+        let minute = settings.planningDeadlineMinute
+        let period = hour >= 12 ? "PM" : "AM"
+        let displayHour = hour % 12 == 0 ? 12 : hour % 12
+        return String(format: "%d:%02d %@", displayHour, minute, period)
+    }
     
     public static func activeDayDeadline(for resolvedDate: Date, settings: SettingsRepository) -> Date {
         let calendar = Calendar.current

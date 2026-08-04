@@ -116,6 +116,12 @@ struct TaskRowView: View {
         return Calendar.current.startOfDay(for: task.targetDate) > Calendar.current.startOfDay(for: activeToday)
     }
 
+    private var isLateTask: Bool {
+        guard task.timeframe == .daily else { return false }
+        let planningDeadline = ActiveDayResolver.planningDeadline(for: task.targetDate, settings: env.settingsRepository)
+        return task.createdAt > planningDeadline
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 10) {
@@ -156,6 +162,21 @@ struct TaskRowView: View {
                                 .padding(.vertical, 3)
                                 .background(AppColor.blank)
                                 .clipShape(RoundedRectangle(cornerRadius: 4))
+                            }
+
+                            if isLateTask {
+                                HStack(spacing: 3) {
+                                    Image(systemName: "exclamationmark.triangle.fill")
+                                        .font(.system(size: 9, weight: .bold))
+                                    Text("ADDED LATE")
+                                        .font(.system(size: 9, weight: .black))
+                                }
+                                .foregroundStyle(AppColor.red)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 3)
+                                .background(AppColor.surface)
+                                .clipShape(RoundedRectangle(cornerRadius: 4))
+                                .overlay(RoundedRectangle(cornerRadius: 4).stroke(AppColor.red, lineWidth: 1))
                             }
                         }
 

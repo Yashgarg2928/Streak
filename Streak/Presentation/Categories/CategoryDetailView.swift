@@ -152,6 +152,21 @@ struct CategoryDetailView: View {
                                         .strikethrough(task.isCompleted, color: AppColor.textDisabled)
                                 }
                             }
+
+                            if status == .red {
+                                let cutoffStr = ActiveDayResolver.formattedPlanningDeadline(settings: env.settingsRepository)
+                                let planningDeadline = ActiveDayResolver.planningDeadline(for: date, settings: env.settingsRepository)
+                                let hasLateTasks = tasks.contains { $0.createdAt > planningDeadline }
+                                
+                                HStack(spacing: 4) {
+                                    Image(systemName: "info.circle.fill")
+                                        .font(.system(size: 10))
+                                    Text(hasLateTasks ? "RED: Tasks added after planning cutoff (\(cutoffStr))" : (tasks.isEmpty ? "RED: No tasks planned before cutoff (\(cutoffStr))" : "RED: Tasks left incomplete"))
+                                        .font(.system(size: 10, weight: .bold))
+                                }
+                                .foregroundStyle(AppColor.red)
+                                .padding(.top, 4)
+                            }
                         }
                     }
                 }
