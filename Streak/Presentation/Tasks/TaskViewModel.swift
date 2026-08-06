@@ -18,6 +18,31 @@ final class TaskViewModel {
     private(set) var routines: [HabitRoutine] = []
     private(set) var categories: [Category] = []
     private(set) var errorMessage: String? = nil
+    private(set) var lateTaskWarningMessage: String? = nil
+    private var lateTaskDismissTask: Swift.Task<Void, Never>? = nil
+
+    func triggerLateTaskWarning(message: String) {
+        lateTaskDismissTask?.cancel()
+        withAnimation(.easeInOut(duration: 0.3)) {
+            lateTaskWarningMessage = message
+        }
+
+        lateTaskDismissTask = Swift.Task { @MainActor in
+            try? await Swift.Task.sleep(nanoseconds: 5_000_000_000)
+            if !Swift.Task.isCancelled {
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    self.lateTaskWarningMessage = nil
+                }
+            }
+        }
+    }
+
+    func dismissLateTaskWarning() {
+        lateTaskDismissTask?.cancel()
+        withAnimation(.easeInOut(duration: 0.2)) {
+            lateTaskWarningMessage = nil
+        }
+    }
 
     private let env: AppEnvironment
 
@@ -158,6 +183,14 @@ final class TaskViewModel {
             case .backlog: tab = .backlog
             }
             load(tab: tab, for: date)
+
+            if timeframe == .daily {
+                let deadline = ActiveDayResolver.planningDeadline(for: date, settings: env.settingsRepository)
+                if Date() > deadline {
+                    let cutoffStr = ActiveDayResolver.formattedPlanningDeadline(settings: env.settingsRepository)
+                    triggerLateTaskWarning(message: "Tasks added after the planning cutoff (\(cutoffStr)) are marked [ADDED LATE] and cannot turn today GREEN.")
+                }
+            }
         } catch {
             errorMessage = error.localizedDescription
         }

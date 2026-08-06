@@ -46,6 +46,10 @@ struct TaskListView: View {
                         .padding(.horizontal, AppLayout.screenMargin)
                         .padding(.top, AppLayout.itemSpacing)
 
+                    lateTaskTemporaryBanner
+                        .padding(.horizontal, AppLayout.screenMargin)
+                        .padding(.top, AppLayout.itemSpacing)
+
                     planningDeadlineLockoutBanner
                         .padding(.horizontal, AppLayout.screenMargin)
                         .padding(.top, AppLayout.itemSpacing)
@@ -468,6 +472,42 @@ struct TaskListView: View {
         }
     }
 
+    // MARK: - Temporary Late Task Warning Banner
+
+    @ViewBuilder
+    private var lateTaskTemporaryBanner: some View {
+        if let warningMsg = vm?.lateTaskWarningMessage {
+            BrutalistCard(borderColor: AppColor.red) {
+                HStack(alignment: .top, spacing: 8) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundStyle(AppColor.red)
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("LATE TASK ADDED")
+                            .font(.system(size: 11, weight: .black, design: .monospaced))
+                            .foregroundStyle(AppColor.red)
+                        Text(warningMsg)
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(AppColor.textPrimary)
+                    }
+
+                    Spacer(minLength: 4)
+
+                    Button {
+                        vm?.dismissLateTaskWarning()
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundStyle(AppColor.textSecondary)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .transition(.move(edge: .top).combined(with: .opacity))
+        }
+    }
+
     // MARK: - Lockout Banner
 
     @ViewBuilder
@@ -479,41 +519,20 @@ struct TaskListView: View {
             let tasks = (vm?.tasks ?? []).filter { !$0.isDeleted && $0.timeframe == .daily }
             let earlyTasks = tasks.filter { $0.routineId != nil || $0.createdAt <= deadline }
             
-            if isDeadlinePassed {
-                if earlyTasks.isEmpty {
-                    BrutalistCard(borderColor: AppColor.red) {
-                        VStack(alignment: .leading, spacing: 6) {
-                            HStack(spacing: 6) {
-                                Image(systemName: "lock.fill")
-                                    .font(.system(size: 13, weight: .bold))
-                                    .foregroundStyle(AppColor.red)
-                                Text("ACTIVE DAY LOCKED (RED STATUS)")
-                                    .font(.system(size: 11, weight: .black, design: .monospaced))
-                                    .foregroundStyle(AppColor.red)
-                            }
-                            Text("Planning cutoff (\(cutoffStr)) passed with 0 tasks scheduled. Today is locked as RED. Tasks added now will be marked [ADDED LATE] and cannot save today's streak.")
-                                .font(.system(size: 11, weight: .medium))
-                                .foregroundStyle(AppColor.textPrimary)
+            if isDeadlinePassed && earlyTasks.isEmpty {
+                BrutalistCard(borderColor: AppColor.red) {
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "lock.fill")
+                                .font(.system(size: 13, weight: .bold))
+                                .foregroundStyle(AppColor.red)
+                            Text("ACTIVE DAY LOCKED (RED STATUS)")
+                                .font(.system(size: 11, weight: .black, design: .monospaced))
+                                .foregroundStyle(AppColor.red)
                         }
-                    }
-                } else {
-                    let hasLateTasks = tasks.contains { $0.routineId == nil && $0.createdAt > deadline }
-                    if hasLateTasks {
-                        BrutalistCard(borderColor: AppColor.red) {
-                            VStack(alignment: .leading, spacing: 6) {
-                                HStack(spacing: 6) {
-                                    Image(systemName: "exclamationmark.triangle.fill")
-                                        .font(.system(size: 13, weight: .bold))
-                                        .foregroundStyle(AppColor.red)
-                                    Text("LATE TASKS DETECTED")
-                                        .font(.system(size: 11, weight: .black, design: .monospaced))
-                                        .foregroundStyle(AppColor.red)
-                                }
-                                Text("Tasks were added after the planning cutoff (\(cutoffStr)). Tasks marked [ADDED LATE] cannot turn today GREEN.")
-                                    .font(.system(size: 11, weight: .medium))
-                                    .foregroundStyle(AppColor.textPrimary)
-                            }
-                        }
+                        Text("Planning cutoff (\(cutoffStr)) passed with 0 tasks scheduled. Today is locked as RED. Tasks added now will be marked [ADDED LATE] and cannot save today's streak.")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(AppColor.textPrimary)
                     }
                 }
             }
