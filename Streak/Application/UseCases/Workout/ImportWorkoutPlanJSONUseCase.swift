@@ -23,8 +23,25 @@ public struct ImportWorkoutPlanJSONUseCase {
         self.workoutRepository = workoutRepository
     }
 
+    public static func stripMarkdownCodeBlocks(_ input: String) -> String {
+        var text = input.trimmingCharacters(in: .whitespacesAndNewlines)
+        if text.hasPrefix("```") {
+            if let firstNewline = text.firstIndex(of: "\n") {
+                text = String(text[text.index(after: firstNewline)...])
+            } else {
+                text = text.replacingOccurrences(of: "```json", with: "").replacingOccurrences(of: "```", with: "")
+            }
+        }
+        if text.hasSuffix("```") {
+            if let lastBacktickPos = text.range(of: "```", options: .backwards) {
+                text = String(text[..<lastBacktickPos.lowerBound])
+            }
+        }
+        return text.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
     public func execute(jsonString: String) throws -> WorkoutPlan {
-        let cleanedJson = jsonString.trimmingCharacters(in: .whitespacesAndNewlines)
+        let cleanedJson = Self.stripMarkdownCodeBlocks(jsonString)
         guard let data = cleanedJson.data(using: .utf8) else {
             throw WorkoutPlanImportError.invalidJSON("Could not read text as UTF-8.")
         }
