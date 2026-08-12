@@ -23,8 +23,24 @@ public struct ImportWorkoutPlanJSONUseCase {
         self.workoutRepository = workoutRepository
     }
 
+    public static func sanitizeJSONString(_ input: String) -> String {
+        var sanitized = input
+        sanitized = sanitized.replacingOccurrences(of: "“", with: "\"")
+        sanitized = sanitized.replacingOccurrences(of: "”", with: "\"")
+        sanitized = sanitized.replacingOccurrences(of: "„", with: "\"")
+        sanitized = sanitized.replacingOccurrences(of: "«", with: "\"")
+        sanitized = sanitized.replacingOccurrences(of: "»", with: "\"")
+        sanitized = sanitized.replacingOccurrences(of: "‘", with: "'")
+        sanitized = sanitized.replacingOccurrences(of: "’", with: "'")
+        sanitized = sanitized.replacingOccurrences(of: "\u{00A0}", with: " ")
+        sanitized = sanitized.replacingOccurrences(of: "\u{200B}", with: "")
+        sanitized = sanitized.replacingOccurrences(of: "\u{FEFF}", with: "")
+        return sanitized
+    }
+
     public static func stripMarkdownCodeBlocks(_ input: String) -> String {
-        var text = input.trimmingCharacters(in: .whitespacesAndNewlines)
+        let sanitized = sanitizeJSONString(input)
+        var text = sanitized.trimmingCharacters(in: .whitespacesAndNewlines)
         if text.hasPrefix("```") {
             if let firstNewline = text.firstIndex(of: "\n") {
                 text = String(text[text.index(after: firstNewline)...])
@@ -74,6 +90,59 @@ public struct ImportWorkoutPlanJSONUseCase {
         return String(stripped[startIndex...endIndex])
     }
 
+    public static func parseFromDictionary(_ dict: [String: Any]) -> WorkoutPlan? {
+        let title = (dict["title"] as? String) ?? "My Weekly Workout Plan"
+        let daysRaw = (dict["days"] as? [[String: Any]]) ?? []
+        guard !daysRaw.isEmpty else { return nil }
+
+        let parsedDays: [WorkoutDayPlan] = daysRaw.compactMap { dayDict in
+            let dayName = (dayDict["dayName"] as? String) ?? (dayDict["day_name"] as? String) ?? "Monday"
+            let dayOfWeek: Int
+            if let dow = dayDict["dayOfWeek"] as? Int ?? dayDict["day_of_week"] as? Int {
+                dayOfWeek = dow
+            } else if let dowStr = dayDict["dayOfWeek"] as? String, let dowInt = Int(dowStr) {
+                dayOfWeek = dowInt
+            } else {
+                dayOfWeek = WorkoutDayPlan.inferDayOfWeek(from: dayName)
+            }
+            let dayTitle = (dayDict["title"] as? String) ?? dayName
+
+            let exercisesRaw = (dayDict["exercises"] as? [[String: Any]]) ?? []
+            let parsedExercises: [WorkoutExercisePlan] = exercisesRaw.compactMap { exDict in
+                let exName = (exDict["name"] as? String) ?? (exDict["exerciseName"] as? String) ?? (exDict["exercise_name"] as? String) ?? "Exercise"
+                let category = (exDict["category"] as? String) ?? "General"
+                let targetSets = (exDict["targetSets"] as? Int) ?? (exDict["target_sets"] as? Int) ?? 3
+                let repsStr: String
+                if let reps = exDict["targetRepsOrDuration"] as? String ?? exDict["target_reps_or_duration"] as? String {
+                    repsStr = reps
+                } else {
+                    repsStr = "8-12 reps"
+                }
+                let rawUrl = (exDict["youtubeUrl"] as? String) ?? (exDict["youtube_url"] as? String)
+                let notes = (exDict["notes"] as? String)
+
+                return WorkoutExercisePlan(
+                    name: exName,
+                    category: category,
+                    targetSets: targetSets,
+                    targetRepsOrDuration: repsStr,
+                    youtubeUrl: cleanURLString(rawUrl),
+                    notes: notes
+                )
+            }
+
+            return WorkoutDayPlan(
+                dayName: dayName,
+                dayOfWeek: dayOfWeek,
+                title: dayTitle,
+                exercises: parsedExercises
+            )
+        }
+
+        guard !parsedDays.isEmpty else { return nil }
+        return WorkoutPlan(title: title, days: parsedDays)
+    }
+
     public func execute(jsonString: String) throws -> WorkoutPlan {
         let cleanedJson = Self.extractJSONSubstring(jsonString)
         guard let data = cleanedJson.data(using: .utf8) else {
@@ -83,20 +152,22 @@ public struct ImportWorkoutPlanJSONUseCase {
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
 
-        let plan: WorkoutPlan
+        var parsedPlan: WorkoutPlan? = nil
         do {
-            plan = try decoder.decode(WorkoutPlan.self, from: data)
+            parsedPlan = try decoder.decode(WorkoutPlan.self, from: data)
         } catch {
-            // Fallback decode without snake_case strategy
             let fallbackDecoder = JSONDecoder()
-            do {
-                plan = try fallbackDecoder.decode(WorkoutPlan.self, from: data)
-            } catch let fallbackError {
-                throw WorkoutPlanImportError.invalidJSON(fallbackError.localizedDescription)
+            if let plan = try? fallbackDecoder.decode(WorkoutPlan.self, from: data) {
+                parsedPlan = plan
+            } else if let dict = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any],
+                      let dictPlan = Self.parseFromDictionary(dict) {
+                parsedPlan = dictPlan
+            } else {
+                throw WorkoutPlanImportError.invalidJSON(error.localizedDescription)
             }
         }
 
-        guard !plan.days.isEmpty else {
+        guard let plan = parsedPlan, !plan.days.isEmpty else {
             throw WorkoutPlanImportError.emptyPlan
         }
 

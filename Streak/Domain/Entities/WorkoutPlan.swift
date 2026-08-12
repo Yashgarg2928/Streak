@@ -4,9 +4,19 @@ import Foundation
 
 public func cleanURLString(_ str: String?) -> String? {
     guard let str = str?.trimmingCharacters(in: .whitespacesAndNewlines), !str.isEmpty else { return nil }
-    if let match = str.range(of: #"https?://[^\s\)]+"#, options: .regularExpression) {
+
+    // Check if markdown link format [label](url)
+    if let match = str.range(of: #"\((https?://[^\s\)]+)\)"#, options: .regularExpression) {
+        let matched = String(str[match])
+        let urlOnly = matched.dropFirst().dropLast() // drop '(' and ')'
+        return String(urlOnly)
+    }
+
+    // Otherwise extract direct URL without brackets
+    if let match = str.range(of: #"https?://[^\s\]\)]+"#, options: .regularExpression) {
         return String(str[match])
     }
+
     return str
 }
 
