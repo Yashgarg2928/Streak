@@ -36,7 +36,18 @@ struct WorkoutMainView: View {
     @State private var newExerciseName: String = ""
     @State private var showAddExerciseDialog: Bool = false
 
+    private func getViewModel() -> WorkoutViewModel {
+        if let existing = vm {
+            return existing
+        }
+        let newVM = WorkoutViewModel(env: env)
+        newVM.load(date: selectedDate)
+        return newVM
+    }
+
     var body: some View {
+        let activeVM = getViewModel()
+
         VStack(spacing: 0) {
             headerBar
                 .padding(.horizontal, AppLayout.screenMargin)
@@ -50,17 +61,51 @@ struct WorkoutMainView: View {
                 .padding(.horizontal, AppLayout.screenMargin)
                 .padding(.top, AppLayout.itemSpacing)
 
+            if let errorMsg = activeVM.errorMessage {
+                HStack {
+                    Text("⚠️ \(errorMsg)")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(AppColor.red)
+                    Spacer()
+                    Button("✕") { activeVM.errorMessage = nil }
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(AppColor.textSecondary)
+                }
+                .padding(8)
+                .background(AppColor.surface)
+                .clipShape(RoundedRectangle(cornerRadius: 6))
+                .overlay(RoundedRectangle(cornerRadius: 6).stroke(AppColor.red, lineWidth: 1.5))
+                .padding(.horizontal, AppLayout.screenMargin)
+                .padding(.top, 8)
+            }
+
+            if let successMsg = activeVM.successMessage {
+                HStack {
+                    Text("✅ \(successMsg)")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(AppColor.green)
+                    Spacer()
+                    Button("✕") { activeVM.successMessage = nil }
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(AppColor.textSecondary)
+                }
+                .padding(8)
+                .background(AppColor.surface)
+                .clipShape(RoundedRectangle(cornerRadius: 6))
+                .overlay(RoundedRectangle(cornerRadius: 6).stroke(AppColor.green, lineWidth: 1.5))
+                .padding(.horizontal, AppLayout.screenMargin)
+                .padding(.top, 8)
+            }
+
             ScrollView {
                 VStack(spacing: AppLayout.itemSpacing) {
-                    if let vm {
-                        switch subTab {
-                        case .workout:
-                            workoutLoggingView(vm: vm)
-                        case .nutrition:
-                            nutritionLoggingView(vm: vm)
-                        case .analytics:
-                            analyticsView(vm: vm)
-                        }
+                    switch subTab {
+                    case .workout:
+                        workoutLoggingView(vm: activeVM)
+                    case .nutrition:
+                        nutritionLoggingView(vm: activeVM)
+                    case .analytics:
+                        analyticsView(vm: activeVM)
                     }
                 }
                 .padding(AppLayout.screenMargin)
@@ -68,15 +113,11 @@ struct WorkoutMainView: View {
         }
         .background(AppColor.background.ignoresSafeArea())
         .onAppear {
-            if vm == nil {
-                let viewModel = WorkoutViewModel(env: env)
-                viewModel.load(date: selectedDate)
-                self.vm = viewModel
-            }
+            activeVM.load(date: selectedDate)
         }
         .sheet(isPresented: $showPlanImportSheet) {
             WorkoutPlanImportSheet { jsonStr in
-                vm?.importWorkoutPlanJSON(jsonStr)
+                try activeVM.importWorkoutPlanJSON(jsonStr)
             }
         }
         .sheet(isPresented: $showAIPromptGuideSheet) {
@@ -87,25 +128,23 @@ struct WorkoutMainView: View {
         }
         .sheet(isPresented: $showAddMealSheet) {
             AddMealSheet(date: selectedDate) { meal in
-                vm?.saveMealLog(meal)
+                activeVM.saveMealLog(meal)
             }
         }
         .sheet(isPresented: $showMealJSONImportSheet) {
             MealMacroImportSheet(date: selectedDate) { jsonStr in
-                vm?.importMealMacroJSON(jsonStr)
+                activeVM.importMealMacroJSON(jsonStr)
             }
         }
         .sheet(isPresented: $showMacroGoalsSheet) {
-            if let vm {
-                MacroGoalsSheet(currentGoals: vm.macroGoals) { goals in
-                    vm.saveMacroGoals(goals)
-                }
+            MacroGoalsSheet(currentGoals: activeVM.macroGoals) { goals in
+                activeVM.saveMacroGoals(goals)
             }
         }
         .alert("Add Custom Exercise", isPresented: $showAddExerciseDialog) {
             TextField("Exercise Name (e.g. Incline Bench)", text: $newExerciseName)
             Button("Add") {
-                vm?.addCustomExercise(name: newExerciseName)
+                activeVM.addCustomExercise(name: newExerciseName)
                 newExerciseName = ""
             }
             Button("Cancel", role: .cancel) {

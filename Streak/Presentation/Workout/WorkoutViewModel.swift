@@ -157,17 +157,13 @@ final class WorkoutViewModel {
 
     // MARK: - JSON Plan Import
 
-    func importWorkoutPlanJSON(_ jsonString: String) {
-        do {
-            let useCase = ImportWorkoutPlanJSONUseCase(workoutRepository: workoutRepo)
-            let plan = try useCase.execute(jsonString: jsonString)
-            activePlan = plan
-            dailyWorkoutLog = createDailyLogFromPlan(for: selectedDate)
-            successMessage = "Successfully imported workout plan: '\(plan.title)'!"
-            load(date: selectedDate)
-        } catch {
-            errorMessage = error.localizedDescription
-        }
+    func importWorkoutPlanJSON(_ jsonString: String) throws {
+        let useCase = ImportWorkoutPlanJSONUseCase(workoutRepository: workoutRepo)
+        let plan = try useCase.execute(jsonString: jsonString)
+        activePlan = plan
+        dailyWorkoutLog = createDailyLogFromPlan(for: selectedDate)
+        successMessage = "Successfully imported workout plan: '\(plan.title)'!"
+        load(date: selectedDate)
     }
 
     func syncTodayFromPlan() {

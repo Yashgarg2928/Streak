@@ -4,7 +4,7 @@ import SwiftUI
 
 struct WorkoutPlanImportSheet: View {
     @Environment(\.dismiss) private var dismiss
-    let onImport: (String) -> Void
+    let onImport: (String) throws -> Void
 
     @State private var jsonText: String = ""
     @State private var errorMessage: String? = nil
@@ -63,6 +63,7 @@ struct WorkoutPlanImportSheet: View {
                     Spacer()
                     Button("Load Template") {
                         jsonText = sampleJSONTemplate
+                        errorMessage = nil
                     }
                     .font(.system(size: 11, weight: .bold))
                     .foregroundStyle(AppColor.green)
@@ -82,12 +83,17 @@ struct WorkoutPlanImportSheet: View {
                 }
 
                 Button {
-                    guard !jsonText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                    let cleaned = jsonText.trimmingCharacters(in: .whitespacesAndNewlines)
+                    guard !cleaned.isEmpty else {
                         errorMessage = "JSON text cannot be empty."
                         return
                     }
-                    onImport(jsonText)
-                    dismiss()
+                    do {
+                        try onImport(cleaned)
+                        dismiss()
+                    } catch {
+                        errorMessage = error.localizedDescription
+                    }
                 } label: {
                     Text("IMPORT WORKOUT PLAN")
                         .font(.system(.subheadline, design: .monospaced).weight(.black))
