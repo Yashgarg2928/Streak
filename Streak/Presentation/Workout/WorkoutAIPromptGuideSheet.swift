@@ -10,22 +10,27 @@ struct WorkoutAIPromptGuideSheet: View {
     private var workoutPromptText: String {
         """
         Generate a weekly workout plan for me in JSON format.
-        Please structure your response ONLY as valid JSON (no markdown formatting, no extra text) matching this schema:
 
+        IMPORTANT FORMAT RULES:
+        1. Output ONLY valid raw JSON (no markdown formatting, no ```json code block backticks).
+        2. Provide plain direct URLs for youtubeUrl (e.g., "https://www.youtube.com/results?search_query=..."). Do NOT use markdown link syntax like [Text](URL).
+        3. Use standard dayOfWeek (1 = Sunday, 2 = Monday, 3 = Tuesday, 4 = Wednesday, 5 = Thursday, 6 = Friday, 7 = Saturday).
+
+        JSON Schema:
         {
           "title": "My Weekly Workout Plan",
           "days": [
             {
               "dayName": "Monday",
               "dayOfWeek": 2,
-              "title": "Push Day - Chest & Triceps",
+              "title": "Push Day - Chest, Shoulders & Triceps",
               "exercises": [
                 {
                   "name": "Barbell Bench Press",
                   "category": "Chest",
                   "targetSets": 4,
                   "targetRepsOrDuration": "8-10 reps",
-                  "youtubeUrl": "https://www.youtube.com/watch?v=rT7DgCr-3pg",
+                  "youtubeUrl": "https://www.youtube.com/results?search_query=barbell+bench+press+proper+form",
                   "notes": "Retract shoulder blades, touch chest gently"
                 },
                 {
@@ -33,7 +38,7 @@ struct WorkoutAIPromptGuideSheet: View {
                   "category": "Chest",
                   "targetSets": 3,
                   "targetRepsOrDuration": "10-12 reps",
-                  "youtubeUrl": "https://www.youtube.com/watch?v=8iPEnn-ltC8"
+                  "youtubeUrl": "https://www.youtube.com/results?search_query=incline+dumbbell+press+proper+form"
                 }
               ]
             },
@@ -46,7 +51,8 @@ struct WorkoutAIPromptGuideSheet: View {
                   "name": "Lat Pulldown",
                   "category": "Back",
                   "targetSets": 4,
-                  "targetRepsOrDuration": "10-12 reps"
+                  "targetRepsOrDuration": "10-12 reps",
+                  "youtubeUrl": "https://www.youtube.com/results?search_query=lat+pulldown+proper+form"
                 }
               ]
             }
@@ -61,7 +67,7 @@ struct WorkoutAIPromptGuideSheet: View {
 
     private var mealPromptText: String {
         """
-        Calculate the macros for the following meal(s) and provide the output ONLY in valid JSON format (no extra text):
+        Calculate the macros for the following meal(s) and provide the output ONLY in valid JSON format (no markdown formatting, no ```json code blocks):
 
         [
           {

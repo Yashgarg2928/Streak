@@ -4,38 +4,41 @@ This document explains the standard JSON schemas used for importing Weekly Worko
 
 ---
 
-## 1. 🏋️ Weekly Workout Plan JSON Schema
+## 1. 🏋️ Weekly Workout Plan AI Prompt
 
 Copy & paste the prompt below into ChatGPT, Gemini, or Claude to generate your weekly workout plan:
 
-### 🤖 AI Prompt Template for Workout Plan
-
 ```text
 Generate a weekly workout plan for me in JSON format.
-Please structure your response ONLY as valid JSON (no markdown text, no code block backticks) matching this schema:
 
+IMPORTANT FORMAT RULES FOR AI OUTPUT:
+1. Output ONLY valid raw JSON (no markdown text, no ```json code block backticks).
+2. Provide plain direct URLs for youtubeUrl (e.g., "https://www.youtube.com/results?search_query=..."). Do NOT use markdown link syntax like [Text](URL).
+3. Use standard dayOfWeek (1 = Sunday, 2 = Monday, 3 = Tuesday, 4 = Wednesday, 5 = Thursday, 6 = Friday, 7 = Saturday).
+
+JSON Schema:
 {
   "title": "My Weekly Workout Plan",
   "days": [
     {
       "dayName": "Monday",
       "dayOfWeek": 2,
-      "title": "Push Day - Chest, Shoulders, Triceps",
+      "title": "Push Day - Chest, Shoulders & Triceps",
       "exercises": [
         {
           "name": "Barbell Bench Press",
           "category": "Chest",
           "targetSets": 4,
           "targetRepsOrDuration": "8-10 reps",
-          "youtubeUrl": "https://www.youtube.com/watch?v=rT7DgCr-3pg",
-          "notes": "Keep shoulder blades retracted"
+          "youtubeUrl": "https://www.youtube.com/results?search_query=barbell+bench+press+proper+form",
+          "notes": "Retract shoulder blades, touch chest gently"
         },
         {
           "name": "Incline Dumbbell Press",
           "category": "Chest",
           "targetSets": 3,
           "targetRepsOrDuration": "10-12 reps",
-          "youtubeUrl": "https://www.youtube.com/watch?v=8iPEnn-ltC8"
+          "youtubeUrl": "https://www.youtube.com/results?search_query=incline+dumbbell+press+proper+form"
         }
       ]
     },
@@ -48,28 +51,27 @@ Please structure your response ONLY as valid JSON (no markdown text, no code blo
           "name": "Lat Pulldown",
           "category": "Back",
           "targetSets": 4,
-          "targetRepsOrDuration": "10-12 reps"
+          "targetRepsOrDuration": "10-12 reps",
+          "youtubeUrl": "https://www.youtube.com/results?search_query=lat+pulldown+proper+form"
         }
       ]
     }
   ]
 }
 
-My Goal: Hypertrophy / Muscle Building
-Split: 6-Day Push Pull Legs
-Include YouTube video links for exercise form demonstration.
+My Fitness Goal: Build Muscle & Strength
+Split Type: 6-Day Push Pull Legs (or customize as requested)
+Include YouTube exercise tutorial links for proper form.
 ```
 
 ---
 
-## 2. 🥗 Meal Macro JSON Schema
+## 2. 🥗 Meal Macro AI Prompt
 
 Copy & paste the prompt below to generate JSON macros for your meals:
 
-### 🤖 AI Prompt Template for Meal Macros
-
 ```text
-Calculate the macros for the following meal(s) and provide the output ONLY in valid JSON format:
+Calculate the macros for the following meal(s) and provide the output ONLY in valid JSON format (no markdown code blocks):
 
 [
   {
@@ -88,4 +90,4 @@ Calculate the macros for the following meal(s) and provide the output ONLY in va
 
 ## 3. 📤 Exporting History for AI Coaching
 
-In the **Workout Tab ➔ Analytics**, tap **`EXPORT FITNESS HISTORY JSON`** to generate a complete summary of your workout volume, set weights, and macro intake across any date range. You can send this exported JSON to ChatGPT/Gemini to get personalized coaching feedback!
+In the **Workout Tab ➔ Analytics**, tap **`EXPORT FITNESS HISTORY JSON`** to generate a complete summary of your workout volume, set weights, and macro logs across any date range. You can send this exported JSON to ChatGPT/Gemini to get personalized coaching feedback!
