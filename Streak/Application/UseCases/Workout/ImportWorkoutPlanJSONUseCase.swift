@@ -40,8 +40,42 @@ public struct ImportWorkoutPlanJSONUseCase {
         return text.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
+    public static func extractJSONSubstring(_ input: String) -> String {
+        let stripped = stripMarkdownCodeBlocks(input)
+
+        let firstBrace = stripped.firstIndex(of: "{")
+        let firstBracket = stripped.firstIndex(of: "[")
+
+        let startIndex: String.Index
+        if let b = firstBrace, let k = firstBracket {
+            startIndex = min(b, k)
+        } else if let b = firstBrace {
+            startIndex = b
+        } else if let k = firstBracket {
+            startIndex = k
+        } else {
+            return stripped
+        }
+
+        let lastBrace = stripped.lastIndex(of: "}")
+        let lastBracket = stripped.lastIndex(of: "]")
+
+        let endIndex: String.Index
+        if let b = lastBrace, let k = lastBracket {
+            endIndex = max(b, k)
+        } else if let b = lastBrace {
+            endIndex = b
+        } else if let k = lastBracket {
+            endIndex = k
+        } else {
+            return String(stripped[startIndex...])
+        }
+
+        return String(stripped[startIndex...endIndex])
+    }
+
     public func execute(jsonString: String) throws -> WorkoutPlan {
-        let cleanedJson = Self.stripMarkdownCodeBlocks(jsonString)
+        let cleanedJson = Self.extractJSONSubstring(jsonString)
         guard let data = cleanedJson.data(using: .utf8) else {
             throw WorkoutPlanImportError.invalidJSON("Could not read text as UTF-8.")
         }
