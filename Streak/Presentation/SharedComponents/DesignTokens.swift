@@ -88,3 +88,31 @@ extension DayStatus {
         }
     }
 }
+
+// MARK: - Global Keyboard Dismissal
+extension View {
+    func hideKeyboard() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+    }
+}
+
+extension UIApplication {
+    func addTapGestureToDismissKeyboard() {
+        guard let windowScene = connectedScenes.first as? UIWindowScene,
+              let window = windowScene.windows.first else { return }
+        
+        let tapGesture = UITapGestureRecognizer(target: window, action: #selector(UIView.endEditing))
+        tapGesture.requiresExclusiveTouchType = false
+        tapGesture.cancelsTouchesInView = false
+        tapGesture.delegate = GlobalKeyboardDismissalDelegate.shared
+        window.addGestureRecognizer(tapGesture)
+    }
+}
+
+final class GlobalKeyboardDismissalDelegate: NSObject, UIGestureRecognizerDelegate {
+    static let shared = GlobalKeyboardDismissalDelegate()
+
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        return true
+    }
+}

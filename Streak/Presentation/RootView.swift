@@ -36,6 +36,7 @@ struct RootView: View {
         .onAppear {
             styleTabBar()
             showOnboarding = !env.settingsRepository.isOnboardingCompleted
+            UIApplication.shared.addTapGestureToDismissKeyboard()
         }
         .fullScreenCover(isPresented: $showOnboarding) {
             OnboardingView(settings: env.settingsRepository) {

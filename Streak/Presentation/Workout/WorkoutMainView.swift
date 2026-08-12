@@ -110,6 +110,7 @@ struct WorkoutMainView: View {
                 }
                 .padding(AppLayout.screenMargin)
             }
+            .scrollDismissesKeyboard(.interactively)
         }
         .background(AppColor.background.ignoresSafeArea())
         .onAppear {
