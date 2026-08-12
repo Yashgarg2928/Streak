@@ -248,22 +248,43 @@ struct WorkoutMainView: View {
                         }
                         Spacer()
 
-                        Button {
-                            showPlanImportSheet = true
-                        } label: {
-                            HStack(spacing: 4) {
-                                Image(systemName: "square.and.arrow.down")
-                                Text("IMPORT JSON")
+                        HStack(spacing: 6) {
+                            if vm.activePlan != nil {
+                                Button {
+                                    vm.syncTodayFromPlan()
+                                } label: {
+                                    HStack(spacing: 4) {
+                                        Image(systemName: "arrow.clockwise")
+                                        Text("RE-SYNC TODAY")
+                                    }
+                                    .font(.system(size: 10, weight: .bold))
+                                    .foregroundStyle(AppColor.green)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 6)
+                                    .background(AppColor.surface)
+                                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                                    .overlay(RoundedRectangle(cornerRadius: 6).stroke(AppColor.green, lineWidth: 1.5))
+                                }
+                                .buttonStyle(.plain)
                             }
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundStyle(AppColor.textPrimary)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 6)
-                            .background(AppColor.surface)
-                            .clipShape(RoundedRectangle(cornerRadius: 6))
-                            .overlay(RoundedRectangle(cornerRadius: 6).stroke(AppColor.border, lineWidth: 1.5))
+
+                            Button {
+                                showPlanImportSheet = true
+                            } label: {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "square.and.arrow.down")
+                                    Text("IMPORT JSON")
+                                }
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundStyle(AppColor.textPrimary)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 6)
+                                .background(AppColor.surface)
+                                .clipShape(RoundedRectangle(cornerRadius: 6))
+                                .overlay(RoundedRectangle(cornerRadius: 6).stroke(AppColor.border, lineWidth: 1.5))
+                            }
+                            .buttonStyle(.plain)
                         }
-                        .buttonStyle(.plain)
                     }
 
                     if let plan = vm.activePlan {
@@ -329,7 +350,7 @@ struct WorkoutMainView: View {
                     }
                     Spacer()
 
-                    if let youtubeUrl = exercise.youtubeUrl, let url = URL(string: youtubeUrl) {
+                    if let rawUrl = cleanURLString(exercise.youtubeUrl), let url = URL(string: rawUrl) {
                         Link(destination: url) {
                             HStack(spacing: 4) {
                                 Image(systemName: "play.tv.fill")

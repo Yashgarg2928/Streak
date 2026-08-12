@@ -40,7 +40,11 @@ final class WorkoutViewModel {
 
             // Fetch or auto-populate daily workout log from active plan
             if let existingLog = try workoutRepo.fetchDailyLog(date: selectedDate) {
-                dailyWorkoutLog = existingLog
+                if existingLog.exercises.isEmpty, let plan = activePlan, !plan.days.isEmpty {
+                    dailyWorkoutLog = createDailyLogFromPlan(for: selectedDate)
+                } else {
+                    dailyWorkoutLog = existingLog
+                }
             } else {
                 dailyWorkoutLog = createDailyLogFromPlan(for: selectedDate)
             }
@@ -49,7 +53,8 @@ final class WorkoutViewModel {
         }
     }
 
-    private func createDailyLogFromPlan(for date: Date) -> DailyWorkoutLog {
+    @discardableResult
+    func createDailyLogFromPlan(for date: Date) -> DailyWorkoutLog {
         let cal = Calendar.current
         let dayOfWeek = cal.component(.weekday, from: date)
         let dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
@@ -157,11 +162,19 @@ final class WorkoutViewModel {
             let useCase = ImportWorkoutPlanJSONUseCase(workoutRepository: workoutRepo)
             let plan = try useCase.execute(jsonString: jsonString)
             activePlan = plan
+            dailyWorkoutLog = createDailyLogFromPlan(for: selectedDate)
             successMessage = "Successfully imported workout plan: '\(plan.title)'!"
             load(date: selectedDate)
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+
+    func syncTodayFromPlan() {
+        guard activePlan != nil else { return }
+        dailyWorkoutLog = createDailyLogFromPlan(for: selectedDate)
+        load(date: selectedDate)
+        successMessage = "Re-synced today's exercises from active plan!"
     }
 
     // MARK: - Nutrition Actions
