@@ -7,6 +7,7 @@ import Foundation
 enum Tab: Hashable {
     case home
     case tasks
+    case workout
     case goals
     case profile
     case more

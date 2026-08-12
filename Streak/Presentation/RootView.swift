@@ -20,6 +20,10 @@ struct RootView: View {
                 .tabItem { Label("Tasks", systemImage: "checkmark.square") }
                 .tag(Tab.tasks)
 
+            WorkoutMainView()
+                .tabItem { Label("Workout", systemImage: "figure.run") }
+                .tag(Tab.workout)
+
             GoalListView(env: env)
                 .tabItem { Label("Goals", systemImage: "flag") }
                 .tag(Tab.goals)

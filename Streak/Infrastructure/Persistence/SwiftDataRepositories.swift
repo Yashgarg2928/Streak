@@ -719,4 +719,147 @@ final class SwiftDataDailyHabitLogRepository: DailyHabitLogRepository {
     }
 }
 
+// MARK: - Workout & Nutrition Repositories
+
+final class SwiftDataWorkoutRepository: WorkoutRepository {
+    private let context: ModelContext
+
+    init(context: ModelContext) {
+        self.context = context
+    }
+
+    func fetchActivePlan() throws -> WorkoutPlan? {
+        let models = try context.fetch(FetchDescriptor<WorkoutPlanModel>(
+            sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
+        ))
+        return models.first?.toDomain()
+    }
+
+    func savePlan(_ plan: WorkoutPlan) throws {
+        let localId = plan.id
+        let existing = try context.fetch(FetchDescriptor<WorkoutPlanModel>(
+            predicate: #Predicate { $0.id == localId }
+        )).first
+        if let existing {
+            existing.update(from: plan)
+        } else {
+            context.insert(WorkoutPlanModel(from: plan))
+        }
+        try context.save()
+    }
+
+    func deletePlan(id: UUID) throws {
+        let localId = id
+        let models = try context.fetch(FetchDescriptor<WorkoutPlanModel>(
+            predicate: #Predicate { $0.id == localId }
+        ))
+        if let existing = models.first {
+            context.delete(existing)
+            try context.save()
+        }
+    }
+
+    func fetchDailyLog(date: Date) throws -> DailyWorkoutLog? {
+        let targetDate = Calendar.current.startOfDay(for: date)
+        let models = try context.fetch(FetchDescriptor<DailyWorkoutLogModel>(
+            predicate: #Predicate { $0.date == targetDate }
+        ))
+        return models.first?.toDomain()
+    }
+
+    func fetchLogs(startDate: Date, endDate: Date) throws -> [DailyWorkoutLog] {
+        let start = Calendar.current.startOfDay(for: startDate)
+        let end = Calendar.current.startOfDay(for: endDate)
+        let models = try context.fetch(FetchDescriptor<DailyWorkoutLogModel>(
+            predicate: #Predicate { $0.date >= start && $0.date <= end },
+            sortBy: [SortDescriptor(\.date, order: .forward)]
+        ))
+        return models.map { $0.toDomain() }
+    }
+
+    func saveDailyLog(_ log: DailyWorkoutLog) throws {
+        let targetDate = Calendar.current.startOfDay(for: log.date)
+        let existing = try context.fetch(FetchDescriptor<DailyWorkoutLogModel>(
+            predicate: #Predicate { $0.date == targetDate }
+        )).first
+        if let existing {
+            existing.update(from: log)
+        } else {
+            context.insert(DailyWorkoutLogModel(from: log))
+        }
+        try context.save()
+    }
+}
+
+final class SwiftDataNutritionRepository: NutritionRepository {
+    private let context: ModelContext
+
+    init(context: ModelContext) {
+        self.context = context
+    }
+
+    func fetchMealLogs(for date: Date) throws -> [MealLog] {
+        let targetDate = Calendar.current.startOfDay(for: date)
+        let models = try context.fetch(FetchDescriptor<MealLogModel>(
+            predicate: #Predicate { $0.date == targetDate }
+        ))
+        return models.map { $0.toDomain() }
+    }
+
+    func fetchMealLogs(startDate: Date, endDate: Date) throws -> [MealLog] {
+        let start = Calendar.current.startOfDay(for: startDate)
+        let end = Calendar.current.startOfDay(for: endDate)
+        let models = try context.fetch(FetchDescriptor<MealLogModel>(
+            predicate: #Predicate { $0.date >= start && $0.date <= end },
+            sortBy: [SortDescriptor(\.date, order: .forward)]
+        ))
+        return models.map { $0.toDomain() }
+    }
+
+    func saveMealLog(_ meal: MealLog) throws {
+        let localId = meal.id
+        let existing = try context.fetch(FetchDescriptor<MealLogModel>(
+            predicate: #Predicate { $0.id == localId }
+        )).first
+        if let existing {
+            existing.update(from: meal)
+        } else {
+            context.insert(MealLogModel(from: meal))
+        }
+        try context.save()
+    }
+
+    func deleteMealLog(id: UUID) throws {
+        let localId = id
+        let models = try context.fetch(FetchDescriptor<MealLogModel>(
+            predicate: #Predicate { $0.id == localId }
+        ))
+        if let existing = models.first {
+            context.delete(existing)
+            try context.save()
+        }
+    }
+
+    func fetchMacroGoals() throws -> MacroGoals {
+        let models = try context.fetch(FetchDescriptor<MacroGoalsModel>())
+        if let existing = models.first {
+            return existing.toDomain()
+        }
+        let defaultGoals = MacroGoals()
+        context.insert(MacroGoalsModel(from: defaultGoals))
+        try context.save()
+        return defaultGoals
+    }
+
+    func saveMacroGoals(_ goals: MacroGoals) throws {
+        let models = try context.fetch(FetchDescriptor<MacroGoalsModel>())
+        if let existing = models.first {
+            existing.update(from: goals)
+        } else {
+            context.insert(MacroGoalsModel(from: goals))
+        }
+        try context.save()
+    }
+}
+
 

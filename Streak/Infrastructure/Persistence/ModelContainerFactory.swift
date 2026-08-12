@@ -23,6 +23,10 @@ enum ModelContainerFactory {
             CustomRewardModel.self,
             CoreHabitModel.self,
             DailyHabitLogModel.self,
+            WorkoutPlanModel.self,
+            DailyWorkoutLogModel.self,
+            MealLogModel.self,
+            MacroGoalsModel.self,
         ])
 
         let config: ModelConfiguration

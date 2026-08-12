@@ -522,4 +522,174 @@ final class DailyHabitLogModel {
     }
 }
 
+@Model
+final class WorkoutPlanModel {
+    @Attribute(.unique) var id: UUID
+    var title: String
+    var createdAt: Date
+    var planDataJson: String
+
+    init(from entity: WorkoutPlan) {
+        self.id = entity.id
+        self.title = entity.title
+        self.createdAt = entity.createdAt
+        let encoder = JSONEncoder()
+        if let data = try? encoder.encode(entity),
+           let str = String(data: data, encoding: .utf8) {
+            self.planDataJson = str
+        } else {
+            self.planDataJson = "{}"
+        }
+    }
+
+    func toDomain() -> WorkoutPlan {
+        let decoder = JSONDecoder()
+        if let data = planDataJson.data(using: .utf8),
+           let plan = try? decoder.decode(WorkoutPlan.self, from: data) {
+            return plan
+        }
+        return WorkoutPlan(id: id, title: title, createdAt: createdAt, days: [])
+    }
+
+    func update(from entity: WorkoutPlan) {
+        self.title = entity.title
+        let encoder = JSONEncoder()
+        if let data = try? encoder.encode(entity),
+           let str = String(data: data, encoding: .utf8) {
+            self.planDataJson = str
+        }
+    }
+}
+
+@Model
+final class DailyWorkoutLogModel {
+    @Attribute(.unique) var id: UUID
+    var date: Date
+    var dayName: String
+    var logDataJson: String
+
+    init(from entity: DailyWorkoutLog) {
+        self.id = entity.id
+        self.date = Calendar.current.startOfDay(for: entity.date)
+        self.dayName = entity.dayName
+        let encoder = JSONEncoder()
+        if let data = try? encoder.encode(entity),
+           let str = String(data: data, encoding: .utf8) {
+            self.logDataJson = str
+        } else {
+            self.logDataJson = "{}"
+        }
+    }
+
+    func toDomain() -> DailyWorkoutLog {
+        let decoder = JSONDecoder()
+        if let data = logDataJson.data(using: .utf8),
+           let log = try? decoder.decode(DailyWorkoutLog.self, from: data) {
+            return log
+        }
+        return DailyWorkoutLog(id: id, date: date, dayName: dayName, exercises: [], notes: nil)
+    }
+
+    func update(from entity: DailyWorkoutLog) {
+        self.dayName = entity.dayName
+        let encoder = JSONEncoder()
+        if let data = try? encoder.encode(entity),
+           let str = String(data: data, encoding: .utf8) {
+            self.logDataJson = str
+        }
+    }
+}
+
+@Model
+final class MealLogModel {
+    @Attribute(.unique) var id: UUID
+    var date: Date
+    var mealTypeRaw: String
+    var title: String
+    var details: String
+    var calories: Int
+    var proteinGrams: Double
+    var carbGrams: Double
+    var fatGrams: Double
+    @Attribute(.externalStorage) var photoData: Data?
+
+    var mealType: MealType {
+        get { MealType(rawValue: mealTypeRaw) ?? .breakfast }
+        set { mealTypeRaw = newValue.rawValue }
+    }
+
+    init(from entity: MealLog) {
+        self.id = entity.id
+        self.date = Calendar.current.startOfDay(for: entity.date)
+        self.mealTypeRaw = entity.mealType.rawValue
+        self.title = entity.title
+        self.details = entity.details
+        self.calories = entity.calories
+        self.proteinGrams = entity.proteinGrams
+        self.carbGrams = entity.carbGrams
+        self.fatGrams = entity.fatGrams
+        self.photoData = entity.photoData
+    }
+
+    func toDomain() -> MealLog {
+        MealLog(
+            id: id,
+            date: date,
+            mealType: mealType,
+            title: title,
+            details: details,
+            calories: calories,
+            proteinGrams: proteinGrams,
+            carbGrams: carbGrams,
+            fatGrams: fatGrams,
+            photoData: photoData
+        )
+    }
+
+    func update(from entity: MealLog) {
+        self.date = Calendar.current.startOfDay(for: entity.date)
+        self.mealTypeRaw = entity.mealType.rawValue
+        self.title = entity.title
+        self.details = entity.details
+        self.calories = entity.calories
+        self.proteinGrams = entity.proteinGrams
+        self.carbGrams = entity.carbGrams
+        self.fatGrams = entity.fatGrams
+        self.photoData = entity.photoData
+    }
+}
+
+@Model
+final class MacroGoalsModel {
+    @Attribute(.unique) var id: String = "primary_macro_goals"
+    var targetCalories: Int
+    var targetProteinGrams: Double
+    var targetCarbGrams: Double
+    var targetFatGrams: Double
+
+    init(from entity: MacroGoals) {
+        self.id = "primary_macro_goals"
+        self.targetCalories = entity.targetCalories
+        self.targetProteinGrams = entity.targetProteinGrams
+        self.targetCarbGrams = entity.targetCarbGrams
+        self.targetFatGrams = entity.targetFatGrams
+    }
+
+    func toDomain() -> MacroGoals {
+        MacroGoals(
+            targetCalories: targetCalories,
+            targetProteinGrams: targetProteinGrams,
+            targetCarbGrams: targetCarbGrams,
+            targetFatGrams: targetFatGrams
+        )
+    }
+
+    func update(from entity: MacroGoals) {
+        self.targetCalories = entity.targetCalories
+        self.targetProteinGrams = entity.targetProteinGrams
+        self.targetCarbGrams = entity.targetCarbGrams
+        self.targetFatGrams = entity.targetFatGrams
+    }
+}
+
 

@@ -29,6 +29,10 @@ final class ResetAllDataUseCase {
         try context.delete(model: CustomRewardModel.self)
         try context.delete(model: CoreHabitModel.self)
         try context.delete(model: DailyHabitLogModel.self)
+        try context.delete(model: WorkoutPlanModel.self)
+        try context.delete(model: DailyWorkoutLogModel.self)
+        try context.delete(model: MealLogModel.self)
+        try context.delete(model: MacroGoalsModel.self)
         try context.save()
 
         // Clear shared widget data store & refresh widget timelines

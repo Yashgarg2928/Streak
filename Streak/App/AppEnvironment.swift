@@ -21,6 +21,8 @@ final class AppEnvironment {
     let customRewardRepository: any CustomRewardRepository
     let coreHabitRepository: any CoreHabitRepository
     let dailyHabitLogRepository: any DailyHabitLogRepository
+    let workoutRepository: any WorkoutRepository
+    let nutritionRepository: any NutritionRepository
 
     var themeMode: String {
         didSet {
@@ -43,7 +45,9 @@ final class AppEnvironment {
         shopItemRepository: any ShopItemRepository,
         customRewardRepository: any CustomRewardRepository,
         coreHabitRepository: any CoreHabitRepository,
-        dailyHabitLogRepository: any DailyHabitLogRepository
+        dailyHabitLogRepository: any DailyHabitLogRepository,
+        workoutRepository: any WorkoutRepository,
+        nutritionRepository: any NutritionRepository
     ) {
         self.categoryRepository = categoryRepository
         self.taskRepository = taskRepository
@@ -59,6 +63,8 @@ final class AppEnvironment {
         self.customRewardRepository = customRewardRepository
         self.coreHabitRepository = coreHabitRepository
         self.dailyHabitLogRepository = dailyHabitLogRepository
+        self.workoutRepository = workoutRepository
+        self.nutritionRepository = nutritionRepository
         self.themeMode = settingsRepository.themeMode
     }
 
