@@ -32,6 +32,7 @@ final class GenerateRoutineTasksUseCase {
                     targetDate: normalizedDate,
                     timeframe: .daily,
                     isCompleted: false,
+                    createdAt: routine.createdAt,
                     routineId: routine.id,
                     isLocked: routine.isLocked
                 )

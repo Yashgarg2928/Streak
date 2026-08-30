@@ -118,6 +118,7 @@ struct TaskRowView: View {
 
     private var isLateTask: Bool {
         guard task.timeframe == .daily else { return false }
+        if task.routineId != nil { return false }
         let planningDeadline = ActiveDayResolver.planningDeadline(for: task.targetDate, settings: env.settingsRepository)
         return task.createdAt > planningDeadline
     }

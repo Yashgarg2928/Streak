@@ -156,7 +156,7 @@ struct CategoryDetailView: View {
                             if status == .red {
                                 let cutoffStr = ActiveDayResolver.formattedPlanningDeadline(settings: env.settingsRepository)
                                 let planningDeadline = ActiveDayResolver.planningDeadline(for: date, settings: env.settingsRepository)
-                                let hasLateTasks = tasks.contains { $0.createdAt > planningDeadline }
+                                let hasLateTasks = tasks.contains { $0.routineId == nil && $0.createdAt > planningDeadline }
                                 
                                 HStack(spacing: 4) {
                                     Image(systemName: "info.circle.fill")

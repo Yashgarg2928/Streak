@@ -484,7 +484,7 @@ struct TaskListView: View {
             let isDeadlinePassed = Date() > deadline
             let cutoffStr = ActiveDayResolver.formattedPlanningDeadline(settings: env.settingsRepository)
             let tasks = (vm?.tasks ?? []).filter { !$0.isDeleted && $0.timeframe == .daily }
-            let earlyTasks = tasks.filter { $0.createdAt <= deadline }
+            let earlyTasks = tasks.filter { $0.routineId != nil || $0.createdAt <= deadline }
             
             if isDeadlinePassed {
                 if earlyTasks.isEmpty {
@@ -504,7 +504,7 @@ struct TaskListView: View {
                         }
                     }
                 } else {
-                    let hasLateTasks = tasks.contains { $0.createdAt > deadline }
+                    let hasLateTasks = tasks.contains { $0.routineId == nil && $0.createdAt > deadline }
                     if hasLateTasks {
                         BrutalistCard(borderColor: AppColor.red) {
                             VStack(alignment: .leading, spacing: 6) {

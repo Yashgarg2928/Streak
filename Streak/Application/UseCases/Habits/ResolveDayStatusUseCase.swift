@@ -47,7 +47,10 @@ struct ResolveDayStatusUseCase {
         )
 
         if status == .green {
-            let hasLateTasks = activeTasks.contains { $0.createdAt > planningDeadline }
+            let hasLateTasks = activeTasks.contains { task in
+                if task.routineId != nil { return false }
+                return task.createdAt > planningDeadline
+            }
             if hasLateTasks {
                 status = .red
             }
