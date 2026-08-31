@@ -359,8 +359,13 @@ final class SwiftDataHabitRoutineRepository: HabitRoutineRepository {
             .map { $0.toDomain() }
             .filter { routine in
                 let start = Calendar.current.startOfDay(for: routine.startDate)
-                let end = Calendar.current.startOfDay(for: routine.endDate)
-                return target >= start && target <= end
+                if routine.type == .monthlyFixed {
+                    // Monthly fixed habits continue indefinitely across future months
+                    return target >= start
+                } else {
+                    let end = Calendar.current.startOfDay(for: routine.endDate)
+                    return target >= start && target <= end
+                }
             }
     }
 
@@ -392,8 +397,9 @@ final class SwiftDataHabitRoutineRepository: HabitRoutineRepository {
         ))
         guard let existing = models.first else { return }
         
-        // Locked monthly commitments cannot be deleted
-        if existing.isLocked {
+        // Locked monthly commitments can only be edited or deleted on Day 1 of the month
+        let isDay1 = Calendar.current.component(.day, from: Date()) == 1
+        if existing.isLocked && !isDay1 {
             return
         }
         

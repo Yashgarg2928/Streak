@@ -84,15 +84,8 @@ struct TaskListView: View {
                 .presentationDragIndicator(.visible)
         }
         .sheet(isPresented: $showRoutineSheet) {
-            AddHabitRoutineSheet(categories: vm?.categories ?? []) { title, categoryId, type, startDate, endDate in
-                vm?.addHabitRoutine(
-                    title: title,
-                    categoryId: categoryId,
-                    type: type,
-                    startDate: startDate,
-                    endDate: endDate,
-                    for: selectedDate ?? activeToday
-                )
+            ManageHabitRoutinesSheet(categories: vm?.categories ?? []) {
+                vm?.load(tab: selectedTab, for: selectedDate ?? activeToday)
             }
         }
     }
