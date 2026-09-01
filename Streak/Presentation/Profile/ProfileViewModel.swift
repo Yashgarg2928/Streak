@@ -43,7 +43,24 @@ final class ProfileViewModel {
                 badgeRepository: env.badgeRepository
             )
             try useCase.purchaseFixedItem(itemType)
-            successMessage = "Successfully purchased \(itemType.title)!"
+            successMessage = "Successfully purchased \(itemType.title)! You can activate it anytime from your inventory below."
+            load()
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func activateItem(_ item: ShopItem) {
+        do {
+            let useCase = ActivateShopItemUseCase(
+                playerProfileRepository: env.playerProfileRepository,
+                shopItemRepository: env.shopItemRepository,
+                dayEntryRepository: env.dayEntryRepository,
+                settingsRepository: env.settingsRepository
+            )
+            try useCase.execute(itemId: item.id)
+            successMessage = "Successfully activated \(item.itemType.title)!"
+            env.syncWidgets()
             load()
         } catch {
             errorMessage = error.localizedDescription

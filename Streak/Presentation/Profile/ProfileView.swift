@@ -290,6 +290,9 @@ struct ProfileView: View {
                 }
             }
 
+            // My Inventory Section
+            inventorySection(vm: vm)
+
             // Fixed System Shop Items
             VStack(alignment: .leading, spacing: AppLayout.itemSpacing) {
                 Text("SYSTEM SHOP ITEMS")
@@ -298,6 +301,95 @@ struct ProfileView: View {
 
                 ForEach(FixedShopItemType.allCases) { itemType in
                     fixedShopItemCard(itemType: itemType, vm: vm)
+                }
+            }
+        }
+    }
+
+    private func inventorySection(vm: ProfileViewModel) -> some View {
+        VStack(alignment: .leading, spacing: AppLayout.itemSpacing) {
+            HStack {
+                Text("🎒 MY INVENTORY")
+                    .font(.system(.subheadline).weight(.semibold))
+                    .foregroundStyle(AppColor.textSecondary)
+                Spacer()
+                Text("\(vm.shopItems.filter { $0.usedAt == nil }.count) UNUSED")
+                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                    .foregroundStyle(AppColor.green)
+            }
+
+            if vm.shopItems.isEmpty {
+                BrutalistCard {
+                    Text("Your inventory is empty. Purchase items below in the System Shop!")
+                        .font(.system(.subheadline))
+                        .foregroundStyle(AppColor.textDisabled)
+                        .multilineTextAlignment(.center)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 8)
+                }
+            } else {
+                ForEach(vm.shopItems) { item in
+                    inventoryItemCard(item: item, vm: vm)
+                }
+            }
+        }
+    }
+
+    private func inventoryItemCard(item: ShopItem, vm: ProfileViewModel) -> some View {
+        let isUsed = item.usedAt != nil
+
+        return BrutalistCard(borderColor: isUsed ? AppColor.blank : AppColor.border) {
+            HStack(spacing: 12) {
+                Text(item.itemType.emoji)
+                    .font(.system(size: 22))
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(item.itemType.title)
+                        .font(.system(.subheadline).weight(.bold))
+                        .foregroundStyle(AppColor.textPrimary)
+
+                    Text(item.itemType.effectDescription)
+                        .font(.system(size: 10))
+                        .foregroundStyle(AppColor.textSecondary)
+
+                    if let exp = item.expiresAt, exp > Date() {
+                        Text("⚡ Active until \(exp.formatted(date: .omitted, time: .shortened))")
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundStyle(AppColor.green)
+                    }
+                }
+
+                Spacer()
+
+                if !isUsed {
+                    Button {
+                        vm.activateItem(item)
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "bolt.fill")
+                                .font(.system(size: 10))
+                            Text("ACTIVATE")
+                                .font(.system(size: 10, weight: .black))
+                        }
+                        .foregroundStyle(AppColor.background)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(AppColor.green)
+                        .clipShape(RoundedRectangle(cornerRadius: 6))
+                    }
+                    .buttonStyle(.plain)
+                } else {
+                    HStack(spacing: 4) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 10))
+                        Text("ACTIVATED")
+                            .font(.system(size: 9, weight: .bold))
+                    }
+                    .foregroundStyle(AppColor.textDisabled)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(AppColor.surface)
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
                 }
             }
         }

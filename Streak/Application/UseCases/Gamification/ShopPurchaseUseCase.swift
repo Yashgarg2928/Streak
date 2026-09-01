@@ -55,18 +55,9 @@ public struct ShopPurchaseUseCase {
         profile.lastUpdated = Date()
         try playerProfileRepository.saveProfile(profile)
         
-        // Save shop item
+        // Save shop item to inventory (unactivated, user activates manually)
         let now = Date()
-        let expiresAt: Date?
-        if type == .xpBoost {
-            expiresAt = Date(timeIntervalSinceNow: 24 * 3600)
-            profile.activeBoostExpiry = expiresAt
-            try playerProfileRepository.saveProfile(profile)
-        } else {
-            expiresAt = nil
-        }
-        
-        let item = ShopItem(itemType: type, purchasedAt: now, expiresAt: expiresAt)
+        let item = ShopItem(itemType: type, purchasedAt: now, usedAt: nil, expiresAt: nil)
         try shopItemRepository.save(item)
         
         // Record XP transaction
