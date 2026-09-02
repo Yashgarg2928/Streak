@@ -6,7 +6,7 @@ import Foundation
 
 public enum AppConfig {
     public static var appGroupID: String {
-        value(forKey: "APP_GROUP_ID", default: "group.com.madhvan.streak")
+        value(forKey: "APP_GROUP_ID", default: "group.com.yashgarg29.Streak")
     }
 
     public static var backgroundTaskId: String {

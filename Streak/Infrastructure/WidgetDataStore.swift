@@ -69,7 +69,7 @@ struct WidgetData: Codable {
 
 enum WidgetDataStore {
     static var appGroupID: String {
-        ProcessInfo.processInfo.environment["APP_GROUP_ID"] ?? "group.com.madhvan.streak"
+        ProcessInfo.processInfo.environment["APP_GROUP_ID"] ?? "group.com.yashgarg29.Streak"
     }
     static let key = "widgetData"
 
