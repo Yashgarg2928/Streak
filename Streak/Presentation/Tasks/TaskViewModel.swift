@@ -170,7 +170,9 @@ final class TaskViewModel {
                 taskRepository: env.taskRepository,
                 categoryRepository: env.categoryRepository,
                 dayEntryRepository: env.dayEntryRepository,
-                settingsRepository: env.settingsRepository
+                settingsRepository: env.settingsRepository,
+                playerProfileRepository: env.playerProfileRepository,
+                xpTransactionRepository: env.xpTransactionRepository
             )
             let useCase = CompleteTaskUseCase(
                 taskRepository: env.taskRepository,

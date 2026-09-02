@@ -2,18 +2,19 @@
 
 import Foundation
 
-public struct DeductXPUseCase {
+struct DeductXPUseCase {
     let playerProfileRepository: any PlayerProfileRepository
     let xpTransactionRepository: any XPTransactionRepository
 
-    public func execute(amount: Int, reason: XPTransactionReason, note: String? = nil) throws -> Int {
-        guard amount > 0 else { return 0 }
+    @discardableResult
+    func execute(penaltyAmount: Int, reason: XPTransactionReason, note: String? = nil) throws -> Int {
+        guard penaltyAmount > 0 else { return 0 }
         
         var profile = try playerProfileRepository.fetchProfile()
         let now = Date()
         
-        // Anti-death spiral: XP cannot go below 0
-        let actualDeduction = min(profile.totalXP, amount)
+        // Deduct penalty (XP cannot drop below 0)
+        let actualDeduction = min(profile.totalXP, penaltyAmount)
         guard actualDeduction > 0 else { return 0 }
         
         profile.totalXP -= actualDeduction
@@ -21,7 +22,7 @@ public struct DeductXPUseCase {
         
         try playerProfileRepository.saveProfile(profile)
         
-        // Record negative transaction
+        // Record negative XP transaction
         let transaction = XPTransaction(date: now, amount: -actualDeduction, reason: reason, note: note)
         try xpTransactionRepository.save(transaction)
         

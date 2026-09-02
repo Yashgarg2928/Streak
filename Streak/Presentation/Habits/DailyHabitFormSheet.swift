@@ -217,6 +217,7 @@ struct DailyHabitFormSheet: View {
             // Fetch daily tasks for date to sync routine completion
             let tasksForDate = try env.taskRepository.fetchAll(for: date)
 
+            var notFollowedCount = 0
             for routine in routines {
                 let status = habitStatuses[routine.id] ?? .pending
                 let log = DailyHabitLog(date: date, habitId: routine.id, status: status)
@@ -229,10 +230,12 @@ struct DailyHabitFormSheet: View {
                     if let matchingTask = tasksForDate.first(where: { $0.title == routine.title && !$0.isCompleted }) {
                         try completeUseCase.execute(taskId: matchingTask.id, completed: true)
                     }
+                } else if status == .failed {
+                    notFollowedCount += 1
                 }
             }
 
-            // Award XP for followed habits if not already completed via task list
+            // Award XP for followed habits
             if followedCount > 0 {
                 let awardUseCase = AwardXPUseCase(
                     playerProfileRepository: env.playerProfileRepository,
@@ -247,6 +250,19 @@ struct DailyHabitFormSheet: View {
                     amount: followedCount * 15,
                     reason: .habitCompleted,
                     note: "End-of-day Habit Form (\(followedCount) Followed)"
+                )
+            }
+
+            // Deduct XP penalty for not-followed habits
+            if notFollowedCount > 0 {
+                let deductUseCase = DeductXPUseCase(
+                    playerProfileRepository: env.playerProfileRepository,
+                    xpTransactionRepository: env.xpTransactionRepository
+                )
+                _ = try deductUseCase.execute(
+                    penaltyAmount: notFollowedCount * 15,
+                    reason: .habitMissedDecay,
+                    note: "End-of-day Habit Form (\(notFollowedCount) Not Followed)"
                 )
             }
 
