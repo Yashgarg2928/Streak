@@ -5,6 +5,7 @@
 import SwiftUI
 import SwiftData
 import BackgroundTasks
+import AppIntents
 
 @main
 struct StreakApp: App {
@@ -79,6 +80,7 @@ struct StreakApp: App {
                     environment.syncWidgets()
                     StreakApp.performForegroundCatchUpSweep(container: container, environment: environment)
                     StreakApp.scheduleLockoutSweep(environment: environment)
+                    StreakAppShortcuts.updateAppShortcutParameters()
                 }
                 .onChange(of: scenePhase) { oldPhase, newPhase in
                     if newPhase == .active {
