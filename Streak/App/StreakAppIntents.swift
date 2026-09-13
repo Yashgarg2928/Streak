@@ -16,36 +16,46 @@ enum TaskListTypeAppEnum: String, AppEnum {
 
     static var typeDisplayRepresentation: TypeDisplayRepresentation = "List Type"
     static var caseDisplayRepresentations: [TaskListTypeAppEnum: DisplayRepresentation] = [
-        .daily: "Daily",
-        .todo: "To-Do",
-        .weekly: "Weekly",
-        .monthly: "Monthly"
+        .daily: DisplayRepresentation(
+            title: "Daily",
+            synonyms: ["daily", "today", "daily list", "daily task", "today's list", "day"]
+        ),
+        .todo: DisplayRepresentation(
+            title: "To-Do",
+            synonyms: [
+                "to-do",
+                "todo",
+                "to do",
+                "to-do list",
+                "todo list",
+                "to do list",
+                "the to-do list",
+                "the to do list",
+                "backlog",
+                "reminders",
+                "ideas"
+            ]
+        ),
+        .weekly: DisplayRepresentation(
+            title: "Weekly",
+            synonyms: ["weekly", "this week", "weekly list", "week"]
+        ),
+        .monthly: DisplayRepresentation(
+            title: "Monthly",
+            synonyms: ["monthly", "this month", "monthly list", "month"]
+        )
     ]
 }
 
-// MARK: - Primary Add Task Intent
+// MARK: - Shared Intent Service
 
-struct AddTaskIntent: AppIntent {
-    static var title: LocalizedStringResource = "Add Task to Streak"
-    static var description = IntentDescription("Adds a new task to your Daily checklist or To-Do backlog in Streak.")
-
-    @Parameter(title: "Task Title", requestValueDialog: "What task would you like to add?")
-    var title: String
-
-    @Parameter(title: "List Type", default: .daily, requestValueDialog: "Should I add this to Daily or To-Do?")
-    var listType: TaskListTypeAppEnum
-
-    @Parameter(title: "Category", default: nil)
-    var category: CategoryAppEntity?
-
-    static var parameterSummary: some ParameterSummary {
-        Summary("Add \(\.$title) to \(\.$listType)") {
-            \.$category
-        }
-    }
-
+enum StreakTaskIntentService {
     @MainActor
-    func perform() async throws -> some ProvidesDialog & ShowsSnippetView {
+    static func executeAddTask(
+        rawTitle: String,
+        suggestedListType: TaskListTypeAppEnum,
+        category: CategoryAppEntity?
+    ) throws -> (dialog: String, snippet: TaskAddedSiriSnippetView) {
         let container = try ModelContainerFactory.makeContainer()
         let ctx = container.mainContext
         let settingsRepo = UserDefaultsSettingsRepository()
@@ -54,9 +64,50 @@ struct AddTaskIntent: AppIntent {
             ? ActiveDayResolver.resolveActiveDate(for: Date(), settings: settingsRepo)
             : Calendar.current.startOfDay(for: Date())
 
+        var title = rawTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        var resolvedListType = suggestedListType
+
+        // Check if user spoke the destination inside the task title itself
+        let todoSuffixes = [
+            " to my to-do list", " to the to-do list", " to to-do list", " to to-do",
+            " to my todo list", " to the todo list", " to todo list", " to todo",
+            " to my to do list", " to the to do list", " to to do list", " to to do",
+            " in my to-do list", " in the to-do list", " in to-do list", " in to-do",
+            " in my todo list", " in the todo list", " in todo list", " in todo",
+            " in my to do list", " in the to do list", " in to do list", " in to do",
+            " on my to-do list", " on the to-do list", " on to-do list", " on to-do",
+            " on my todo list", " on the todo list", " on todo list", " on todo",
+            " on my to do list", " on the to do list", " on to do list", " on to do"
+        ]
+
+        for suffix in todoSuffixes {
+            if title.lowercased().hasSuffix(suffix) {
+                resolvedListType = .todo
+                let endIndex = title.index(title.endIndex, offsetBy: -suffix.count)
+                title = String(title[..<endIndex]).trimmingCharacters(in: .whitespacesAndNewlines)
+                break
+            }
+        }
+
+        let dailySuffixes = [
+            " to my daily list", " to the daily list", " to daily list", " to daily tasks", " to daily task", " to daily",
+            " in my daily list", " in the daily list", " in daily list", " in daily tasks", " in daily task", " in daily",
+            " on my daily list", " on the daily list", " on daily list", " on daily tasks", " on daily task", " on daily"
+        ]
+
+        for suffix in dailySuffixes {
+            if title.lowercased().hasSuffix(suffix) {
+                resolvedListType = .daily
+                let endIndex = title.index(title.endIndex, offsetBy: -suffix.count)
+                title = String(title[..<endIndex]).trimmingCharacters(in: .whitespacesAndNewlines)
+                break
+            }
+        }
+
+        let finalTitle = title.isEmpty ? rawTitle : title
         let timeframe: TaskTimeframe
         let targetDate: Date
-        switch listType {
+        switch resolvedListType {
         case .daily:
             timeframe = .daily
             targetDate = activeToday
@@ -74,7 +125,7 @@ struct AddTaskIntent: AppIntent {
         let catId: UUID? = category != nil ? UUID(uuidString: category!.id) : nil
 
         let newTask = Task(
-            title: title.trimmingCharacters(in: .whitespacesAndNewlines),
+            title: finalTitle,
             categoryId: catId,
             targetDate: targetDate,
             timeframe: timeframe
@@ -100,17 +151,51 @@ struct AddTaskIntent: AppIntent {
         )
         _ = syncUseCase.execute()
 
-        let destinationName = listType == .todo ? "To-Do list" : "\(listType.rawValue) tasks"
-        let dialogText = "Added '\(title)' to your \(destinationName) in Streak!"
+        let destinationName = resolvedListType == .todo ? "To-Do list" : "\(resolvedListType.rawValue) tasks"
+        let dialogText = "Added '\(finalTitle)' to your \(destinationName) in Streak!"
 
+        let snippet = TaskAddedSiriSnippetView(
+            taskTitle: finalTitle,
+            listType: resolvedListType.rawValue,
+            categoryName: category?.name,
+            categoryColorHex: category?.colorHex
+        )
+
+        return (dialogText, snippet)
+    }
+}
+
+// MARK: - Primary Add Task Intent
+
+struct AddTaskIntent: AppIntent {
+    static var title: LocalizedStringResource = "Add Task to Streak"
+    static var description = IntentDescription("Adds a new task to your Daily checklist or To-Do backlog in Streak.")
+
+    @Parameter(title: "Task Title", requestValueDialog: "What task would you like to add?")
+    var title: String
+
+    @Parameter(title: "List Type", default: .daily, requestValueDialog: "Should I add this to Daily or To-Do?")
+    var listType: TaskListTypeAppEnum
+
+    @Parameter(title: "Category", default: nil)
+    var category: CategoryAppEntity?
+
+    static var parameterSummary: some ParameterSummary {
+        Summary("Add \(\.$title) to \(\.$listType)") {
+            \.$category
+        }
+    }
+
+    @MainActor
+    func perform() async throws -> some ProvidesDialog & ShowsSnippetView {
+        let result = try StreakTaskIntentService.executeAddTask(
+            rawTitle: title,
+            suggestedListType: listType,
+            category: category
+        )
         return .result(
-            dialog: IntentDialog(stringLiteral: dialogText),
-            view: TaskAddedSiriSnippetView(
-                taskTitle: title,
-                listType: listType.rawValue,
-                categoryName: category?.name,
-                categoryColorHex: category?.colorHex
-            )
+            dialog: IntentDialog(stringLiteral: result.dialog),
+            view: result.snippet
         )
     }
 }
@@ -135,11 +220,15 @@ struct AddDailyTaskIntent: AppIntent {
 
     @MainActor
     func perform() async throws -> some ProvidesDialog & ShowsSnippetView {
-        let taskIntent = AddTaskIntent()
-        taskIntent.title = title
-        taskIntent.listType = .daily
-        taskIntent.category = category
-        return try await taskIntent.perform()
+        let result = try StreakTaskIntentService.executeAddTask(
+            rawTitle: title,
+            suggestedListType: .daily,
+            category: category
+        )
+        return .result(
+            dialog: IntentDialog(stringLiteral: result.dialog),
+            view: result.snippet
+        )
     }
 }
 
@@ -163,11 +252,15 @@ struct AddTodoTaskIntent: AppIntent {
 
     @MainActor
     func perform() async throws -> some ProvidesDialog & ShowsSnippetView {
-        let taskIntent = AddTaskIntent()
-        taskIntent.title = title
-        taskIntent.listType = .todo
-        taskIntent.category = category
-        return try await taskIntent.perform()
+        let result = try StreakTaskIntentService.executeAddTask(
+            rawTitle: title,
+            suggestedListType: .todo,
+            category: category
+        )
+        return .result(
+            dialog: IntentDialog(stringLiteral: result.dialog),
+            view: result.snippet
+        )
     }
 }
 
@@ -209,7 +302,15 @@ struct StreakAppShortcuts: AppShortcutsProvider {
                 "Add a to-do to \(.applicationName)",
                 "Add a to-do in \(.applicationName)",
                 "Add to do to \(.applicationName)",
-                "Add to do in \(.applicationName)"
+                "Add to do in \(.applicationName)",
+                "Add to-do list in \(.applicationName)",
+                "Add to-do list to \(.applicationName)",
+                "Add to the to-do list in \(.applicationName)",
+                "Add to the to-do list to \(.applicationName)",
+                "Add to the to do list in \(.applicationName)",
+                "Add to the to do list to \(.applicationName)",
+                "Add to do list in \(.applicationName)",
+                "Add to do list to \(.applicationName)"
             ],
             shortTitle: "Add To-Do",
             systemImageName: "list.bullet"
