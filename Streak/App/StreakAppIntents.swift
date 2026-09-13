@@ -177,7 +177,7 @@ struct AddTaskIntent: AppIntent {
     @Parameter(title: "List Type", default: .daily, requestValueDialog: "Should I add this to Daily or To-Do?")
     var listType: TaskListTypeAppEnum
 
-    @Parameter(title: "Category", default: nil)
+    @Parameter(title: "Category", requestValueDialog: "Which category should this go in?")
     var category: CategoryAppEntity?
 
     static var parameterSummary: some ParameterSummary {
@@ -188,10 +188,45 @@ struct AddTaskIntent: AppIntent {
 
     @MainActor
     func perform() async throws -> some ProvidesDialog & ShowsSnippetView {
+        // Step 1: If no category was provided, ask the user to pick one
+        let resolvedCategory: CategoryAppEntity?
+        if category == nil {
+            let available = try await CategoryEntityQuery().suggestedEntities()
+            if !available.isEmpty {
+                resolvedCategory = try await $category.requestDisambiguation(
+                    among: available,
+                    dialog: IntentDialog("Which category should this task go in?")
+                )
+            } else {
+                resolvedCategory = nil
+            }
+        } else {
+            resolvedCategory = category
+        }
+
+        // Step 2: Confirmation — Siri reads back what it captured
+        let listName = listType == .todo ? "To-Do list" : "\(listType.rawValue) tasks"
+        let catLabel = resolvedCategory?.name ?? "No Category"
+        let confirmDialog = "I'll add \"\(title)\" to your \(listName) under \(catLabel). Sound good?"
+
+        try await requestConfirmation(
+            result: .result(
+                dialog: IntentDialog(stringLiteral: confirmDialog),
+                view: TaskAddedSiriSnippetView(
+                    taskTitle: title,
+                    listType: listType.rawValue,
+                    categoryName: resolvedCategory?.name,
+                    categoryColorHex: resolvedCategory?.colorHex,
+                    isPreview: true
+                )
+            )
+        )
+
+        // Step 3: Execute the task creation
         let result = try StreakTaskIntentService.executeAddTask(
             rawTitle: title,
             suggestedListType: listType,
-            category: category
+            category: resolvedCategory
         )
         return .result(
             dialog: IntentDialog(stringLiteral: result.dialog),
@@ -209,7 +244,7 @@ struct AddDailyTaskIntent: AppIntent {
     @Parameter(title: "Task Title", requestValueDialog: "What daily task would you like to add?")
     var title: String
 
-    @Parameter(title: "Category", default: nil)
+    @Parameter(title: "Category", requestValueDialog: "Which category should this go in?")
     var category: CategoryAppEntity?
 
     static var parameterSummary: some ParameterSummary {
@@ -220,10 +255,43 @@ struct AddDailyTaskIntent: AppIntent {
 
     @MainActor
     func perform() async throws -> some ProvidesDialog & ShowsSnippetView {
+        // Ask for category if not provided
+        let resolvedCategory: CategoryAppEntity?
+        if category == nil {
+            let available = try await CategoryEntityQuery().suggestedEntities()
+            if !available.isEmpty {
+                resolvedCategory = try await $category.requestDisambiguation(
+                    among: available,
+                    dialog: IntentDialog("Which category for this daily task?")
+                )
+            } else {
+                resolvedCategory = nil
+            }
+        } else {
+            resolvedCategory = category
+        }
+
+        // Confirmation
+        let catLabel = resolvedCategory?.name ?? "No Category"
+        let confirmDialog = "I'll add \"\(title)\" to your Daily tasks under \(catLabel). Sound good?"
+
+        try await requestConfirmation(
+            result: .result(
+                dialog: IntentDialog(stringLiteral: confirmDialog),
+                view: TaskAddedSiriSnippetView(
+                    taskTitle: title,
+                    listType: "Daily",
+                    categoryName: resolvedCategory?.name,
+                    categoryColorHex: resolvedCategory?.colorHex,
+                    isPreview: true
+                )
+            )
+        )
+
         let result = try StreakTaskIntentService.executeAddTask(
             rawTitle: title,
             suggestedListType: .daily,
-            category: category
+            category: resolvedCategory
         )
         return .result(
             dialog: IntentDialog(stringLiteral: result.dialog),
@@ -241,7 +309,7 @@ struct AddTodoTaskIntent: AppIntent {
     @Parameter(title: "Task Title", requestValueDialog: "What would you like to add to your To-Do list?")
     var title: String
 
-    @Parameter(title: "Category", default: nil)
+    @Parameter(title: "Category", requestValueDialog: "Which category should this go in?")
     var category: CategoryAppEntity?
 
     static var parameterSummary: some ParameterSummary {
@@ -252,10 +320,43 @@ struct AddTodoTaskIntent: AppIntent {
 
     @MainActor
     func perform() async throws -> some ProvidesDialog & ShowsSnippetView {
+        // Ask for category if not provided
+        let resolvedCategory: CategoryAppEntity?
+        if category == nil {
+            let available = try await CategoryEntityQuery().suggestedEntities()
+            if !available.isEmpty {
+                resolvedCategory = try await $category.requestDisambiguation(
+                    among: available,
+                    dialog: IntentDialog("Which category for this to-do?")
+                )
+            } else {
+                resolvedCategory = nil
+            }
+        } else {
+            resolvedCategory = category
+        }
+
+        // Confirmation
+        let catLabel = resolvedCategory?.name ?? "No Category"
+        let confirmDialog = "I'll add \"\(title)\" to your To-Do list under \(catLabel). Sound good?"
+
+        try await requestConfirmation(
+            result: .result(
+                dialog: IntentDialog(stringLiteral: confirmDialog),
+                view: TaskAddedSiriSnippetView(
+                    taskTitle: title,
+                    listType: "To-Do",
+                    categoryName: resolvedCategory?.name,
+                    categoryColorHex: resolvedCategory?.colorHex,
+                    isPreview: true
+                )
+            )
+        )
+
         let result = try StreakTaskIntentService.executeAddTask(
             rawTitle: title,
             suggestedListType: .todo,
-            category: category
+            category: resolvedCategory
         )
         return .result(
             dialog: IntentDialog(stringLiteral: result.dialog),
@@ -325,6 +426,7 @@ struct TaskAddedSiriSnippetView: View {
     let listType: String
     var categoryName: String? = nil
     var categoryColorHex: String? = nil
+    var isPreview: Bool = false
 
     private var categoryColor: Color {
         if let hex = categoryColorHex {
@@ -335,9 +437,9 @@ struct TaskAddedSiriSnippetView: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            Image(systemName: "checkmark.circle.fill")
+            Image(systemName: isPreview ? "questionmark.circle.fill" : "checkmark.circle.fill")
                 .font(.system(size: 24, weight: .black))
-                .foregroundStyle(Color(hex: "#2D7A2D"))
+                .foregroundStyle(Color(hex: isPreview ? "#E6A817" : "#2D7A2D"))
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(taskTitle)

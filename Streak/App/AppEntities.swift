@@ -19,7 +19,7 @@ struct CategoryAppEntity: AppEntity {
     }
 }
 
-struct CategoryEntityQuery: EntityQuery {
+struct CategoryEntityQuery: EntityQuery, EntityStringQuery {
     static var cache: [CategoryAppEntity] = []
 
     func entities(for identifiers: [String]) async throws -> [CategoryAppEntity] {
@@ -31,6 +31,14 @@ struct CategoryEntityQuery: EntityQuery {
         guard !identifiers.isEmpty else { return resolvedAll }
         let lowercasedIds = identifiers.map { $0.lowercased() }
         return resolvedAll.filter { lowercasedIds.contains($0.id.lowercased()) }
+    }
+
+    /// Called by Siri when the user speaks a category name as free text
+    func entities(matching string: String) async throws -> [CategoryAppEntity] {
+        let all = allEntities()
+        if !all.isEmpty { Self.cache = all }
+        let query = string.lowercased()
+        return all.filter { $0.name.lowercased().contains(query) }
     }
 
     func suggestedEntities() async throws -> [CategoryAppEntity] {
