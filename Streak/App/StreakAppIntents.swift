@@ -50,24 +50,13 @@ enum TaskListTypeAppEnum: String, AppEnum {
 // MARK: - Shared Intent Service
 
 enum StreakTaskIntentService {
-    @MainActor
-    static func executeAddTask(
-        rawTitle: String,
-        suggestedListType: TaskListTypeAppEnum,
-        category: CategoryAppEntity?
-    ) throws -> (dialog: String, snippet: TaskAddedSiriSnippetView) {
-        let container = try ModelContainerFactory.makeContainer()
-        let ctx = container.mainContext
-        let settingsRepo = UserDefaultsSettingsRepository()
-
-        let activeToday = settingsRepo.isOnboardingCompleted
-            ? ActiveDayResolver.resolveActiveDate(for: Date(), settings: settingsRepo)
-            : Calendar.current.startOfDay(for: Date())
-
+    static func extractTitleAndListType(
+        from rawTitle: String,
+        defaultListType: TaskListTypeAppEnum
+    ) -> (title: String, listType: TaskListTypeAppEnum) {
         var title = rawTitle.trimmingCharacters(in: .whitespacesAndNewlines)
-        var resolvedListType = suggestedListType
+        var resolvedListType = defaultListType
 
-        // Check if user spoke the destination inside the task title itself
         let todoSuffixes = [
             " to my to-do list", " to the to-do list", " to to-do list", " to to-do",
             " to my todo list", " to the todo list", " to todo list", " to todo",
@@ -105,6 +94,27 @@ enum StreakTaskIntentService {
         }
 
         let finalTitle = title.isEmpty ? rawTitle : title
+        return (finalTitle, resolvedListType)
+    }
+
+    @MainActor
+    static func executeAddTask(
+        rawTitle: String,
+        suggestedListType: TaskListTypeAppEnum,
+        category: CategoryAppEntity?
+    ) throws -> (dialog: String, snippet: TaskAddedSiriSnippetView) {
+        let container = try ModelContainerFactory.makeContainer()
+        let ctx = container.mainContext
+        let settingsRepo = UserDefaultsSettingsRepository()
+
+        let activeToday = settingsRepo.isOnboardingCompleted
+            ? ActiveDayResolver.resolveActiveDate(for: Date(), settings: settingsRepo)
+            : Calendar.current.startOfDay(for: Date())
+
+        let (finalTitle, resolvedListType) = extractTitleAndListType(
+            from: rawTitle,
+            defaultListType: suggestedListType
+        )
         let timeframe: TaskTimeframe
         let targetDate: Date
         switch resolvedListType {
@@ -188,7 +198,50 @@ struct AddTaskIntent: AppIntent {
 
     @MainActor
     func perform() async throws -> some ProvidesDialog & ShowsSnippetView {
-        // Step 1: If no category was provided, ask the user to pick one
+        var resolvedListType = listType
+        var (currentTitle, parsedType) = StreakTaskIntentService.extractTitleAndListType(
+            from: title,
+            defaultListType: resolvedListType
+        )
+        resolvedListType = parsedType
+
+        // Step 1: Confirmation of task title — repeats what Siri heard
+        var isTitleConfirmed = false
+        do {
+            isTitleConfirmed = try await $title.requestConfirmation(
+                for: currentTitle,
+                dialog: IntentDialog("I heard \"\(currentTitle)\". Is that correct?")
+            )
+        } catch {
+            isTitleConfirmed = false
+        }
+
+        // If Siri listened wrong (user said "No"), ask if they need to change it and get the new task
+        while !isTitleConfirmed {
+            let newTitle = try await $title.requestValue(
+                IntentDialog("Do you need to change it? What should the task be?")
+            )
+            let trimmed = newTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty {
+                let cleaned = StreakTaskIntentService.extractTitleAndListType(
+                    from: trimmed,
+                    defaultListType: resolvedListType
+                )
+                currentTitle = cleaned.title
+                resolvedListType = cleaned.listType
+            }
+
+            do {
+                isTitleConfirmed = try await $title.requestConfirmation(
+                    for: currentTitle,
+                    dialog: IntentDialog("I heard \"\(currentTitle)\". Is that correct?")
+                )
+            } catch {
+                isTitleConfirmed = false
+            }
+        }
+
+        // Step 2: If no category was provided, ask the user to pick one
         let resolvedCategory: CategoryAppEntity?
         if category == nil {
             let available = try await CategoryEntityQuery().suggestedEntities()
@@ -204,28 +257,10 @@ struct AddTaskIntent: AppIntent {
             resolvedCategory = category
         }
 
-        // Step 2: Confirmation — Siri reads back what it captured
-        let listName = listType == .todo ? "To-Do list" : "\(listType.rawValue) tasks"
-        let catLabel = resolvedCategory?.name ?? "No Category"
-        let confirmDialog = "I'll add \"\(title)\" to your \(listName) under \(catLabel). Sound good?"
-
-        try await requestConfirmation(
-            result: .result(
-                dialog: IntentDialog(stringLiteral: confirmDialog),
-                view: TaskAddedSiriSnippetView(
-                    taskTitle: title,
-                    listType: listType.rawValue,
-                    categoryName: resolvedCategory?.name,
-                    categoryColorHex: resolvedCategory?.colorHex,
-                    isPreview: true
-                )
-            )
-        )
-
         // Step 3: Execute the task creation
         let result = try StreakTaskIntentService.executeAddTask(
-            rawTitle: title,
-            suggestedListType: listType,
+            rawTitle: currentTitle,
+            suggestedListType: resolvedListType,
             category: resolvedCategory
         )
         return .result(
@@ -255,7 +290,47 @@ struct AddDailyTaskIntent: AppIntent {
 
     @MainActor
     func perform() async throws -> some ProvidesDialog & ShowsSnippetView {
-        // Ask for category if not provided
+        var (currentTitle, _) = StreakTaskIntentService.extractTitleAndListType(
+            from: title,
+            defaultListType: .daily
+        )
+
+        // Step 1: Confirmation of task title — repeats what Siri heard
+        var isTitleConfirmed = false
+        do {
+            isTitleConfirmed = try await $title.requestConfirmation(
+                for: currentTitle,
+                dialog: IntentDialog("I heard \"\(currentTitle)\". Is that correct?")
+            )
+        } catch {
+            isTitleConfirmed = false
+        }
+
+        // If Siri listened wrong (user said "No"), ask if they need to change it and get the new task
+        while !isTitleConfirmed {
+            let newTitle = try await $title.requestValue(
+                IntentDialog("Do you need to change it? What should the task be?")
+            )
+            let trimmed = newTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty {
+                let cleaned = StreakTaskIntentService.extractTitleAndListType(
+                    from: trimmed,
+                    defaultListType: .daily
+                )
+                currentTitle = cleaned.title
+            }
+
+            do {
+                isTitleConfirmed = try await $title.requestConfirmation(
+                    for: currentTitle,
+                    dialog: IntentDialog("I heard \"\(currentTitle)\". Is that correct?")
+                )
+            } catch {
+                isTitleConfirmed = false
+            }
+        }
+
+        // Step 2: Ask for category if not provided
         let resolvedCategory: CategoryAppEntity?
         if category == nil {
             let available = try await CategoryEntityQuery().suggestedEntities()
@@ -271,25 +346,9 @@ struct AddDailyTaskIntent: AppIntent {
             resolvedCategory = category
         }
 
-        // Confirmation
-        let catLabel = resolvedCategory?.name ?? "No Category"
-        let confirmDialog = "I'll add \"\(title)\" to your Daily tasks under \(catLabel). Sound good?"
-
-        try await requestConfirmation(
-            result: .result(
-                dialog: IntentDialog(stringLiteral: confirmDialog),
-                view: TaskAddedSiriSnippetView(
-                    taskTitle: title,
-                    listType: "Daily",
-                    categoryName: resolvedCategory?.name,
-                    categoryColorHex: resolvedCategory?.colorHex,
-                    isPreview: true
-                )
-            )
-        )
-
+        // Step 3: Execute the task creation
         let result = try StreakTaskIntentService.executeAddTask(
-            rawTitle: title,
+            rawTitle: currentTitle,
             suggestedListType: .daily,
             category: resolvedCategory
         )
@@ -320,7 +379,47 @@ struct AddTodoTaskIntent: AppIntent {
 
     @MainActor
     func perform() async throws -> some ProvidesDialog & ShowsSnippetView {
-        // Ask for category if not provided
+        var (currentTitle, _) = StreakTaskIntentService.extractTitleAndListType(
+            from: title,
+            defaultListType: .todo
+        )
+
+        // Step 1: Confirmation of task title — repeats what Siri heard
+        var isTitleConfirmed = false
+        do {
+            isTitleConfirmed = try await $title.requestConfirmation(
+                for: currentTitle,
+                dialog: IntentDialog("I heard \"\(currentTitle)\". Is that correct?")
+            )
+        } catch {
+            isTitleConfirmed = false
+        }
+
+        // If Siri listened wrong (user said "No"), ask if they need to change it and get the new task
+        while !isTitleConfirmed {
+            let newTitle = try await $title.requestValue(
+                IntentDialog("Do you need to change it? What should the task be?")
+            )
+            let trimmed = newTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty {
+                let cleaned = StreakTaskIntentService.extractTitleAndListType(
+                    from: trimmed,
+                    defaultListType: .todo
+                )
+                currentTitle = cleaned.title
+            }
+
+            do {
+                isTitleConfirmed = try await $title.requestConfirmation(
+                    for: currentTitle,
+                    dialog: IntentDialog("I heard \"\(currentTitle)\". Is that correct?")
+                )
+            } catch {
+                isTitleConfirmed = false
+            }
+        }
+
+        // Step 2: Ask for category if not provided
         let resolvedCategory: CategoryAppEntity?
         if category == nil {
             let available = try await CategoryEntityQuery().suggestedEntities()
@@ -336,25 +435,9 @@ struct AddTodoTaskIntent: AppIntent {
             resolvedCategory = category
         }
 
-        // Confirmation
-        let catLabel = resolvedCategory?.name ?? "No Category"
-        let confirmDialog = "I'll add \"\(title)\" to your To-Do list under \(catLabel). Sound good?"
-
-        try await requestConfirmation(
-            result: .result(
-                dialog: IntentDialog(stringLiteral: confirmDialog),
-                view: TaskAddedSiriSnippetView(
-                    taskTitle: title,
-                    listType: "To-Do",
-                    categoryName: resolvedCategory?.name,
-                    categoryColorHex: resolvedCategory?.colorHex,
-                    isPreview: true
-                )
-            )
-        )
-
+        // Step 3: Execute the task creation
         let result = try StreakTaskIntentService.executeAddTask(
-            rawTitle: title,
+            rawTitle: currentTitle,
             suggestedListType: .todo,
             category: resolvedCategory
         )
