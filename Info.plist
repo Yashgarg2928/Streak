@@ -4,6 +4,23 @@
 <dict>
 	<key>CFBundleDisplayName</key>
 	<string>Streak</string>
+	<key>CFBundleName</key>
+	<string>Streak</string>
+	<key>INAlternativeAppNames</key>
+	<array>
+		<dict>
+			<key>INAlternativeAppName</key>
+			<string>Streaks</string>
+			<key>INAlternativeAppNamePronunciationHint</key>
+			<string>streak</string>
+		</dict>
+		<dict>
+			<key>INAlternativeAppName</key>
+			<string>Streak App</string>
+			<key>INAlternativeAppNamePronunciationHint</key>
+			<string>streak app</string>
+		</dict>
+	</array>
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
 		<string>com.madhvan.streak.lockoutSweep</string>
