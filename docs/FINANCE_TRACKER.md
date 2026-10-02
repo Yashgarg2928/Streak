@@ -86,13 +86,30 @@ Presentation Layer (SwiftUI)
 
 ---
 
-## 4. Split Calculation Rules
+## 4. Split Modes & Custom Split Tools
 
-When a transaction of amount $A$ is split among $N$ total people (the user $+ (N - 1)$ friends):
-- **User's Share:** $S_{user} = \frac{A}{N}$ (or custom defined)
-- **Total To Collect:** $C_{total} = A - S_{user}$
-- **Per-Friend Share:** $S_{friend} = \frac{C_{total}}{N - 1}$
-- **Net Personal Expense for Budgeting:** Only $S_{user}$ counts toward the user's personal monthly spending metrics, while $A$ is tracked as gross outflow.
+The app supports two powerful splitting modes with real-time math and debt tracking:
+
+### Mode A: Equal Division (`DIVIDE EQUALLY`)
+- **Total People:** User $+ (N - 1)$ friends.
+- **User's Share:** $S_{user} = \frac{A}{N}$
+- **Per-Friend Share:** $S_{friend} = \frac{A - S_{user}}{N - 1}$
+- **Optional Friend Names:** Enter custom comma-separated names (e.g. "Rohan, Aman, Priya") or use default identifiers ("Friend 1", "Friend 2").
+
+### Mode B: Custom Amounts Per Friend (`CUSTOM AMOUNTS`)
+The expense **does not have to divide equally**. You can set any exact, custom amount for each friend individually:
+- Add as many friends as needed with `+ ADD ANOTHER FRIEND`.
+- Specify each friend's name and the exact amount they owe.
+- User's share automatically defaults to the remaining bill ($A - \sum S_{friends}$), or can be overridden manually.
+- **Uneven/Arbitrary Splits Allowed:** Friends' debts are recorded directly into the receivables ledger even if the total doesn't equal the exact bill.
+
+### Custom Split Tools (Quick Helpers)
+- **⚡ Split Remainder:** Takes whatever bill amount remains unallocated and divides it equally among friends who currently have ₹0 (or across all friends if none are zero).
+- **⚡ Split Evenly:** Divides the entire bill equally across all current friends and user as a baseline, allowing quick +/- adjustments.
+- **⚡ Clear Amounts:** Resets all friend inputs to ₹0 for clean manual entry.
+
+### Net Personal Expense for Budgeting
+Only the user's personal share ($S_{user}$) counts toward personal monthly spending metrics. All friend shares are routed to the **SPLITS & OWED** receivables ledger with 1-tap settlement.
 
 ---
 

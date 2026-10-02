@@ -58,7 +58,7 @@ struct FinanceMainView: View {
             .navigationTitle("")
             .navigationBarHidden(true)
             .sheet(isPresented: $showAddTransactionSheet) {
-                AddTransactionSheet { amount, type, category, note, date, isSplit, numPeople, names, customShare in
+                AddTransactionSheet { amount, type, category, note, date, isSplit, numPeople, names, customShare, customFriendShares in
                     activeVM.addTransaction(
                         amount: amount,
                         type: type,
@@ -68,7 +68,8 @@ struct FinanceMainView: View {
                         isSplit: isSplit,
                         numberOfPeople: numPeople,
                         friendNames: names,
-                        customMyShare: customShare
+                        customMyShare: customShare,
+                        customFriendShares: customFriendShares
                     )
                 }
             }
@@ -386,38 +387,76 @@ struct FinanceMainView: View {
 
                 // Split Info Banner if applicable
                 if tx.isSplit, let split = tx.splitDetails {
-                    HStack(spacing: 8) {
-                        HStack(spacing: 4) {
-                            Text("👥")
-                                .font(.system(size: 10))
-                            Text("Split with \(split.splits.count) friends")
-                                .font(.system(size: 10, weight: .bold, design: .monospaced))
-                                .foregroundStyle(Color(hex: "#8E44AD"))
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack(spacing: 8) {
+                            HStack(spacing: 4) {
+                                Text("👥")
+                                    .font(.system(size: 10))
+                                Text("Split with \(split.splits.count) friends")
+                                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                                    .foregroundStyle(Color(hex: "#8E44AD"))
+                            }
+
+                            Spacer()
+
+                            let pending = tx.pendingCollectAmount
+                            if pending > 0 {
+                                Text("Pending: \(vm.currencySymbol)\(String(format: "%.2f", pending))")
+                                    .font(.system(size: 10, weight: .black, design: .monospaced))
+                                    .padding(.horizontal, 6)
+                                    .padding(.vertical, 2)
+                                    .background(Color(hex: "#8E44AD").opacity(0.15))
+                                    .foregroundStyle(Color(hex: "#8E44AD"))
+                                    .clipShape(RoundedRectangle(cornerRadius: 3))
+                            } else {
+                                Text("ALL SETTLED ✅")
+                                    .font(.system(size: 9, weight: .black, design: .monospaced))
+                                    .padding(.horizontal, 6)
+                                    .padding(.vertical, 2)
+                                    .background(Color(hex: "#27AE60").opacity(0.15))
+                                    .foregroundStyle(Color(hex: "#27AE60"))
+                                    .clipShape(RoundedRectangle(cornerRadius: 3))
+                            }
                         }
 
-                        Spacer()
-
-                        let pending = tx.pendingCollectAmount
-                        if pending > 0 {
-                            Text("Pending: \(vm.currencySymbol)\(String(format: "%.2f", pending))")
-                                .font(.system(size: 10, weight: .black, design: .monospaced))
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 2)
-                                .background(Color(hex: "#8E44AD").opacity(0.15))
-                                .foregroundStyle(Color(hex: "#8E44AD"))
-                                .clipShape(RoundedRectangle(cornerRadius: 3))
-                        } else {
-                            Text("ALL SETTLED ✅")
-                                .font(.system(size: 9, weight: .black, design: .monospaced))
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 2)
-                                .background(Color(hex: "#27AE60").opacity(0.15))
-                                .foregroundStyle(Color(hex: "#27AE60"))
-                                .clipShape(RoundedRectangle(cornerRadius: 3))
+                        // Per-friend breakdown
+                        if !split.splits.isEmpty {
+                            VStack(alignment: .leading, spacing: 3) {
+                                ForEach(split.splits) { share in
+                                    HStack {
+                                        Text("• \(share.personName)")
+                                            .font(.system(size: 11, weight: .semibold))
+                                            .foregroundStyle(AppColor.textPrimary)
+                                        Spacer()
+                                        Text("\(vm.currencySymbol)\(String(format: "%.2f", share.amountOwed))")
+                                            .font(.system(size: 11, weight: .bold, design: .monospaced))
+                                            .foregroundStyle(AppColor.textPrimary)
+                                        if share.isSettled {
+                                            Text("PAID")
+                                                .font(.system(size: 8, weight: .black, design: .monospaced))
+                                                .padding(.horizontal, 4)
+                                                .padding(.vertical, 1)
+                                                .background(Color(hex: "#27AE60").opacity(0.15))
+                                                .foregroundStyle(Color(hex: "#27AE60"))
+                                                .clipShape(RoundedRectangle(cornerRadius: 2))
+                                        } else {
+                                            Text("OWES")
+                                                .font(.system(size: 8, weight: .black, design: .monospaced))
+                                                .padding(.horizontal, 4)
+                                                .padding(.vertical, 1)
+                                                .background(Color(hex: "#8E44AD").opacity(0.15))
+                                                .foregroundStyle(Color(hex: "#8E44AD"))
+                                                .clipShape(RoundedRectangle(cornerRadius: 2))
+                                        }
+                                    }
+                                }
+                            }
+                            .padding(6)
+                            .background(Color(hex: "#8E44AD").opacity(0.06))
+                            .clipShape(RoundedRectangle(cornerRadius: 4))
                         }
                     }
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
+                    .padding(8)
                     .background(AppColor.surface)
                     .clipShape(RoundedRectangle(cornerRadius: 4))
                 }

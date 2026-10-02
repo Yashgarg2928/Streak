@@ -69,7 +69,8 @@ final class FinanceViewModel {
         isSplit: Bool = false,
         numberOfPeople: Int = 1,
         friendNames: [String] = [],
-        customMyShare: Double? = nil
+        customMyShare: Double? = nil,
+        customFriendShares: [SplitShare]? = nil
     ) {
         let useCase = LogTransactionUseCase(financeRepository: env.financeRepository)
         do {
@@ -82,7 +83,8 @@ final class FinanceViewModel {
                 isSplit: isSplit,
                 numberOfPeople: numberOfPeople,
                 friendNames: friendNames,
-                customMyShare: customMyShare
+                customMyShare: customMyShare,
+                customFriendShares: customFriendShares
             )
             load()
         } catch {

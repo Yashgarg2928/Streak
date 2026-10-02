@@ -114,16 +114,25 @@ public struct SplitDetails: Codable, Equatable {
 
     public init(
         totalAmount: Double,
-        numberOfPeople: Int,
+        numberOfPeople: Int? = nil,
         myShare: Double? = nil,
         splits: [SplitShare] = []
     ) {
         self.totalAmount = totalAmount
-        let count = max(1, numberOfPeople)
-        self.numberOfPeople = count
-        let calculatedMyShare = myShare ?? (totalAmount / Double(count))
-        self.myShare = calculatedMyShare
-        self.totalToCollect = max(0, totalAmount - calculatedMyShare)
+        let effectivePeopleCount = numberOfPeople ?? (splits.count + 1)
+        self.numberOfPeople = max(1, effectivePeopleCount)
+        
+        let totalOwedByFriends = splits.reduce(0.0) { $0 + $1.amountOwed }
+        
+        if let explicitMyShare = myShare {
+            self.myShare = explicitMyShare
+        } else if !splits.isEmpty {
+            self.myShare = max(0, totalAmount - totalOwedByFriends)
+        } else {
+            self.myShare = totalAmount / Double(max(1, effectivePeopleCount))
+        }
+        
+        self.totalToCollect = !splits.isEmpty ? totalOwedByFriends : max(0, totalAmount - self.myShare)
         self.splits = splits
     }
 }
