@@ -20,15 +20,25 @@ struct CustomFriendItem: Identifiable, Equatable {
     let id: UUID
     var name: String
     var amountString: String
+    var isSettled: Bool
+    var settledAt: Date?
 
     var amount: Double {
         Double(amountString.replacingOccurrences(of: ",", with: ".")) ?? 0
     }
 
-    init(id: UUID = UUID(), name: String = "", amountString: String = "") {
+    init(
+        id: UUID = UUID(),
+        name: String = "",
+        amountString: String = "",
+        isSettled: Bool = false,
+        settledAt: Date? = nil
+    ) {
         self.id = id
         self.name = name
         self.amountString = amountString
+        self.isSettled = isSettled
+        self.settledAt = settledAt
     }
 }
 
@@ -36,7 +46,9 @@ struct AddTransactionSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(AppEnvironment.self) private var env
 
+    var transactionToEdit: FinanceTransaction?
     var onSave: ((
+        _ id: UUID?,
         _ amount: Double,
         _ type: TransactionType,
         _ category: FinanceCategory,
@@ -48,29 +60,31 @@ struct AddTransactionSheet: View {
         _ customMyShare: Double?,
         _ customFriendShares: [SplitShare]?
     ) -> Void)?
+    var onDelete: ((_ id: UUID) -> Void)?
 
-    @State private var amountString: String = ""
-    @State private var selectedType: TransactionType = .expense
-    @State private var selectedCategory: FinanceCategory = .food
-    @State private var note: String = ""
-    @State private var date: Date = Date()
+    @State private var amountString: String
+    @State private var selectedType: TransactionType
+    @State private var selectedCategory: FinanceCategory
+    @State private var note: String
+    @State private var date: Date
 
     // Split state
-    @State private var isSplit: Bool = false
-    @State private var splitMode: SplitMode = .equal
-    @State private var numberOfPeople: Int = 3
-    @State private var friendNamesText: String = ""
-    @State private var isCustomMyShare: Bool = false
-    @State private var customMyShareString: String = ""
+    @State private var isSplit: Bool
+    @State private var splitMode: SplitMode
+    @State private var numberOfPeople: Int
+    @State private var friendNamesText: String
+    @State private var isCustomMyShare: Bool
+    @State private var customMyShareString: String
 
     // Custom friends list for Custom Split Mode
-    @State private var customFriends: [CustomFriendItem] = [
-        CustomFriendItem(name: "Friend 1", amountString: ""),
-        CustomFriendItem(name: "Friend 2", amountString: "")
-    ]
+    @State private var customFriends: [CustomFriendItem]
+
+    @State private var showDeleteConfirmation: Bool = false
 
     init(
+        transactionToEdit: FinanceTransaction? = nil,
         onSave: ((
+            _ id: UUID?,
             _ amount: Double,
             _ type: TransactionType,
             _ category: FinanceCategory,
@@ -81,9 +95,93 @@ struct AddTransactionSheet: View {
             _ friendNames: [String],
             _ customMyShare: Double?,
             _ customFriendShares: [SplitShare]?
-        ) -> Void)? = nil
+        ) -> Void)? = nil,
+        onDelete: ((_ id: UUID) -> Void)? = nil
     ) {
+        self.transactionToEdit = transactionToEdit
         self.onSave = onSave
+        self.onDelete = onDelete
+
+        if let tx = transactionToEdit {
+            let amountVal = tx.amount
+            if amountVal.truncatingRemainder(dividingBy: 1) == 0 {
+                _amountString = State(initialValue: String(format: "%.0f", amountVal))
+            } else {
+                _amountString = State(initialValue: String(format: "%.2f", amountVal))
+            }
+
+            _selectedType = State(initialValue: tx.type)
+            _selectedCategory = State(initialValue: tx.category)
+            _note = State(initialValue: tx.note)
+            _date = State(initialValue: tx.date)
+            _isSplit = State(initialValue: tx.isSplit)
+
+            if let split = tx.splitDetails, !split.splits.isEmpty {
+                let shares = split.splits
+                let isAllEqual = shares.allSatisfy { abs($0.amountOwed - (shares.first?.amountOwed ?? 0)) < 0.01 }
+                if isAllEqual && abs((shares.first?.amountOwed ?? 0) - split.myShare) < 0.01 {
+                    _splitMode = State(initialValue: .equal)
+                    _numberOfPeople = State(initialValue: split.numberOfPeople)
+                    _friendNamesText = State(initialValue: shares.map { $0.personName }.joined(separator: ", "))
+                    _isCustomMyShare = State(initialValue: false)
+                    _customMyShareString = State(initialValue: "")
+                    _customFriends = State(initialValue: shares.map {
+                        CustomFriendItem(
+                            id: $0.id,
+                            name: $0.personName,
+                            amountString: String(format: "%.2f", $0.amountOwed),
+                            isSettled: $0.isSettled,
+                            settledAt: $0.settledAt
+                        )
+                    })
+                } else {
+                    _splitMode = State(initialValue: .custom)
+                    _numberOfPeople = State(initialValue: split.numberOfPeople)
+                    _friendNamesText = State(initialValue: shares.map { $0.personName }.joined(separator: ", "))
+                    _isCustomMyShare = State(initialValue: true)
+                    _customMyShareString = State(initialValue: String(format: "%.2f", split.myShare))
+                    _customFriends = State(initialValue: shares.map {
+                        CustomFriendItem(
+                            id: $0.id,
+                            name: $0.personName,
+                            amountString: String(format: "%.2f", $0.amountOwed),
+                            isSettled: $0.isSettled,
+                            settledAt: $0.settledAt
+                        )
+                    })
+                }
+            } else {
+                _splitMode = State(initialValue: .equal)
+                _numberOfPeople = State(initialValue: 3)
+                _friendNamesText = State(initialValue: "")
+                _isCustomMyShare = State(initialValue: false)
+                _customMyShareString = State(initialValue: "")
+                _customFriends = State(initialValue: [
+                    CustomFriendItem(name: "Friend 1", amountString: ""),
+                    CustomFriendItem(name: "Friend 2", amountString: "")
+                ])
+            }
+        } else {
+            _amountString = State(initialValue: "")
+            _selectedType = State(initialValue: .expense)
+            _selectedCategory = State(initialValue: .food)
+            _note = State(initialValue: "")
+            _date = State(initialValue: Date())
+            _isSplit = State(initialValue: false)
+            _splitMode = State(initialValue: .equal)
+            _numberOfPeople = State(initialValue: 3)
+            _friendNamesText = State(initialValue: "")
+            _isCustomMyShare = State(initialValue: false)
+            _customMyShareString = State(initialValue: "")
+            _customFriends = State(initialValue: [
+                CustomFriendItem(name: "Friend 1", amountString: ""),
+                CustomFriendItem(name: "Friend 2", amountString: "")
+            ])
+        }
+    }
+
+    private var isEditing: Bool {
+        transactionToEdit != nil
     }
 
     private var currency: String {
@@ -147,15 +245,21 @@ struct AddTransactionSheet: View {
                         splitSection
                     }
 
-                    // Save Button
+                    // Save / Update Button
                     saveButton
                         .padding(.top, 10)
+
+                    // Delete Button (if editing)
+                    if isEditing {
+                        deleteSection
+                            .padding(.top, 4)
+                    }
                 }
                 .padding(.horizontal, AppLayout.screenMargin)
                 .padding(.vertical, AppLayout.sectionSpacing)
             }
             .background(AppColor.background.ignoresSafeArea())
-            .navigationTitle("LOG TRANSACTION")
+            .navigationTitle(isEditing ? "EDIT TRANSACTION" : "LOG TRANSACTION")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -165,6 +269,33 @@ struct AddTransactionSheet: View {
                     .font(.system(.body, design: .monospaced).weight(.bold))
                     .foregroundStyle(AppColor.textSecondary)
                 }
+
+                if isEditing {
+                    ToolbarItem(placement: .primaryAction) {
+                        Button {
+                            showDeleteConfirmation = true
+                        } label: {
+                            Image(systemName: "trash")
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundStyle(Color(hex: "#C0392B"))
+                        }
+                    }
+                }
+            }
+            .confirmationDialog(
+                "Delete this transaction?",
+                isPresented: $showDeleteConfirmation,
+                titleVisibility: .visible
+            ) {
+                Button("Delete Expense", role: .destructive) {
+                    if let tx = transactionToEdit {
+                        onDelete?(tx.id)
+                    }
+                    dismiss()
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("Are you sure you want to delete this expense? Any friend receivables from this split will also be removed.")
             }
         }
     }
@@ -702,6 +833,17 @@ struct AddTransactionSheet: View {
             .clipShape(RoundedRectangle(cornerRadius: 6))
             .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color(hex: "#8E44AD"), lineWidth: 1.5))
 
+            // Settled Status badge if friend already settled
+            if friend.wrappedValue.isSettled {
+                Text("PAID")
+                    .font(.system(size: 8, weight: .black, design: .monospaced))
+                    .padding(.horizontal, 4)
+                    .padding(.vertical, 4)
+                    .background(Color(hex: "#27AE60").opacity(0.15))
+                    .foregroundStyle(Color(hex: "#27AE60"))
+                    .clipShape(RoundedRectangle(cornerRadius: 3))
+            }
+
             // Delete Friend Button
             if customFriends.count > 1 {
                 Button {
@@ -811,6 +953,8 @@ struct AddTransactionSheet: View {
         Button {
             guard parsedAmount > 0 else { return }
 
+            let targetId = transactionToEdit?.id
+
             if isSplit {
                 if splitMode == .custom {
                     let validFriends = customFriends
@@ -819,13 +963,20 @@ struct AddTransactionSheet: View {
                         .map { (index, item) in
                             let cleanName = item.name.trimmingCharacters(in: .whitespacesAndNewlines)
                             let finalName = cleanName.isEmpty ? "Friend \(index + 1)" : cleanName
-                            return SplitShare(personName: finalName, amountOwed: item.amount)
+                            return SplitShare(
+                                id: item.id,
+                                personName: finalName,
+                                amountOwed: item.amount,
+                                isSettled: item.isSettled,
+                                settledAt: item.settledAt
+                            )
                         }
 
                     let effectiveShares = validFriends.isEmpty ? [SplitShare(personName: "Friend 1", amountOwed: 0)] : validFriends
                     let customShare = isCustomMyShare ? Double(customMyShareString) : myShareCalculated
 
                     onSave?(
+                        targetId,
                         parsedAmount,
                         selectedType,
                         selectedCategory,
@@ -846,6 +997,7 @@ struct AddTransactionSheet: View {
                     let customShare: Double? = isCustomMyShare ? Double(customMyShareString) : nil
 
                     onSave?(
+                        targetId,
                         parsedAmount,
                         selectedType,
                         selectedCategory,
@@ -860,6 +1012,7 @@ struct AddTransactionSheet: View {
                 }
             } else {
                 onSave?(
+                    targetId,
                     parsedAmount,
                     selectedType,
                     selectedCategory,
@@ -875,9 +1028,9 @@ struct AddTransactionSheet: View {
             dismiss()
         } label: {
             HStack(spacing: 8) {
-                Image(systemName: "checkmark.circle.fill")
+                Image(systemName: isEditing ? "arrow.triangle.2.circlepath" : "checkmark.circle.fill")
                     .font(.system(size: 16, weight: .bold))
-                Text("SAVE TRANSACTION")
+                Text(isEditing ? "UPDATE TRANSACTION" : "SAVE TRANSACTION")
                     .font(.system(size: 14, weight: .black, design: .monospaced))
             }
             .frame(maxWidth: .infinity)
@@ -887,5 +1040,30 @@ struct AddTransactionSheet: View {
             .clipShape(RoundedRectangle(cornerRadius: AppLayout.cornerRadius))
         }
         .disabled(parsedAmount <= 0)
+    }
+
+    // MARK: - Delete Section (Edit Mode Only)
+
+    private var deleteSection: some View {
+        Button(role: .destructive) {
+            showDeleteConfirmation = true
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "trash.fill")
+                    .font(.system(size: 14, weight: .bold))
+                Text("DELETE TRANSACTION")
+                    .font(.system(size: 13, weight: .black, design: .monospaced))
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .background(Color(hex: "#C0392B").opacity(0.1))
+            .foregroundStyle(Color(hex: "#C0392B"))
+            .clipShape(RoundedRectangle(cornerRadius: AppLayout.cornerRadius))
+            .overlay(
+                RoundedRectangle(cornerRadius: AppLayout.cornerRadius)
+                    .stroke(Color(hex: "#C0392B"), lineWidth: 2)
+            )
+        }
+        .buttonStyle(.plain)
     }
 }

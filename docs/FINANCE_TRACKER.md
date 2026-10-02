@@ -30,6 +30,8 @@ Domain Layer
 
 Application Layer (Use Cases)
 ├── LogTransactionUseCase.swift
+├── UpdateTransactionUseCase.swift
+├── DeleteTransactionUseCase.swift
 ├── SettleSplitShareUseCase.swift
 └── GetFinanceSummaryUseCase.swift
 
@@ -136,3 +138,23 @@ Only the user's personal share ($S_{user}$) counts toward personal monthly spend
 1. Open iPhone **Settings** > **Action Button**.
 2. Select **Shortcut** > **Log Expense in Streak**.
 3. **Result:** Press the Action Button anytime to input an expense.
+
+---
+
+## 6. Editing & Deleting Transactions
+
+### Editing an Expense
+- **Access Points:**
+  - Tap on any transaction card in the **EXPENSES** list.
+  - Tap the **EDIT** button on the transaction card footer.
+  - Tap **EDIT EXPENSE** inside any friend's debt card in the **SPLITS & OWED** tab.
+- **Pre-filled Sheet:** Opens `AddTransactionSheet` pre-populated with original amount, type, category, note, date, split mode, and all friend amounts.
+- **Settlement Preservation:** When modifying a transaction with friends, existing settlement statuses (`isSettled`, `settledAt`) are automatically preserved so already paid debts aren't lost.
+- **Immediate Metrics Sync:** Updating an amount or split instantly recalibrates monthly totals, today's spend, and pending receivables.
+
+### Deleting an Expense
+- **Safe Deletion with Confirmation Alert:**
+  - Tapping **DELETE** on a card triggers a confirmation dialog explaining that the expense and its friend receivables will be removed.
+  - Deletion can also be triggered directly inside the Edit sheet via the bottom destructive button or top-bar trash icon.
+- **Cascade Teardown:** Deleting a transaction permanently purges the transaction record and cascade-deletes all associated child `SplitShareModel`s, preventing dangling records or corrupted debts.
+

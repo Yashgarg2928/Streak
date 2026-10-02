@@ -54,20 +54,52 @@ struct RootView: View {
             case .editCategory(let id):
                 AddCategoryView(editingId: id)
             case .addTransaction:
-                AddTransactionSheet { amount, type, category, note, date, isSplit, numPeople, names, customShare, customFriendShares in
-                    let useCase = LogTransactionUseCase(financeRepository: env.financeRepository)
-                    try? useCase.execute(
-                        amount: amount,
-                        type: type,
-                        category: category,
-                        note: note,
-                        date: date,
-                        isSplit: isSplit,
-                        numberOfPeople: numPeople,
-                        friendNames: names,
-                        customMyShare: customShare,
-                        customFriendShares: customFriendShares
+                AddTransactionSheet(
+                    onSave: { _, amount, type, category, note, date, isSplit, numPeople, names, customShare, customFriendShares in
+                        let useCase = LogTransactionUseCase(financeRepository: env.financeRepository)
+                        try? useCase.execute(
+                            amount: amount,
+                            type: type,
+                            category: category,
+                            note: note,
+                            date: date,
+                            isSplit: isSplit,
+                            numberOfPeople: numPeople,
+                            friendNames: names,
+                            customMyShare: customShare,
+                            customFriendShares: customFriendShares
+                        )
+                    }
+                )
+            case .editTransaction(let id):
+                if let tx = try? env.financeRepository.fetchTransaction(id: id) {
+                    AddTransactionSheet(
+                        transactionToEdit: tx,
+                        onSave: { targetId, amount, type, category, note, date, isSplit, numPeople, names, customShare, customFriendShares in
+                            if let targetId {
+                                let useCase = UpdateTransactionUseCase(financeRepository: env.financeRepository)
+                                try? useCase.execute(
+                                    id: targetId,
+                                    amount: amount,
+                                    type: type,
+                                    category: category,
+                                    note: note,
+                                    date: date,
+                                    isSplit: isSplit,
+                                    numberOfPeople: numPeople,
+                                    friendNames: names,
+                                    customMyShare: customShare,
+                                    customFriendShares: customFriendShares
+                                )
+                            }
+                        },
+                        onDelete: { deleteId in
+                            let useCase = DeleteTransactionUseCase(financeRepository: env.financeRepository)
+                            try? useCase.execute(id: deleteId)
+                        }
                     )
+                } else {
+                    EmptyView()
                 }
             case .shortcutsGuide:
                 ShortcutsSetupGuideSheet()

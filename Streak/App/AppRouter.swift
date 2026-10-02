@@ -25,6 +25,7 @@ enum Sheet: Hashable, Identifiable {
     case exportData
     case importData
     case addTransaction
+    case editTransaction(UUID)
     case shortcutsGuide
 
     var id: String {
@@ -39,6 +40,7 @@ enum Sheet: Hashable, Identifiable {
         case .exportData:          return "exportData"
         case .importData:          return "importData"
         case .addTransaction:      return "addTransaction"
+        case .editTransaction(let id): return "editTransaction-\(id)"
         case .shortcutsGuide:      return "shortcutsGuide"
         }
     }

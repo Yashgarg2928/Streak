@@ -92,9 +92,44 @@ final class FinanceViewModel {
         }
     }
 
-    public func deleteTransaction(id: UUID) {
+    public func updateTransaction(
+        id: UUID,
+        amount: Double,
+        type: TransactionType = .expense,
+        category: FinanceCategory = .food,
+        note: String = "",
+        date: Date = Date(),
+        isSplit: Bool = false,
+        numberOfPeople: Int = 1,
+        friendNames: [String] = [],
+        customMyShare: Double? = nil,
+        customFriendShares: [SplitShare]? = nil
+    ) {
+        let useCase = UpdateTransactionUseCase(financeRepository: env.financeRepository)
         do {
-            try env.financeRepository.deleteTransaction(id: id)
+            _ = try useCase.execute(
+                id: id,
+                amount: amount,
+                type: type,
+                category: category,
+                note: note,
+                date: date,
+                isSplit: isSplit,
+                numberOfPeople: numberOfPeople,
+                friendNames: friendNames,
+                customMyShare: customMyShare,
+                customFriendShares: customFriendShares
+            )
+            load()
+        } catch {
+            print("Failed to update transaction: \(error)")
+        }
+    }
+
+    public func deleteTransaction(id: UUID) {
+        let useCase = DeleteTransactionUseCase(financeRepository: env.financeRepository)
+        do {
+            try useCase.execute(id: id)
             load()
         } catch {
             print("Failed to delete transaction: \(error)")

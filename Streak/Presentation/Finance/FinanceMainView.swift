@@ -9,6 +9,9 @@ struct FinanceMainView: View {
     @State private var showAddTransactionSheet: Bool = false
     @State private var showShortcutsGuideSheet: Bool = false
     @State private var showSettledSplits: Bool = false
+    @State private var transactionToEdit: FinanceTransaction? = nil
+    @State private var transactionToDelete: FinanceTransaction? = nil
+    @State private var showDeleteAlert: Bool = false
 
     private func getViewModel() -> FinanceViewModel {
         if let existing = vm {
@@ -58,23 +61,60 @@ struct FinanceMainView: View {
             .navigationTitle("")
             .navigationBarHidden(true)
             .sheet(isPresented: $showAddTransactionSheet) {
-                AddTransactionSheet { amount, type, category, note, date, isSplit, numPeople, names, customShare, customFriendShares in
-                    activeVM.addTransaction(
-                        amount: amount,
-                        type: type,
-                        category: category,
-                        note: note,
-                        date: date,
-                        isSplit: isSplit,
-                        numberOfPeople: numPeople,
-                        friendNames: names,
-                        customMyShare: customShare,
-                        customFriendShares: customFriendShares
-                    )
-                }
+                AddTransactionSheet(
+                    onSave: { _, amount, type, category, note, date, isSplit, numPeople, names, customShare, customFriendShares in
+                        activeVM.addTransaction(
+                            amount: amount,
+                            type: type,
+                            category: category,
+                            note: note,
+                            date: date,
+                            isSplit: isSplit,
+                            numberOfPeople: numPeople,
+                            friendNames: names,
+                            customMyShare: customShare,
+                            customFriendShares: customFriendShares
+                        )
+                    }
+                )
+            }
+            .sheet(item: $transactionToEdit) { tx in
+                AddTransactionSheet(
+                    transactionToEdit: tx,
+                    onSave: { targetId, amount, type, category, note, date, isSplit, numPeople, names, customShare, customFriendShares in
+                        if let targetId {
+                            activeVM.updateTransaction(
+                                id: targetId,
+                                amount: amount,
+                                type: type,
+                                category: category,
+                                note: note,
+                                date: date,
+                                isSplit: isSplit,
+                                numberOfPeople: numPeople,
+                                friendNames: names,
+                                customMyShare: customShare,
+                                customFriendShares: customFriendShares
+                            )
+                        }
+                    },
+                    onDelete: { id in
+                        activeVM.deleteTransaction(id: id)
+                    }
+                )
             }
             .sheet(isPresented: $showShortcutsGuideSheet) {
                 ShortcutsSetupGuideSheet()
+            }
+            .alert("DELETE EXPENSE", isPresented: $showDeleteAlert, presenting: transactionToDelete) { tx in
+                Button("Delete", role: .destructive) {
+                    activeVM.deleteTransaction(id: tx.id)
+                }
+                Button("Cancel", role: .cancel) {
+                    transactionToDelete = nil
+                }
+            } message: { tx in
+                Text("Are you sure you want to delete this \(tx.category.displayName) expense of \(activeVM.currencySymbol)\(String(format: "%.2f", tx.amount))? Any pending friend receivables from this split will also be removed.")
             }
             .onAppear {
                 if vm == nil {
@@ -461,23 +501,57 @@ struct FinanceMainView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 4))
                 }
 
-                // Date & Delete action
-                HStack {
+                // Date & Actions
+                HStack(alignment: .center) {
                     Text(tx.date.formatted(date: .abbreviated, time: .shortened))
                         .font(.system(size: 10, weight: .medium, design: .monospaced))
                         .foregroundStyle(AppColor.textSecondary)
 
                     Spacer()
 
-                    Button {
-                        vm.deleteTransaction(id: tx.id)
-                    } label: {
-                        Image(systemName: "trash")
-                            .font(.system(size: 11))
+                    HStack(spacing: 6) {
+                        Button {
+                            transactionToEdit = tx
+                        } label: {
+                            HStack(spacing: 3) {
+                                Image(systemName: "pencil")
+                                    .font(.system(size: 10, weight: .bold))
+                                Text("EDIT")
+                                    .font(.system(size: 9, weight: .black, design: .monospaced))
+                            }
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(AppColor.surface)
+                            .foregroundStyle(AppColor.textPrimary)
+                            .clipShape(RoundedRectangle(cornerRadius: 4))
+                            .overlay(RoundedRectangle(cornerRadius: 4).stroke(AppColor.border, lineWidth: 1.5))
+                        }
+                        .buttonStyle(.plain)
+
+                        Button {
+                            transactionToDelete = tx
+                            showDeleteAlert = true
+                        } label: {
+                            HStack(spacing: 3) {
+                                Image(systemName: "trash")
+                                    .font(.system(size: 10, weight: .bold))
+                                Text("DELETE")
+                                    .font(.system(size: 9, weight: .black, design: .monospaced))
+                            }
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color(hex: "#C0392B").opacity(0.1))
                             .foregroundStyle(Color(hex: "#C0392B"))
+                            .clipShape(RoundedRectangle(cornerRadius: 4))
+                            .overlay(RoundedRectangle(cornerRadius: 4).stroke(Color(hex: "#C0392B"), lineWidth: 1.5))
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
                 }
+            }
+            .contentShape(Rectangle())
+            .onTapGesture {
+                transactionToEdit = tx
             }
         }
     }
@@ -624,9 +698,24 @@ struct FinanceMainView: View {
                         .foregroundStyle(AppColor.textSecondary)
                         .lineLimit(1)
 
-                    Text(item.transaction.date.formatted(date: .abbreviated, time: .omitted))
-                        .font(.system(size: 10, design: .monospaced))
-                        .foregroundStyle(AppColor.textSecondary)
+                    HStack(spacing: 8) {
+                        Text(item.transaction.date.formatted(date: .abbreviated, time: .omitted))
+                            .font(.system(size: 10, design: .monospaced))
+                            .foregroundStyle(AppColor.textSecondary)
+
+                        Button {
+                            transactionToEdit = item.transaction
+                        } label: {
+                            HStack(spacing: 2) {
+                                Image(systemName: "pencil")
+                                    .font(.system(size: 8, weight: .bold))
+                                Text("EDIT EXPENSE")
+                                    .font(.system(size: 9, weight: .black, design: .monospaced))
+                            }
+                            .foregroundStyle(Color(hex: "#8E44AD"))
+                        }
+                        .buttonStyle(.plain)
+                    }
                 }
 
                 Spacer()

@@ -929,6 +929,9 @@ public final class SwiftDataFinanceRepository: FinanceRepository {
             predicate: #Predicate { $0.id == id }
         )
         if let existing = try context.fetch(descriptor).first {
+            for share in existing.splitShares {
+                context.delete(share)
+            }
             context.delete(existing)
             try context.save()
         }
