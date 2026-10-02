@@ -692,4 +692,110 @@ final class MacroGoalsModel {
     }
 }
 
+// MARK: - Finance Models
+
+@Model
+final class FinanceTransactionModel {
+    @Attribute(.unique) var id: UUID
+    var amount: Double
+    var typeRaw: String
+    var categoryRaw: String
+    var note: String
+    var date: Date
+    var isSplit: Bool
+    var totalAmount: Double
+    var numberOfPeople: Int
+    var myShare: Double
+    var totalToCollect: Double
+    @Relationship(deleteRule: .cascade, inverse: \SplitShareModel.transaction)
+    var splitShares: [SplitShareModel] = []
+    var createdAt: Date
+    var updatedAt: Date
+
+    init(from entity: FinanceTransaction) {
+        self.id = entity.id
+        self.amount = entity.amount
+        self.typeRaw = entity.type.rawValue
+        self.categoryRaw = entity.category.rawValue
+        self.note = entity.note
+        self.date = entity.date
+        self.isSplit = entity.isSplit
+        self.totalAmount = entity.splitDetails?.totalAmount ?? entity.amount
+        self.numberOfPeople = entity.splitDetails?.numberOfPeople ?? 1
+        self.myShare = entity.splitDetails?.myShare ?? entity.amount
+        self.totalToCollect = entity.splitDetails?.totalToCollect ?? 0
+        self.createdAt = entity.createdAt
+        self.updatedAt = entity.updatedAt
+        self.splitShares = (entity.splitDetails?.splits ?? []).map { SplitShareModel(from: $0) }
+    }
+
+    func toDomain() -> FinanceTransaction {
+        let type = TransactionType(rawValue: typeRaw) ?? .expense
+        let category = FinanceCategory(rawValue: categoryRaw) ?? .food
+        let shares = splitShares.map { $0.toDomain() }
+        let splitDetails = isSplit ? SplitDetails(
+            totalAmount: totalAmount,
+            numberOfPeople: numberOfPeople,
+            myShare: myShare,
+            splits: shares
+        ) : nil
+
+        return FinanceTransaction(
+            id: id,
+            amount: amount,
+            type: type,
+            category: category,
+            note: note,
+            date: date,
+            isSplit: isSplit,
+            splitDetails: splitDetails,
+            createdAt: createdAt,
+            updatedAt: updatedAt
+        )
+    }
+
+    func update(from entity: FinanceTransaction) {
+        self.amount = entity.amount
+        self.typeRaw = entity.type.rawValue
+        self.categoryRaw = entity.category.rawValue
+        self.note = entity.note
+        self.date = entity.date
+        self.isSplit = entity.isSplit
+        self.totalAmount = entity.splitDetails?.totalAmount ?? entity.amount
+        self.numberOfPeople = entity.splitDetails?.numberOfPeople ?? 1
+        self.myShare = entity.splitDetails?.myShare ?? entity.amount
+        self.totalToCollect = entity.splitDetails?.totalToCollect ?? 0
+        self.updatedAt = Date()
+    }
+}
+
+@Model
+final class SplitShareModel {
+    @Attribute(.unique) var id: UUID
+    var personName: String
+    var amountOwed: Double
+    var isSettled: Bool
+    var settledAt: Date?
+    var transaction: FinanceTransactionModel?
+
+    init(from entity: SplitShare) {
+        self.id = entity.id
+        self.personName = entity.personName
+        self.amountOwed = entity.amountOwed
+        self.isSettled = entity.isSettled
+        self.settledAt = entity.settledAt
+    }
+
+    func toDomain() -> SplitShare {
+        SplitShare(
+            id: id,
+            personName: personName,
+            amountOwed: amountOwed,
+            isSettled: isSettled,
+            settledAt: settledAt
+        )
+    }
+}
+
+
 

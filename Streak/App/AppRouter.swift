@@ -8,6 +8,7 @@ enum Tab: Hashable {
     case home
     case tasks
     case workout
+    case finance
     case goals
     case profile
     case more
@@ -23,6 +24,8 @@ enum Sheet: Hashable, Identifiable {
     case settings
     case exportData
     case importData
+    case addTransaction
+    case shortcutsGuide
 
     var id: String {
         switch self {
@@ -35,6 +38,8 @@ enum Sheet: Hashable, Identifiable {
         case .settings:            return "settings"
         case .exportData:          return "exportData"
         case .importData:          return "importData"
+        case .addTransaction:      return "addTransaction"
+        case .shortcutsGuide:      return "shortcutsGuide"
         }
     }
 }

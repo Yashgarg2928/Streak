@@ -52,6 +52,9 @@ struct HomeView: View {
                         masterCard
                     }
                     .buttonStyle(.plain)
+
+                    financeCard
+
                     categoriesSection
                 }
                 .padding(.horizontal, AppLayout.screenMargin)
@@ -162,5 +165,67 @@ struct HomeView: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel("\(category.name) category, \(vm?.categoryStreaks[category.id] ?? 0) day streak")
+    }
+
+    // MARK: - Finance Card
+
+    private var financeCard: some View {
+        Button {
+            router.selectedTab = .finance
+        } label: {
+            BrutalistCard {
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack {
+                        HStack(spacing: 6) {
+                            Text("💰")
+                                .font(.system(size: 16))
+                            Text("FINANCE & EXPENSES")
+                                .font(.system(.headline, design: .monospaced).weight(.bold))
+                                .foregroundStyle(AppColor.textPrimary)
+                        }
+
+                        Spacer()
+
+                        HStack(spacing: 4) {
+                            Text("VIEW")
+                                .font(.system(size: 10, weight: .black))
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 10, weight: .bold))
+                        }
+                        .foregroundStyle(AppColor.background)
+                        .padding(.horizontal, 9)
+                        .padding(.vertical, 5)
+                        .background(AppColor.border)
+                        .clipShape(RoundedRectangle(cornerRadius: 6))
+                    }
+
+                    if let summary = vm?.financeSummary, let cur = vm?.currencySymbol {
+                        HStack(spacing: 16) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("THIS MONTH")
+                                    .font(.system(size: 9, weight: .bold, design: .monospaced))
+                                    .foregroundStyle(AppColor.textSecondary)
+                                Text(String(format: "\(cur)%.2f", summary.totalSpentThisMonth))
+                                    .font(.system(size: 16, weight: .black, design: .monospaced))
+                                    .foregroundStyle(AppColor.textPrimary)
+                            }
+
+                            Divider()
+                                .frame(height: 28)
+
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("TO COLLECT (SPLITS)")
+                                    .font(.system(size: 9, weight: .bold, design: .monospaced))
+                                    .foregroundStyle(Color(hex: "#8E44AD"))
+                                Text(String(format: "\(cur)%.2f", summary.totalPendingToCollect))
+                                    .font(.system(size: 16, weight: .black, design: .monospaced))
+                                    .foregroundStyle(Color(hex: "#8E44AD"))
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        .buttonStyle(.plain)
     }
 }

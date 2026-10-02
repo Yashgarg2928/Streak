@@ -27,6 +27,8 @@ enum ModelContainerFactory {
             DailyWorkoutLogModel.self,
             MealLogModel.self,
             MacroGoalsModel.self,
+            FinanceTransactionModel.self,
+            SplitShareModel.self,
         ])
 
         let config: ModelConfiguration

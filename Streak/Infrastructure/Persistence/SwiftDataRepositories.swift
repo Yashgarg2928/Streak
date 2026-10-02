@@ -862,4 +862,149 @@ final class SwiftDataNutritionRepository: NutritionRepository {
     }
 }
 
+// MARK: - SwiftData Finance Repository
+
+public final class SwiftDataFinanceRepository: FinanceRepository {
+    private let context: ModelContext
+
+    public init(context: ModelContext) {
+        self.context = context
+    }
+
+    public func fetchAllTransactions() throws -> [FinanceTransaction] {
+        let descriptor = FetchDescriptor<FinanceTransactionModel>(
+            sortBy: [SortDescriptor(\.date, order: .reverse), SortDescriptor(\.createdAt, order: .reverse)]
+        )
+        let models = try context.fetch(descriptor)
+        return models.map { $0.toDomain() }
+    }
+
+    public func fetchTransactions(from startDate: Date, to endDate: Date) throws -> [FinanceTransaction] {
+        let start = Calendar.current.startOfDay(for: startDate)
+        let end = Calendar.current.date(bySettingHour: 23, minute: 59, second: 59, of: endDate) ?? endDate
+        let descriptor = FetchDescriptor<FinanceTransactionModel>(
+            predicate: #Predicate { $0.date >= start && $0.date <= end },
+            sortBy: [SortDescriptor(\.date, order: .reverse), SortDescriptor(\.createdAt, order: .reverse)]
+        )
+        let models = try context.fetch(descriptor)
+        return models.map { $0.toDomain() }
+    }
+
+    public func fetchTransaction(id: UUID) throws -> FinanceTransaction? {
+        let descriptor = FetchDescriptor<FinanceTransactionModel>(
+            predicate: #Predicate { $0.id == id }
+        )
+        return try context.fetch(descriptor).first?.toDomain()
+    }
+
+    public func saveTransaction(_ transaction: FinanceTransaction) throws {
+        let localId = transaction.id
+        let descriptor = FetchDescriptor<FinanceTransactionModel>(
+            predicate: #Predicate { $0.id == localId }
+        )
+        let existing = try context.fetch(descriptor).first
+        if let existing {
+            existing.update(from: transaction)
+            for share in existing.splitShares {
+                context.delete(share)
+            }
+            existing.splitShares = (transaction.splitDetails?.splits ?? []).map {
+                let shareModel = SplitShareModel(from: $0)
+                shareModel.transaction = existing
+                return shareModel
+            }
+        } else {
+            let model = FinanceTransactionModel(from: transaction)
+            context.insert(model)
+            for share in model.splitShares {
+                share.transaction = model
+                context.insert(share)
+            }
+        }
+        try context.save()
+    }
+
+    public func deleteTransaction(id: UUID) throws {
+        let descriptor = FetchDescriptor<FinanceTransactionModel>(
+            predicate: #Predicate { $0.id == id }
+        )
+        if let existing = try context.fetch(descriptor).first {
+            context.delete(existing)
+            try context.save()
+        }
+    }
+
+    public func settleSplitShare(transactionId: UUID, shareId: UUID, isSettled: Bool) throws {
+        let descriptor = FetchDescriptor<SplitShareModel>(
+            predicate: #Predicate { $0.id == shareId }
+        )
+        if let share = try context.fetch(descriptor).first {
+            share.isSettled = isSettled
+            share.settledAt = isSettled ? Date() : nil
+            try context.save()
+        }
+    }
+
+    public func fetchPendingSplits() throws -> [(transaction: FinanceTransaction, share: SplitShare)] {
+        let descriptor = FetchDescriptor<FinanceTransactionModel>(
+            predicate: #Predicate { $0.isSplit == true },
+            sortBy: [SortDescriptor(\.date, order: .reverse)]
+        )
+        let transactions = try context.fetch(descriptor)
+        var result: [(transaction: FinanceTransaction, share: SplitShare)] = []
+        for t in transactions {
+            let domainTx = t.toDomain()
+            if let splitDetails = domainTx.splitDetails {
+                for share in splitDetails.splits where !share.isSettled {
+                    result.append((transaction: domainTx, share: share))
+                }
+            }
+        }
+        return result
+    }
+
+    public func fetchSummary(for date: Date) throws -> FinanceSummary {
+        let calendar = Calendar.current
+        guard let monthInterval = calendar.dateInterval(of: .month, for: date) else {
+            return FinanceSummary()
+        }
+        let startOfMonth = monthInterval.start
+        let endOfMonth = monthInterval.end
+        let startOfToday = calendar.startOfDay(for: date)
+        let endOfToday = calendar.date(bySettingHour: 23, minute: 59, second: 59, of: date) ?? date
+
+        let monthTransactions = try fetchTransactions(from: startOfMonth, to: endOfMonth)
+        let todayTransactions = monthTransactions.filter { $0.date >= startOfToday && $0.date <= endOfToday }
+
+        var totalSpentThisMonth: Double = 0
+        var totalGrossOutflowThisMonth: Double = 0
+        var totalSpentToday: Double = 0
+        var categoryTotals: [FinanceCategory: Double] = [:]
+
+        for tx in monthTransactions where tx.type == .expense {
+            totalGrossOutflowThisMonth += tx.amount
+            let personal = tx.personalAmount
+            totalSpentThisMonth += personal
+            categoryTotals[tx.category, default: 0] += personal
+        }
+
+        for tx in todayTransactions where tx.type == .expense {
+            totalSpentToday += tx.personalAmount
+        }
+
+        let pendingSplits = try fetchPendingSplits()
+        let totalPendingToCollect = pendingSplits.reduce(0.0) { $0 + $1.share.amountOwed }
+
+        return FinanceSummary(
+            totalSpentThisMonth: totalSpentThisMonth,
+            totalSpentToday: totalSpentToday,
+            totalGrossOutflowThisMonth: totalGrossOutflowThisMonth,
+            totalPendingToCollect: totalPendingToCollect,
+            pendingSplitsCount: pendingSplits.count,
+            categoryBreakdown: categoryTotals
+        )
+    }
+}
+
+
 

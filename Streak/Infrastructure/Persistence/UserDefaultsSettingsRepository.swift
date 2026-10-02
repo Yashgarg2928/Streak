@@ -36,6 +36,7 @@ public final class UserDefaultsSettingsRepository: SettingsRepository {
         static let isMiddayNudgeEnabled = "isMiddayNudgeEnabled"
         static let isPlanningAlertEnabled = "isPlanningAlertEnabled"
         static let isEmergencyCutoffEnabled = "isEmergencyCutoffEnabled"
+        static let currencySymbol = "currencySymbol"
     }
     
     public init() {
@@ -188,6 +189,11 @@ public final class UserDefaultsSettingsRepository: SettingsRepository {
     public var isEmergencyCutoffEnabled: Bool {
         get { defaults.bool(forKey: Keys.isEmergencyCutoffEnabled) }
         set { defaults.set(newValue, forKey: Keys.isEmergencyCutoffEnabled) }
+    }
+
+    public var currencySymbol: String {
+        get { defaults.string(forKey: Keys.currencySymbol) ?? "₹" }
+        set { defaults.set(newValue, forKey: Keys.currencySymbol) }
     }
     
     public func saveAll() {

@@ -499,6 +499,30 @@ struct StreakAppShortcuts: AppShortcutsProvider {
             shortTitle: "Add To-Do",
             systemImageName: "list.bullet"
         )
+
+        AppShortcut(
+            intent: LogExpenseIntent(),
+            phrases: [
+                "Log expense in \(.applicationName)",
+                "Track payment in \(.applicationName)",
+                "Add expense in \(.applicationName)",
+                "Log payment in \(.applicationName)",
+                "Record expense in \(.applicationName)"
+            ],
+            shortTitle: "Log Expense",
+            systemImageName: "indianrupeesign.circle.fill"
+        )
+
+        AppShortcut(
+            intent: QuickLogExpenseIntent(),
+            phrases: [
+                "Quick expense in \(.applicationName)",
+                "Quick payment in \(.applicationName)",
+                "Fast expense in \(.applicationName)"
+            ],
+            shortTitle: "Quick Expense",
+            systemImageName: "bolt.fill"
+        )
     }
 }
 

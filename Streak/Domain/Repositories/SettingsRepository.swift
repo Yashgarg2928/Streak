@@ -34,6 +34,7 @@ public protocol SettingsRepository: AnyObject {
     var isMiddayNudgeEnabled: Bool { get set }
     var isPlanningAlertEnabled: Bool { get set }
     var isEmergencyCutoffEnabled: Bool { get set }
+    var currencySymbol: String { get set }
 
     func saveAll()
     func resetAll()

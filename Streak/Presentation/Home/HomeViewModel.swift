@@ -13,7 +13,12 @@ final class HomeViewModel {
     private(set) var categoryHighStreaks: [UUID: Int] = [:]
     private(set) var categoryStreakHistories: [UUID: [StreakRun]] = [:]
     private(set) var categoryEntries: [UUID: [Date: DayStatus]] = [:]
+    private(set) var financeSummary: FinanceSummary = FinanceSummary()
     private(set) var errorMessage: String? = nil
+
+    var currencySymbol: String {
+        env.settingsRepository.currencySymbol
+    }
 
     private let env: AppEnvironment
 
@@ -46,6 +51,9 @@ final class HomeViewModel {
                 categoryHighStreaks[cat.id]      = catHistory.highStreak
                 categoryStreakHistories[cat.id]  = catHistory.runs
             }
+
+            // Finance Summary
+            financeSummary = (try? env.financeRepository.fetchSummary(for: Date())) ?? FinanceSummary()
         } catch {
             errorMessage = error.localizedDescription
         }

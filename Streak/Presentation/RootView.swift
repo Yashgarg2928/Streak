@@ -24,6 +24,10 @@ struct RootView: View {
                 .tabItem { Label("Workout", systemImage: "figure.run") }
                 .tag(Tab.workout)
 
+            FinanceMainView()
+                .tabItem { Label("Finance", systemImage: "indianrupeesign.circle") }
+                .tag(Tab.finance)
+
             GoalListView(env: env)
                 .tabItem { Label("Goals", systemImage: "flag") }
                 .tag(Tab.goals)
@@ -49,6 +53,23 @@ struct RootView: View {
                 AddCategoryView()
             case .editCategory(let id):
                 AddCategoryView(editingId: id)
+            case .addTransaction:
+                AddTransactionSheet { amount, type, category, note, date, isSplit, numPeople, names, customShare in
+                    let useCase = LogTransactionUseCase(financeRepository: env.financeRepository)
+                    try? useCase.execute(
+                        amount: amount,
+                        type: type,
+                        category: category,
+                        note: note,
+                        date: date,
+                        isSplit: isSplit,
+                        numberOfPeople: numPeople,
+                        friendNames: names,
+                        customMyShare: customShare
+                    )
+                }
+            case .shortcutsGuide:
+                ShortcutsSetupGuideSheet()
             default:
                 EmptyView()
             }

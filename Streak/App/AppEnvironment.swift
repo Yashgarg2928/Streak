@@ -23,6 +23,7 @@ final class AppEnvironment {
     let dailyHabitLogRepository: any DailyHabitLogRepository
     let workoutRepository: any WorkoutRepository
     let nutritionRepository: any NutritionRepository
+    let financeRepository: any FinanceRepository
 
     var themeMode: String {
         didSet {
@@ -47,7 +48,8 @@ final class AppEnvironment {
         coreHabitRepository: any CoreHabitRepository,
         dailyHabitLogRepository: any DailyHabitLogRepository,
         workoutRepository: any WorkoutRepository,
-        nutritionRepository: any NutritionRepository
+        nutritionRepository: any NutritionRepository,
+        financeRepository: any FinanceRepository
     ) {
         self.categoryRepository = categoryRepository
         self.taskRepository = taskRepository
@@ -65,6 +67,7 @@ final class AppEnvironment {
         self.dailyHabitLogRepository = dailyHabitLogRepository
         self.workoutRepository = workoutRepository
         self.nutritionRepository = nutritionRepository
+        self.financeRepository = financeRepository
         self.themeMode = settingsRepository.themeMode
     }
 
