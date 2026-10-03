@@ -20,12 +20,15 @@ final class GenerateRoutineTasksUseCase {
         let activeRoutines = try habitRoutineRepository.fetchActive(for: normalizedDate)
         let existingTasks = try taskRepository.fetchAll(for: normalizedDate)
 
+        var currentMaxOrder = (try? taskRepository.maxSortOrder(for: normalizedDate, timeframe: .daily)) ?? -1
+
         for routine in activeRoutines {
             let alreadyExists = existingTasks.contains { task in
                 task.routineId == routine.id && !task.isDeleted
             }
 
             if !alreadyExists {
+                currentMaxOrder += 1
                 let newTask = Task(
                     title: routine.title,
                     categoryId: routine.categoryId,
@@ -34,7 +37,8 @@ final class GenerateRoutineTasksUseCase {
                     isCompleted: false,
                     createdAt: routine.createdAt,
                     routineId: routine.id,
-                    isLocked: routine.isLocked
+                    isLocked: routine.isLocked,
+                    sortOrder: currentMaxOrder
                 )
                 try taskRepository.save(newTask)
             }

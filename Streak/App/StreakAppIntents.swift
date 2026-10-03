@@ -5,6 +5,7 @@ import Foundation
 import AppIntents
 import SwiftUI
 import SwiftData
+import WidgetKit
 
 // MARK: - App Enum for List Types
 
@@ -134,11 +135,15 @@ enum StreakTaskIntentService {
 
         let catId: UUID? = category != nil ? UUID(uuidString: category!.id) : nil
 
+        let taskRepo = SwiftDataTaskRepository(context: ctx)
+        let maxOrder = (try? taskRepo.maxSortOrder(for: targetDate, timeframe: timeframe)) ?? -1
+
         let newTask = Task(
             title: finalTitle,
             categoryId: catId,
             targetDate: targetDate,
-            timeframe: timeframe
+            timeframe: timeframe,
+            sortOrder: maxOrder + 1
         )
 
         let model = TaskModel(from: newTask)
@@ -146,20 +151,24 @@ enum StreakTaskIntentService {
         try ctx.save()
 
         // Sync widget data immediately so widgets reflect the new task
-        let taskRepo = SwiftDataTaskRepository(context: ctx)
         let dayEntryRepo = SwiftDataDayEntryRepository(context: ctx)
         let catRepo = SwiftDataCategoryRepository(context: ctx)
         let goalRepo = SwiftDataGoalRepository(context: ctx)
         let routineRepo = SwiftDataHabitRoutineRepository(context: ctx)
+        let dailyHabitLogRepo = SwiftDataDailyHabitLogRepository(context: ctx)
         let syncUseCase = SyncWidgetDataUseCase(
             categoryRepository: catRepo,
             taskRepository: taskRepo,
             dayEntryRepository: dayEntryRepo,
             goalRepository: goalRepo,
             settingsRepository: settingsRepo,
-            habitRoutineRepository: routineRepo
+            habitRoutineRepository: routineRepo,
+            dailyHabitLogRepository: dailyHabitLogRepo
         )
-        _ = syncUseCase.execute()
+        if let widgetData = syncUseCase.execute() {
+            WidgetDataStore.save(widgetData)
+            WidgetCenter.shared.reloadAllTimelines()
+        }
 
         let destinationName = resolvedListType == .todo ? "To-Do list" : "\(resolvedListType.rawValue) tasks"
         let dialogText = "Added '\(finalTitle)' to your \(destinationName) in Streak!"

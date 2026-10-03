@@ -49,6 +49,7 @@ final class TaskModel {
     var isDeleted: Bool = false
     var routineId: UUID? = nil
     var isLocked: Bool = false
+    var sortOrder: Int = 0
 
     var timeframe: TaskTimeframe {
         get { TaskTimeframe(rawValue: timeframeRaw) ?? .daily }
@@ -67,6 +68,7 @@ final class TaskModel {
         self.isDeleted = entity.isDeleted
         self.routineId = entity.routineId
         self.isLocked = entity.isLocked
+        self.sortOrder = entity.sortOrder
     }
 
     func toDomain() -> Task {
@@ -74,7 +76,8 @@ final class TaskModel {
              targetDate: targetDate, timeframe: timeframe,
              isCompleted: isCompleted, completedAt: completedAt,
              createdAt: createdAt, isDeleted: isDeleted,
-             routineId: routineId, isLocked: isLocked)
+             routineId: routineId, isLocked: isLocked,
+             sortOrder: sortOrder)
     }
 
     func update(from entity: Task) {
@@ -87,6 +90,7 @@ final class TaskModel {
         isDeleted = entity.isDeleted
         routineId = entity.routineId
         isLocked = entity.isLocked
+        sortOrder = entity.sortOrder
     }
 }
 

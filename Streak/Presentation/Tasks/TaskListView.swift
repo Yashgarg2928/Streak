@@ -11,6 +11,7 @@ struct TaskListView: View {
     @State private var newTaskCategoryId: UUID? = nil
     @State private var showRoutineSheet: Bool = false
     @State private var showCategoryPicker: Bool = false
+    @State private var isReordering: Bool = false
 
     private var activeToday: Date {
         ActiveDayResolver.resolveActiveDate(for: Date(), settings: env.settingsRepository)
@@ -104,6 +105,31 @@ struct TaskListView: View {
 
             Spacer()
 
+            if let count = vm?.tasks.filter({ !$0.isDeleted }).count, count > 1 {
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        isReordering.toggle()
+                    }
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: isReordering ? "checkmark" : "arrow.up.arrow.down")
+                            .font(.system(size: 11, weight: .bold))
+                        Text(isReordering ? "DONE" : "REORDER")
+                            .font(.system(size: 10, weight: .bold))
+                    }
+                    .foregroundStyle(isReordering ? AppColor.background : AppColor.textPrimary)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 7)
+                    .background(isReordering ? AppColor.textPrimary : AppColor.surface)
+                    .clipShape(RoundedRectangle(cornerRadius: AppLayout.cornerRadius))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: AppLayout.cornerRadius)
+                            .stroke(AppColor.border, lineWidth: AppLayout.borderWidth)
+                    )
+                }
+                .buttonStyle(.plain)
+            }
+
             Button {
                 showRoutineSheet = true
             } label: {
@@ -146,6 +172,7 @@ struct TaskListView: View {
         HStack(spacing: 0) {
             ForEach(TaskTab.allCases) { tab in
                 Button {
+                    isReordering = false
                     selectedTab = tab
                     vm?.load(tab: tab, for: selectedDate ?? activeToday)
                 } label: {
@@ -188,6 +215,7 @@ struct TaskListView: View {
             return f.string(from: date)
         }()
         return Button {
+            isReordering = false
             selectedDate = date
             vm?.load(tab: .daily, for: date)
         } label: {
@@ -307,70 +335,133 @@ struct TaskListView: View {
         }
     }
 
+    // MARK: - Reorder Info Banner
+
+    private var reorderInfoBanner: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "arrow.up.arrow.down")
+                .font(.system(size: 11, weight: .bold))
+                .foregroundStyle(AppColor.textPrimary)
+            Text("Drag ≡ or tap chevrons / ︙ to reorder. Syncs to widget.")
+                .font(.system(size: 11, weight: .bold, design: .monospaced))
+                .foregroundStyle(AppColor.textPrimary)
+            Spacer()
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(AppColor.surface)
+        .clipShape(RoundedRectangle(cornerRadius: AppLayout.cornerRadius))
+        .overlay(
+            RoundedRectangle(cornerRadius: AppLayout.cornerRadius)
+                .stroke(AppColor.border, lineWidth: 1.5)
+        )
+    }
+
     // MARK: - Task list
 
     private var taskList: some View {
         Group {
             if let tasks = vm?.tasks, !tasks.isEmpty {
-                List {
-                    if selectedTab == .backlog {
-                        ForEach(tasks) { task in
-                            TaskRowView(
-                                task: task,
-                                categoryColor: vm?.color(for: task),
-                                onToggle: {
-                                    vm?.toggle(taskId: task.id, tab: selectedTab, for: selectedDate ?? activeToday)
-                                },
-                                onScheduleToday: {
-                                    vm?.promoteToDaily(
-                                        taskId: task.id,
-                                        targetDate: activeToday,
-                                        currentTab: selectedTab,
-                                        for: selectedDate ?? activeToday
-                                    )
-                                },
-                                onScheduleTomorrow: {
-                                    vm?.promoteToDaily(
-                                        taskId: task.id,
-                                        targetDate: tomorrow,
-                                        currentTab: selectedTab,
-                                        for: selectedDate ?? activeToday
-                                    )
-                                },
-                                onDelete: {
-                                    vm?.delete(taskId: task.id, tab: selectedTab, for: selectedDate ?? activeToday)
-                                }
-                            )
-                            .listRowBackground(AppColor.background)
-                            .listRowSeparatorTint(AppColor.blank)
-                        }
-                        .onDelete { offsets in
-                            if let tasks = vm?.tasks {
-                                for index in offsets {
-                                    if index < tasks.count {
-                                        let task = tasks[index]
+                VStack(spacing: 6) {
+                    if isReordering {
+                        reorderInfoBanner
+                            .padding(.horizontal, AppLayout.screenMargin)
+                            .padding(.top, 4)
+                    }
+
+                    List {
+                        if selectedTab == .backlog {
+                            ForEach(tasks) { task in
+                                TaskRowView(
+                                    task: task,
+                                    categoryColor: vm?.color(for: task),
+                                    onToggle: {
+                                        vm?.toggle(taskId: task.id, tab: selectedTab, for: selectedDate ?? activeToday)
+                                    },
+                                    onScheduleToday: {
+                                        vm?.promoteToDaily(
+                                            taskId: task.id,
+                                            targetDate: activeToday,
+                                            currentTab: selectedTab,
+                                            for: selectedDate ?? activeToday
+                                        )
+                                    },
+                                    onScheduleTomorrow: {
+                                        vm?.promoteToDaily(
+                                            taskId: task.id,
+                                            targetDate: tomorrow,
+                                            currentTab: selectedTab,
+                                            for: selectedDate ?? activeToday
+                                        )
+                                    },
+                                    onDelete: {
                                         vm?.delete(taskId: task.id, tab: selectedTab, for: selectedDate ?? activeToday)
+                                    },
+                                    isReordering: isReordering,
+                                    onMoveUp: {
+                                        vm?.moveTask(taskId: task.id, direction: .up, tab: selectedTab, for: selectedDate ?? activeToday)
+                                    },
+                                    onMoveDown: {
+                                        vm?.moveTask(taskId: task.id, direction: .down, tab: selectedTab, for: selectedDate ?? activeToday)
+                                    },
+                                    onMoveToTop: {
+                                        vm?.moveTask(taskId: task.id, direction: .toTop, tab: selectedTab, for: selectedDate ?? activeToday)
+                                    },
+                                    onMoveToBottom: {
+                                        vm?.moveTask(taskId: task.id, direction: .toBottom, tab: selectedTab, for: selectedDate ?? activeToday)
+                                    }
+                                )
+                                .listRowBackground(AppColor.background)
+                                .listRowSeparatorTint(AppColor.blank)
+                            }
+                            .onDelete { offsets in
+                                if let tasks = vm?.tasks {
+                                    for index in offsets {
+                                        if index < tasks.count {
+                                            let task = tasks[index]
+                                            vm?.delete(taskId: task.id, tab: selectedTab, for: selectedDate ?? activeToday)
+                                        }
                                     }
                                 }
                             }
-                        }
-                    } else {
-                        ForEach(tasks) { task in
-                            TaskRowView(
-                                task: task,
-                                categoryColor: vm?.color(for: task),
-                                onToggle: {
-                                    vm?.toggle(taskId: task.id, tab: selectedTab, for: selectedDate ?? activeToday)
-                                }
-                            )
-                            .listRowBackground(AppColor.background)
-                            .listRowSeparatorTint(AppColor.blank)
+                            .onMove { indices, newOffset in
+                                vm?.moveTask(fromOffsets: indices, toOffset: newOffset, tab: selectedTab, for: selectedDate ?? activeToday)
+                            }
+                        } else {
+                            ForEach(tasks) { task in
+                                TaskRowView(
+                                    task: task,
+                                    categoryColor: vm?.color(for: task),
+                                    onToggle: {
+                                        vm?.toggle(taskId: task.id, tab: selectedTab, for: selectedDate ?? activeToday)
+                                    },
+                                    isReordering: isReordering,
+                                    onMoveUp: {
+                                        vm?.moveTask(taskId: task.id, direction: .up, tab: selectedTab, for: selectedDate ?? activeToday)
+                                    },
+                                    onMoveDown: {
+                                        vm?.moveTask(taskId: task.id, direction: .down, tab: selectedTab, for: selectedDate ?? activeToday)
+                                    },
+                                    onMoveToTop: {
+                                        vm?.moveTask(taskId: task.id, direction: .toTop, tab: selectedTab, for: selectedDate ?? activeToday)
+                                    },
+                                    onMoveToBottom: {
+                                        vm?.moveTask(taskId: task.id, direction: .toBottom, tab: selectedTab, for: selectedDate ?? activeToday)
+                                    }
+                                )
+                                .listRowBackground(AppColor.background)
+                                .listRowSeparatorTint(AppColor.blank)
+                            }
+                            .onMove { indices, newOffset in
+                                vm?.moveTask(fromOffsets: indices, toOffset: newOffset, tab: selectedTab, for: selectedDate ?? activeToday)
+                            }
                         }
                     }
+                    .listStyle(.plain)
+                    .background(AppColor.background)
+                    .scrollContentBackground(.hidden)
+                    .environment(\.editMode, isReordering ? .constant(.active) : .constant(.inactive))
                 }
-                .listStyle(.plain)
-                .background(AppColor.background)
-                .scrollContentBackground(.hidden)
             } else {
                 Spacer()
                 EmptyStateView(message: emptyStateMessage)

@@ -76,7 +76,10 @@ final class TaskViewModel {
                 if t1.isDeleted != t2.isDeleted {
                     return !t1.isDeleted && t2.isDeleted
                 }
-                return !t1.isCompleted && t2.isCompleted
+                if t1.sortOrder != t2.sortOrder {
+                    return t1.sortOrder < t2.sortOrder
+                }
+                return t1.createdAt < t2.createdAt
             }
         } catch {
             errorMessage = error.localizedDescription
@@ -299,5 +302,62 @@ final class TaskViewModel {
         guard let catId = routine.categoryId,
               let cat = categories.first(where: { $0.id == catId }) else { return nil }
         return cat.color
+    }
+
+    // MARK: - Reordering
+
+    enum MoveDirection {
+        case up
+        case down
+        case toTop
+        case toBottom
+    }
+
+    func moveTask(fromOffsets source: IndexSet, toOffset destination: Int, tab: TaskTab, for date: Date = Date()) {
+        tasks.move(fromOffsets: source, toOffset: destination)
+        let taskIds = tasks.map { $0.id }
+        do {
+            try env.taskRepository.updateOrder(taskIds: taskIds)
+            for (idx, id) in taskIds.enumerated() {
+                if let i = tasks.firstIndex(where: { $0.id == id }) {
+                    tasks[i].sortOrder = idx
+                }
+            }
+            env.syncWidgets()
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func moveTask(taskId: UUID, direction: MoveDirection, tab: TaskTab, for date: Date = Date()) {
+        guard let currentIndex = tasks.firstIndex(where: { $0.id == taskId }) else { return }
+        let newIndex: Int
+        switch direction {
+        case .up:
+            newIndex = max(0, currentIndex - 1)
+        case .down:
+            newIndex = min(tasks.count - 1, currentIndex + 1)
+        case .toTop:
+            newIndex = 0
+        case .toBottom:
+            newIndex = tasks.count - 1
+        }
+        guard newIndex != currentIndex else { return }
+
+        let task = tasks.remove(at: currentIndex)
+        tasks.insert(task, at: newIndex)
+
+        let taskIds = tasks.map { $0.id }
+        do {
+            try env.taskRepository.updateOrder(taskIds: taskIds)
+            for (idx, id) in taskIds.enumerated() {
+                if let i = tasks.firstIndex(where: { $0.id == id }) {
+                    tasks[i].sortOrder = idx
+                }
+            }
+            env.syncWidgets()
+        } catch {
+            errorMessage = error.localizedDescription
+        }
     }
 }

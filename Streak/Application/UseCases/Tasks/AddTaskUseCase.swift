@@ -23,7 +23,14 @@ struct AddTaskUseCase {
             }
         }
 
-        let task = Task(title: trimmed, categoryId: categoryId, targetDate: targetDate, timeframe: timeframe)
+        let maxOrder = (try? taskRepository.maxSortOrder(for: targetDate, timeframe: timeframe)) ?? -1
+        let task = Task(
+            title: trimmed,
+            categoryId: categoryId,
+            targetDate: targetDate,
+            timeframe: timeframe,
+            sortOrder: maxOrder + 1
+        )
         try taskRepository.save(task)
         
         if timeframe == .daily {

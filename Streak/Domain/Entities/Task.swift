@@ -22,6 +22,7 @@ struct Task: Identifiable, Equatable {
     var isDeleted: Bool
     var routineId: UUID?        // nil = standalone task, non-nil = auto-generated from HabitRoutine
     var isLocked: Bool          // true = immutable & un-deletable (e.g. monthly fixed habit)
+    var sortOrder: Int          // 0-based custom display order
 
     init(
         id: UUID = UUID(),
@@ -34,7 +35,8 @@ struct Task: Identifiable, Equatable {
         createdAt: Date = Date(),
         isDeleted: Bool = false,
         routineId: UUID? = nil,
-        isLocked: Bool = false
+        isLocked: Bool = false,
+        sortOrder: Int = 0
     ) {
         self.id = id
         self.title = title
@@ -47,5 +49,6 @@ struct Task: Identifiable, Equatable {
         self.isDeleted = isDeleted
         self.routineId = routineId
         self.isLocked = isLocked
+        self.sortOrder = sortOrder
     }
 }

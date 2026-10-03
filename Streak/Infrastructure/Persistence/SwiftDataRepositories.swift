@@ -84,7 +84,8 @@ final class SwiftDataTaskRepository: TaskRepository {
         let day = Calendar.current.startOfDay(for: date)
         let dailyRaw = TaskTimeframe.daily.rawValue
         let models = try context.fetch(FetchDescriptor<TaskModel>(
-            predicate: #Predicate { $0.targetDate == day && $0.timeframeRaw == dailyRaw }
+            predicate: #Predicate { $0.targetDate == day && $0.timeframeRaw == dailyRaw },
+            sortBy: [SortDescriptor(\.sortOrder, order: .forward), SortDescriptor(\.createdAt, order: .forward)]
         ))
         return models.map { $0.toDomain() }
     }
@@ -94,7 +95,8 @@ final class SwiftDataTaskRepository: TaskRepository {
         let localCatId = categoryId
         let dailyRaw = TaskTimeframe.daily.rawValue
         let models = try context.fetch(FetchDescriptor<TaskModel>(
-            predicate: #Predicate { $0.targetDate == day && $0.categoryId == localCatId && $0.timeframeRaw == dailyRaw }
+            predicate: #Predicate { $0.targetDate == day && $0.categoryId == localCatId && $0.timeframeRaw == dailyRaw },
+            sortBy: [SortDescriptor(\.sortOrder, order: .forward), SortDescriptor(\.createdAt, order: .forward)]
         ))
         return models.map { $0.toDomain() }
     }
@@ -102,7 +104,8 @@ final class SwiftDataTaskRepository: TaskRepository {
     func fetch(timeframe: TaskTimeframe) throws -> [Task] {
         let raw = timeframe.rawValue
         let models = try context.fetch(FetchDescriptor<TaskModel>(
-            predicate: #Predicate { $0.timeframeRaw == raw }
+            predicate: #Predicate { $0.timeframeRaw == raw },
+            sortBy: [SortDescriptor(\.sortOrder, order: .forward), SortDescriptor(\.createdAt, order: .forward)]
         ))
         return models.map { $0.toDomain() }
     }
@@ -147,8 +150,39 @@ final class SwiftDataTaskRepository: TaskRepository {
     }
 
     func fetchAll() throws -> [Task] {
-        let models = try context.fetch(FetchDescriptor<TaskModel>())
+        let models = try context.fetch(FetchDescriptor<TaskModel>(
+            sortBy: [SortDescriptor(\.sortOrder, order: .forward), SortDescriptor(\.createdAt, order: .forward)]
+        ))
         return models.map { $0.toDomain() }
+    }
+
+    func updateOrder(taskIds: [UUID]) throws {
+        for (index, id) in taskIds.enumerated() {
+            let localId = id
+            let descriptor = FetchDescriptor<TaskModel>(
+                predicate: #Predicate { $0.id == localId }
+            )
+            if let model = try context.fetch(descriptor).first {
+                model.sortOrder = index
+            }
+        }
+        try context.save()
+    }
+
+    func maxSortOrder(for date: Date, timeframe: TaskTimeframe) throws -> Int {
+        let day = Calendar.current.startOfDay(for: date)
+        let raw = timeframe.rawValue
+        let models: [TaskModel]
+        if timeframe == .daily {
+            models = try context.fetch(FetchDescriptor<TaskModel>(
+                predicate: #Predicate { $0.targetDate == day && $0.timeframeRaw == raw && !$0.isDeleted }
+            ))
+        } else {
+            models = try context.fetch(FetchDescriptor<TaskModel>(
+                predicate: #Predicate { $0.timeframeRaw == raw && !$0.isDeleted }
+            ))
+        }
+        return models.map { $0.sortOrder }.max() ?? -1
     }
 }
 

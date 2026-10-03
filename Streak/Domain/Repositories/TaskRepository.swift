@@ -12,4 +12,6 @@ protocol TaskRepository {
     func deletePermanently(id: UUID) throws
     func fetch(timeframe: TaskTimeframe) throws -> [Task]
     func fetchAll() throws -> [Task]               // for export
+    func updateOrder(taskIds: [UUID]) throws
+    func maxSortOrder(for date: Date, timeframe: TaskTimeframe) throws -> Int
 }

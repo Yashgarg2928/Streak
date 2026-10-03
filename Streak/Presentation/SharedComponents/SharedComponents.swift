@@ -108,6 +108,11 @@ struct TaskRowView: View {
     var onScheduleTomorrow: (() -> Void)? = nil
     var onMoveToTimeframe: ((TaskTimeframe) -> Void)? = nil
     var onDelete: (() -> Void)? = nil
+    var isReordering: Bool = false
+    var onMoveUp: (() -> Void)? = nil
+    var onMoveDown: (() -> Void)? = nil
+    var onMoveToTop: (() -> Void)? = nil
+    var onMoveToBottom: (() -> Void)? = nil
 
     private var isFuture: Bool {
         let activeToday = env.settingsRepository.isOnboardingCompleted
@@ -188,6 +193,44 @@ struct TaskRowView: View {
                 }
                 .buttonStyle(.plain)
 
+                if isReordering {
+                    HStack(spacing: 4) {
+                        if let onMoveUp {
+                            Button(action: onMoveUp) {
+                                Image(systemName: "chevron.up")
+                                    .font(.system(size: 11, weight: .bold))
+                                    .foregroundStyle(AppColor.textPrimary)
+                                    .frame(width: 28, height: 28)
+                                    .background(AppColor.surface)
+                                    .clipShape(RoundedRectangle(cornerRadius: 4))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 4)
+                                            .stroke(AppColor.border, lineWidth: 1)
+                                    )
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel("Move task up")
+                        }
+
+                        if let onMoveDown {
+                            Button(action: onMoveDown) {
+                                Image(systemName: "chevron.down")
+                                    .font(.system(size: 11, weight: .bold))
+                                    .foregroundStyle(AppColor.textPrimary)
+                                    .frame(width: 28, height: 28)
+                                    .background(AppColor.surface)
+                                    .clipShape(RoundedRectangle(cornerRadius: 4))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 4)
+                                            .stroke(AppColor.border, lineWidth: 1)
+                                    )
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel("Move task down")
+                        }
+                    }
+                }
+
                 if let onDelete {
                     Button(action: onDelete) {
                         Image(systemName: "trash")
@@ -248,6 +291,47 @@ struct TaskRowView: View {
                     }
                 }
                 .padding(.leading, 38) // align with task title
+            }
+        }
+        .contextMenu {
+            if onMoveToTop != nil || onMoveUp != nil || onMoveDown != nil || onMoveToBottom != nil {
+                Section("Reorder") {
+                    if let onMoveToTop {
+                        Button(action: onMoveToTop) {
+                            Label("Move to Top", systemImage: "arrow.up.to.line")
+                        }
+                    }
+                    if let onMoveUp {
+                        Button(action: onMoveUp) {
+                            Label("Move Up", systemImage: "arrow.up")
+                        }
+                    }
+                    if let onMoveDown {
+                        Button(action: onMoveDown) {
+                            Label("Move Down", systemImage: "arrow.down")
+                        }
+                    }
+                    if let onMoveToBottom {
+                        Button(action: onMoveToBottom) {
+                            Label("Move to Bottom", systemImage: "arrow.down.to.line")
+                        }
+                    }
+                }
+            }
+            if let onScheduleToday {
+                Button(action: onScheduleToday) {
+                    Label("Add to Today", systemImage: "bolt.fill")
+                }
+            }
+            if let onScheduleTomorrow {
+                Button(action: onScheduleTomorrow) {
+                    Label("Add to Tomorrow", systemImage: "calendar")
+                }
+            }
+            if let onDelete {
+                Button(role: .destructive, action: onDelete) {
+                    Label("Delete", systemImage: "trash")
+                }
             }
         }
     }

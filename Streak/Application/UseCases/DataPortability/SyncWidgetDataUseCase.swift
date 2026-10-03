@@ -37,7 +37,14 @@ struct SyncWidgetDataUseCase {
         let today = ActiveDayResolver.resolveActiveDate(for: Date(), settings: settingsRepository)
         let deadline = ActiveDayResolver.activeDayDeadline(for: today, settings: settingsRepository)
         let categories = try categoryRepository.fetchActive()
-        let todayTasks = try taskRepository.fetchAll(for: today).filter { !$0.isDeleted && $0.timeframe == .daily }
+        let todayTasks = try taskRepository.fetchAll(for: today)
+            .filter { !$0.isDeleted && $0.timeframe == .daily }
+            .sorted { t1, t2 in
+                if t1.sortOrder != t2.sortOrder {
+                    return t1.sortOrder < t2.sortOrder
+                }
+                return t1.createdAt < t2.createdAt
+            }
         let goals = try goalRepository.fetchAll()
 
         let masterEntry = try dayEntryRepository.fetch(date: today, categoryId: nil)

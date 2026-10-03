@@ -79,6 +79,7 @@
 | `completedAt` | Date? | Timestamp when task was completed |
 | `createdAt` | Date | When task was created |
 | `isDeleted` | Bool | Soft-delete flag (excluded from streaks & stats) |
+| `sortOrder` | Int | User-defined display order within timeframe / date |
 
 **TaskTimeframe Enum:**
 ```swift
