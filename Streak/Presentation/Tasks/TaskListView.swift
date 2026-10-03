@@ -12,9 +12,14 @@ struct TaskListView: View {
     @State private var showRoutineSheet: Bool = false
     @State private var showCategoryPicker: Bool = false
     @State private var isReordering: Bool = false
+    @State private var showPastTasksReviewSheet: Bool = false
 
     private var activeToday: Date {
         ActiveDayResolver.resolveActiveDate(for: Date(), settings: env.settingsRepository)
+    }
+
+    private var yesterday: Date {
+        Calendar.current.date(byAdding: .day, value: -1, to: activeToday)!
     }
 
     private var tomorrow: Date {
@@ -24,6 +29,11 @@ struct TaskListView: View {
     private var isToday: Bool {
         let currentSelected = selectedDate ?? activeToday
         return Calendar.current.isDate(currentSelected, inSameDayAs: activeToday)
+    }
+
+    private var isYesterday: Bool {
+        let currentSelected = selectedDate ?? activeToday
+        return Calendar.current.isDate(currentSelected, inSameDayAs: yesterday)
     }
 
     var body: some View {
@@ -42,7 +52,13 @@ struct TaskListView: View {
                     ActiveDayCountdownView(settings: env.settingsRepository)
                         .padding(.horizontal, AppLayout.screenMargin)
                         .padding(.top, AppLayout.itemSpacing)
-                    
+
+                    if let pastCount = vm?.pastIncompleteTasks.count, pastCount > 0, !isYesterday {
+                        pastTasksReviewBanner
+                            .padding(.horizontal, AppLayout.screenMargin)
+                            .padding(.top, AppLayout.itemSpacing)
+                    }
+
                     dateToggle
                         .padding(.horizontal, AppLayout.screenMargin)
                         .padding(.top, AppLayout.itemSpacing)
@@ -93,6 +109,11 @@ struct TaskListView: View {
                 vm?.load(tab: selectedTab, for: selectedDate ?? activeToday)
             }
         }
+        .sheet(isPresented: $showPastTasksReviewSheet) {
+            if let vm {
+                PastTasksReviewSheet(vm: vm, activeToday: activeToday)
+            }
+        }
     }
 
     // MARK: - Header Bar
@@ -104,6 +125,29 @@ struct TaskListView: View {
                 .foregroundStyle(AppColor.textPrimary)
 
             Spacer()
+
+            if let pastCount = vm?.pastIncompleteTasks.count, pastCount > 0 {
+                Button {
+                    showPastTasksReviewSheet = true
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "clock.arrow.circlepath")
+                            .font(.system(size: 11, weight: .bold))
+                        Text("PAST (\(pastCount))")
+                            .font(.system(size: 10, weight: .bold))
+                    }
+                    .foregroundStyle(AppColor.orange)
+                    .padding(.horizontal, 9)
+                    .padding(.vertical, 7)
+                    .background(AppColor.surface)
+                    .clipShape(RoundedRectangle(cornerRadius: AppLayout.cornerRadius))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: AppLayout.cornerRadius)
+                            .stroke(AppColor.orange, lineWidth: AppLayout.borderWidth)
+                    )
+                }
+                .buttonStyle(.plain)
+            }
 
             if let count = vm?.tasks.filter({ !$0.isDeleted }).count, count > 1 {
                 Button {
@@ -156,7 +200,9 @@ struct TaskListView: View {
     private var navigationTitleString: String {
         switch selectedTab {
         case .daily:
-            return isToday ? "TODAY" : "TOMORROW"
+            if isToday { return "TODAY" }
+            if isYesterday { return "YESTERDAY" }
+            return "TOMORROW"
         case .weekly:
             return "WEEKLY PLAN"
         case .monthly:
@@ -195,10 +241,10 @@ struct TaskListView: View {
     // MARK: - Date toggle for Daily tab
 
     private var dateToggle: some View {
-        let today = activeToday
         return HStack(spacing: 0) {
-            toggleButton(title: "TODAY",    date: today)
-            toggleButton(title: "TOMORROW", date: tomorrow)
+            toggleButton(title: "YESTERDAY", date: yesterday)
+            toggleButton(title: "TODAY",     date: activeToday)
+            toggleButton(title: "TOMORROW",  date: tomorrow)
         }
         .overlay(
             RoundedRectangle(cornerRadius: AppLayout.cornerRadius)
@@ -335,6 +381,46 @@ struct TaskListView: View {
         }
     }
 
+    // MARK: - Past Tasks Review Banner
+
+    private var pastTasksReviewBanner: some View {
+        Button {
+            showPastTasksReviewSheet = true
+        } label: {
+            BrutalistCard(borderColor: AppColor.border) {
+                HStack(spacing: 10) {
+                    Image(systemName: "clock.badge.exclamationmark")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundStyle(AppColor.orange)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("\(vm?.pastIncompleteTasks.count ?? 0) MISSED FROM PREVIOUS DAYS")
+                            .font(.system(size: 11, weight: .black, design: .monospaced))
+                            .foregroundStyle(AppColor.textPrimary)
+                        Text("Decide: complete without affecting today, or move to To-Do.")
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundStyle(AppColor.textSecondary)
+                    }
+
+                    Spacer()
+
+                    HStack(spacing: 4) {
+                        Text("DECIDE")
+                            .font(.system(size: 10, weight: .black))
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 10, weight: .bold))
+                    }
+                    .foregroundStyle(AppColor.background)
+                    .padding(.horizontal, 9)
+                    .padding(.vertical, 5)
+                    .background(AppColor.textPrimary)
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
+                }
+            }
+        }
+        .buttonStyle(.plain)
+    }
+
     // MARK: - Reorder Info Banner
 
     private var reorderInfoBanner: some View {
@@ -435,6 +521,12 @@ struct TaskListView: View {
                                     onToggle: {
                                         vm?.toggle(taskId: task.id, tab: selectedTab, for: selectedDate ?? activeToday)
                                     },
+                                    onScheduleToday: isYesterday ? {
+                                        vm?.movePastTaskToToday(taskId: task.id, currentTab: selectedTab, for: selectedDate ?? activeToday)
+                                    } : nil,
+                                    onMoveToBacklog: {
+                                        vm?.moveToBacklog(taskId: task.id, currentTab: selectedTab, for: selectedDate ?? activeToday)
+                                    },
                                     isReordering: isReordering,
                                     onMoveUp: {
                                         vm?.moveTask(taskId: task.id, direction: .up, tab: selectedTab, for: selectedDate ?? activeToday)
@@ -473,6 +565,9 @@ struct TaskListView: View {
     private var emptyStateMessage: String {
         switch selectedTab {
         case .daily:
+            if isYesterday {
+                return "No tasks recorded for yesterday."
+            }
             return "No tasks for \(isToday ? "today" : "tomorrow").\nAdd one below."
         case .weekly:
             return "No tasks set for this week.\nAdd your weekly goals below."
@@ -906,6 +1001,310 @@ struct AddHabitRoutineSheet: View {
             )
         }
         .buttonStyle(.plain)
+    }
+}
+
+// MARK: - PastTasksReviewSheet
+
+struct PastTasksReviewSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    let vm: TaskViewModel
+    let activeToday: Date
+    @State private var selectedTaskIds: Set<UUID> = []
+
+    private func isSelected(_ id: UUID) -> Bool {
+        selectedTaskIds.contains(id)
+    }
+
+    private func toggleSelection(_ id: UUID) {
+        if selectedTaskIds.contains(id) {
+            selectedTaskIds.remove(id)
+        } else {
+            selectedTaskIds.insert(id)
+        }
+    }
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 0) {
+                if vm.pastIncompleteTasks.isEmpty {
+                    Spacer()
+                    VStack(spacing: 12) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 52))
+                            .foregroundStyle(AppColor.green)
+                        Text("ALL CAUGHT UP!")
+                            .font(.system(.title3, design: .monospaced).weight(.black))
+                            .foregroundStyle(AppColor.textPrimary)
+                        Text("No unfinished tasks remaining from previous days.")
+                            .font(.system(.subheadline))
+                            .foregroundStyle(AppColor.textSecondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .padding()
+                    Spacer()
+                } else {
+                    // Header Sub-bar
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("DECIDE ON MISSED TASKS")
+                                .font(.system(size: 11, weight: .black, design: .monospaced))
+                                .foregroundStyle(AppColor.textPrimary)
+                            Text("Complete past tasks, move to To-Do, or bring to Today.")
+                                .font(.system(size: 10, weight: .medium))
+                                .foregroundStyle(AppColor.textSecondary)
+                        }
+                        Spacer()
+                        Button {
+                            if selectedTaskIds.count == vm.pastIncompleteTasks.count {
+                                selectedTaskIds.removeAll()
+                            } else {
+                                selectedTaskIds = Set(vm.pastIncompleteTasks.map { $0.id })
+                            }
+                        } label: {
+                            Text(selectedTaskIds.count == vm.pastIncompleteTasks.count ? "DESELECT ALL" : "SELECT ALL")
+                                .font(.system(size: 10, weight: .black))
+                                .foregroundStyle(AppColor.textPrimary)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 5)
+                                .background(AppColor.surface)
+                                .clipShape(RoundedRectangle(cornerRadius: 4))
+                                .overlay(RoundedRectangle(cornerRadius: 4).stroke(AppColor.border, lineWidth: 1))
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    .padding(.horizontal, AppLayout.screenMargin)
+                    .padding(.vertical, 10)
+                    .background(AppColor.background)
+
+                    Divider().background(AppColor.border)
+
+                    List {
+                        ForEach(vm.pastIncompleteTasks) { task in
+                            pastTaskCard(task)
+                                .listRowBackground(AppColor.background)
+                                .listRowSeparatorTint(AppColor.blank)
+                        }
+                    }
+                    .listStyle(.plain)
+                    .background(AppColor.background)
+                    .scrollContentBackground(.hidden)
+
+                    // Sticky Batch Actions bar
+                    if !selectedTaskIds.isEmpty {
+                        batchActionBar
+                    }
+                }
+            }
+            .background(AppColor.background.ignoresSafeArea())
+            .navigationTitle("PREVIOUS DAYS")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Close") { dismiss() }
+                        .font(.system(.body).weight(.bold))
+                        .foregroundStyle(AppColor.textPrimary)
+                }
+            }
+        }
+    }
+
+    private func pastTaskCard(_ task: Task) -> some View {
+        let selected = isSelected(task.id)
+        let catColor = vm.color(for: task) ?? AppColor.neutralDot
+        let dateString: String = {
+            let cal = Calendar.current
+            if cal.isDate(task.targetDate, inSameDayAs: cal.date(byAdding: .day, value: -1, to: activeToday)!) {
+                return "YESTERDAY"
+            }
+            let f = DateFormatter()
+            f.dateFormat = "MMM d"
+            return f.string(from: task.targetDate).uppercased()
+        }()
+
+        return BrutalistCard(borderColor: selected ? AppColor.border : AppColor.border.opacity(0.4)) {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 8) {
+                    // Checkbox for batch selection
+                    Button {
+                        toggleSelection(task.id)
+                    } label: {
+                        Image(systemName: selected ? "checkmark.circle.fill" : "circle")
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundStyle(selected ? AppColor.green : AppColor.textSecondary)
+                    }
+                    .buttonStyle(.plain)
+
+                    Circle()
+                        .fill(catColor)
+                        .frame(width: 8, height: 8)
+
+                    Text(task.title)
+                        .font(.system(.body).weight(.bold))
+                        .foregroundStyle(AppColor.textPrimary)
+                        .lineLimit(2)
+
+                    Spacer()
+
+                    Text(dateString)
+                        .font(.system(size: 9, weight: .black, design: .monospaced))
+                        .foregroundStyle(AppColor.orange)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 3)
+                        .background(AppColor.orange.opacity(0.12))
+                        .clipShape(RoundedRectangle(cornerRadius: 3))
+                        .overlay(RoundedRectangle(cornerRadius: 3).stroke(AppColor.orange.opacity(0.5), lineWidth: 1))
+                }
+
+                // 1-Tap Action Pills for individual task
+                HStack(spacing: 6) {
+                    // Complete task for past date without affecting today
+                    Button {
+                        vm.completePastTask(taskId: task.id, currentTab: .daily, for: activeToday)
+                        selectedTaskIds.remove(task.id)
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "checkmark")
+                                .font(.system(size: 9, weight: .black))
+                            Text("COMPLETE")
+                                .font(.system(size: 9, weight: .black))
+                        }
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 5)
+                        .background(AppColor.green)
+                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                        .overlay(RoundedRectangle(cornerRadius: 4).stroke(AppColor.border, lineWidth: 1))
+                    }
+                    .buttonStyle(.plain)
+
+                    // Move to To-Do List
+                    Button {
+                        vm.moveToBacklog(taskId: task.id, currentTab: .daily, for: activeToday)
+                        selectedTaskIds.remove(task.id)
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "tray.and.arrow.down")
+                                .font(.system(size: 9, weight: .black))
+                            Text("TO-DO")
+                                .font(.system(size: 9, weight: .black))
+                        }
+                        .foregroundStyle(AppColor.textPrimary)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 5)
+                        .background(AppColor.surface)
+                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                        .overlay(RoundedRectangle(cornerRadius: 4).stroke(AppColor.border, lineWidth: 1))
+                    }
+                    .buttonStyle(.plain)
+
+                    // Move to Today
+                    Button {
+                        vm.movePastTaskToToday(taskId: task.id, currentTab: .daily, for: activeToday)
+                        selectedTaskIds.remove(task.id)
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "bolt.fill")
+                                .font(.system(size: 9, weight: .black))
+                            Text("TODAY")
+                                .font(.system(size: 9, weight: .black))
+                        }
+                        .foregroundStyle(AppColor.background)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 5)
+                        .background(AppColor.border)
+                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                    }
+                    .buttonStyle(.plain)
+
+                    Spacer()
+                }
+                .padding(.leading, 28)
+            }
+        }
+    }
+
+    private var batchActionBar: some View {
+        VStack(spacing: 8) {
+            HStack {
+                Text("\(selectedTaskIds.count) TASK(S) SELECTED")
+                    .font(.system(size: 11, weight: .black, design: .monospaced))
+                    .foregroundStyle(AppColor.textPrimary)
+                Spacer()
+            }
+
+            HStack(spacing: 8) {
+                // Batch complete
+                Button {
+                    let ids = selectedTaskIds
+                    selectedTaskIds.removeAll()
+                    vm.batchCompletePastTasks(taskIds: ids, currentTab: .daily, for: activeToday)
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 10, weight: .black))
+                        Text("COMPLETE")
+                            .font(.system(size: 10, weight: .black))
+                    }
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 38)
+                    .background(AppColor.green)
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
+                    .overlay(RoundedRectangle(cornerRadius: 4).stroke(AppColor.border, lineWidth: 1))
+                }
+                .buttonStyle(.plain)
+
+                // Batch move to To-Do
+                Button {
+                    let ids = selectedTaskIds
+                    selectedTaskIds.removeAll()
+                    vm.batchMovePastTasksToBacklog(taskIds: ids, currentTab: .daily, for: activeToday)
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "tray.and.arrow.down")
+                            .font(.system(size: 10, weight: .black))
+                        Text("TO-DO")
+                            .font(.system(size: 10, weight: .black))
+                    }
+                    .foregroundStyle(AppColor.textPrimary)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 38)
+                    .background(AppColor.surface)
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
+                    .overlay(RoundedRectangle(cornerRadius: 4).stroke(AppColor.border, lineWidth: 1))
+                }
+                .buttonStyle(.plain)
+
+                // Batch move to Today
+                Button {
+                    let ids = selectedTaskIds
+                    selectedTaskIds.removeAll()
+                    vm.batchMovePastTasksToToday(taskIds: ids, currentTab: .daily, for: activeToday)
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "bolt.fill")
+                            .font(.system(size: 10, weight: .black))
+                        Text("TODAY")
+                            .font(.system(size: 10, weight: .black))
+                    }
+                    .foregroundStyle(AppColor.background)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 38)
+                    .background(AppColor.border)
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(AppLayout.screenMargin)
+        .background(AppColor.surface)
+        .overlay(
+            Rectangle()
+                .frame(height: AppLayout.borderWidth)
+                .foregroundColor(AppColor.border),
+            alignment: .top
+        )
     }
 }
 

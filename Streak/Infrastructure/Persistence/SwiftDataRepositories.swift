@@ -184,6 +184,22 @@ final class SwiftDataTaskRepository: TaskRepository {
         }
         return models.map { $0.sortOrder }.max() ?? -1
     }
+
+    func fetchIncompletePastDailyTasks(before date: Date) throws -> [Task] {
+        let cutoff = Calendar.current.startOfDay(for: date)
+        let allDaily = try fetch(timeframe: .daily)
+        return allDaily
+            .filter { Calendar.current.startOfDay(for: $0.targetDate) < cutoff && !$0.isCompleted && !$0.isDeleted }
+            .sorted { t1, t2 in
+                if t1.targetDate != t2.targetDate {
+                    return t1.targetDate > t2.targetDate // most recent past day first
+                }
+                if t1.sortOrder != t2.sortOrder {
+                    return t1.sortOrder < t2.sortOrder
+                }
+                return t1.createdAt < t2.createdAt
+            }
+    }
 }
 
 // MARK: - DayEntry

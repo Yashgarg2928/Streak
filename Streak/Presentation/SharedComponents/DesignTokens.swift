@@ -38,6 +38,10 @@ enum AppColor {
         trait.userInterfaceStyle == .dark ? UIColor(Color(hex: "#FF3B30")) : UIColor(Color(hex: "#C0392B"))
     })
 
+    static let orange = Color(uiColor: UIColor { trait in
+        trait.userInterfaceStyle == .dark ? UIColor(Color(hex: "#FF9F0A")) : UIColor(Color(hex: "#D35400"))
+    })
+
     static let blank = Color(uiColor: UIColor { trait in
         trait.userInterfaceStyle == .dark ? UIColor(Color(hex: "#2C2C2E")) : UIColor(Color(hex: "#D0C9B8"))
     })

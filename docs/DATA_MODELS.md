@@ -97,7 +97,8 @@ enum TaskTimeframe: String, Codable, CaseIterable {
 - Soft-deleted tasks (`isDeleted == true`) display at the bottom of lists and do not affect streak calculations or day statuses
 - Non-daily tasks (`.weekly`, `.monthly`, `.backlog`) do not affect daily streak calculations unless scheduled/promoted to `.daily`
 - Completing a daily task triggers `ResolveDayStatusUseCase` for its category and the master
-- Tasks can be scheduled/promoted across timeframes (e.g. from `.weekly` or `.backlog` to `.daily` for Today/Tomorrow) at any time
+- Tasks can be scheduled/promoted across timeframes (e.g. from `.weekly` or `.backlog` to `.daily` for Today/Tomorrow) or demoted from `.daily` to `.backlog` (To-Do list) at any time
+- Incomplete daily tasks from past days can be reviewed via the Past Tasks Sheet or Yesterday tab, completed retroactively (resolving only that historical date's status without affecting today's checklist or streak), moved to the To-Do list (`.backlog`), or rolled over to Today individually or via multi-task batch actions
 
 ---
 

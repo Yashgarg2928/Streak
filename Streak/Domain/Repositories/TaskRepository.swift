@@ -14,4 +14,5 @@ protocol TaskRepository {
     func fetchAll() throws -> [Task]               // for export
     func updateOrder(taskIds: [UUID]) throws
     func maxSortOrder(for date: Date, timeframe: TaskTimeframe) throws -> Int
+    func fetchIncompletePastDailyTasks(before date: Date) throws -> [Task]
 }

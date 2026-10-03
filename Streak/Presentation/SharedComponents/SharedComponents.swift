@@ -108,6 +108,7 @@ struct TaskRowView: View {
     var onScheduleTomorrow: (() -> Void)? = nil
     var onMoveToTimeframe: ((TaskTimeframe) -> Void)? = nil
     var onDelete: (() -> Void)? = nil
+    var onMoveToBacklog: (() -> Void)? = nil
     var isReordering: Bool = false
     var onMoveUp: (() -> Void)? = nil
     var onMoveDown: (() -> Void)? = nil
@@ -121,6 +122,13 @@ struct TaskRowView: View {
         return Calendar.current.startOfDay(for: task.targetDate) > Calendar.current.startOfDay(for: activeToday)
     }
 
+    private var isPast: Bool {
+        let activeToday = env.settingsRepository.isOnboardingCompleted
+            ? ActiveDayResolver.resolveActiveDate(for: Date(), settings: env.settingsRepository)
+            : Calendar.current.startOfDay(for: Date())
+        return Calendar.current.startOfDay(for: task.targetDate) < Calendar.current.startOfDay(for: activeToday)
+    }
+
     private var isLateTask: Bool {
         guard task.timeframe == .daily else { return false }
         if task.routineId != nil { return false }
@@ -131,7 +139,9 @@ struct TaskRowView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 10) {
-                Button(action: { if !isFuture { onToggle() } }) {
+                Button {
+                    if !isFuture { onToggle() }
+                } label: {
                     HStack(spacing: 10) {
                         // Checkbox — greyed out for future tasks
                         Image(systemName: task.isCompleted ? "checkmark.square.fill" : "square")
@@ -183,6 +193,21 @@ struct TaskRowView: View {
                                 .background(AppColor.surface)
                                 .clipShape(RoundedRectangle(cornerRadius: 4))
                                 .overlay(RoundedRectangle(cornerRadius: 4).stroke(AppColor.red, lineWidth: 1))
+                            }
+
+                            if isPast && !task.isCompleted && task.timeframe == .daily {
+                                HStack(spacing: 3) {
+                                    Image(systemName: "clock.arrow.circlepath")
+                                        .font(.system(size: 9, weight: .bold))
+                                    Text("MISSED")
+                                        .font(.system(size: 9, weight: .black))
+                                }
+                                .foregroundStyle(AppColor.orange)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 3)
+                                .background(AppColor.surface)
+                                .clipShape(RoundedRectangle(cornerRadius: 4))
+                                .overlay(RoundedRectangle(cornerRadius: 4).stroke(AppColor.orange, lineWidth: 1))
                             }
                         }
 
@@ -249,8 +274,8 @@ struct TaskRowView: View {
                 }
             }
 
-            // Promotion pills: [⚡ TODAY] [📅 TOMORROW] — only shown for backlog/weekly/monthly tasks
-            if !task.isCompleted && (onScheduleToday != nil || onScheduleTomorrow != nil) {
+            // Action pills: [⚡ ADD TO TODAY] [📅 ADD TO TOMORROW] [📋 MOVE TO TO-DO]
+            if !task.isCompleted && (onScheduleToday != nil || onScheduleTomorrow != nil || onMoveToBacklog != nil) {
                 HStack(spacing: 8) {
                     if let onScheduleToday {
                         Button(action: onScheduleToday) {
@@ -275,6 +300,27 @@ struct TaskRowView: View {
                                 Image(systemName: "calendar")
                                     .font(.system(size: 9, weight: .bold))
                                 Text("ADD TO TOMORROW")
+                                    .font(.system(size: 9, weight: .black))
+                            }
+                            .foregroundStyle(AppColor.textPrimary)
+                            .padding(.horizontal, 9)
+                            .padding(.vertical, 5)
+                            .background(AppColor.surface)
+                            .clipShape(RoundedRectangle(cornerRadius: 5))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 5)
+                                    .stroke(AppColor.border, lineWidth: 1.5)
+                            )
+                        }
+                        .buttonStyle(.plain)
+                    }
+
+                    if let onMoveToBacklog {
+                        Button(action: onMoveToBacklog) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "tray.and.arrow.down")
+                                    .font(.system(size: 9, weight: .bold))
+                                Text("MOVE TO TO-DO")
                                     .font(.system(size: 9, weight: .black))
                             }
                             .foregroundStyle(AppColor.textPrimary)
@@ -326,6 +372,11 @@ struct TaskRowView: View {
             if let onScheduleTomorrow {
                 Button(action: onScheduleTomorrow) {
                     Label("Add to Tomorrow", systemImage: "calendar")
+                }
+            }
+            if let onMoveToBacklog {
+                Button(action: onMoveToBacklog) {
+                    Label("Move to To-Do List", systemImage: "tray.and.arrow.down")
                 }
             }
             if let onDelete {

@@ -17,6 +17,7 @@ final class TaskViewModel {
     private(set) var tasks: [Task] = []
     private(set) var routines: [HabitRoutine] = []
     private(set) var categories: [Category] = []
+    private(set) var pastIncompleteTasks: [Task] = []
     private(set) var errorMessage: String? = nil
     private(set) var lateTaskWarningMessage: String? = nil
     private var lateTaskDismissTask: Swift.Task<Void, Never>? = nil
@@ -81,6 +82,11 @@ final class TaskViewModel {
                 }
                 return t1.createdAt < t2.createdAt
             }
+
+            let activeToday = env.settingsRepository.isOnboardingCompleted
+                ? ActiveDayResolver.resolveActiveDate(for: Date(), settings: env.settingsRepository)
+                : Calendar.current.startOfDay(for: Date())
+            pastIncompleteTasks = (try? env.taskRepository.fetchIncompletePastDailyTasks(before: activeToday)) ?? []
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -302,6 +308,272 @@ final class TaskViewModel {
         guard let catId = routine.categoryId,
               let cat = categories.first(where: { $0.id == catId }) else { return nil }
         return cat.color
+    }
+
+    // MARK: - Move Daily/Past Task to To-Do List (Backlog)
+
+    func moveToBacklog(taskId: UUID, currentTab: TaskTab, for date: Date = Date()) {
+        do {
+            guard var task = try env.taskRepository.fetch(id: taskId) else { return }
+            if task.isLocked {
+                errorMessage = "Locked monthly commitments cannot be moved."
+                return
+            }
+            let oldTargetDate = task.targetDate
+            let oldTimeframe = task.timeframe
+
+            let maxBacklogOrder = (try? env.taskRepository.maxSortOrder(for: date, timeframe: .backlog)) ?? -1
+            task.timeframe = .backlog
+            task.sortOrder = maxBacklogOrder + 1
+            try env.taskRepository.save(task)
+
+            if oldTimeframe == .daily {
+                let resolver = ResolveDayStatusUseCase(
+                    taskRepository: env.taskRepository,
+                    categoryRepository: env.categoryRepository,
+                    dayEntryRepository: env.dayEntryRepository,
+                    settingsRepository: env.settingsRepository,
+                    playerProfileRepository: env.playerProfileRepository,
+                    xpTransactionRepository: env.xpTransactionRepository
+                )
+                try resolver.execute(date: oldTargetDate, categoryId: task.categoryId)
+                try resolver.execute(date: oldTargetDate, categoryId: nil)
+            }
+
+            let syncGoals = SyncGoalProgressUseCase(
+                goalRepository: env.goalRepository,
+                dayEntryRepository: env.dayEntryRepository,
+                taskRepository: env.taskRepository
+            )
+            try syncGoals.execute()
+
+            env.syncWidgets()
+            load(tab: currentTab, for: date)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    // MARK: - Past Tasks Actions
+
+    /// Marks a past task as completed on its original targetDate without affecting current day's checklist
+    func completePastTask(taskId: UUID, currentTab: TaskTab, for date: Date = Date()) {
+        do {
+            guard let task = try env.taskRepository.fetch(id: taskId) else { return }
+            let resolver = ResolveDayStatusUseCase(
+                taskRepository: env.taskRepository,
+                categoryRepository: env.categoryRepository,
+                dayEntryRepository: env.dayEntryRepository,
+                settingsRepository: env.settingsRepository,
+                playerProfileRepository: env.playerProfileRepository,
+                xpTransactionRepository: env.xpTransactionRepository
+            )
+            let useCase = CompleteTaskUseCase(
+                taskRepository: env.taskRepository,
+                resolveDayStatus: resolver,
+                settingsRepository: env.settingsRepository,
+                playerProfileRepository: env.playerProfileRepository,
+                xpTransactionRepository: env.xpTransactionRepository,
+                badgeRepository: env.badgeRepository,
+                goalRepository: env.goalRepository,
+                habitRoutineRepository: env.habitRoutineRepository,
+                dayEntryRepository: env.dayEntryRepository
+            )
+            try useCase.execute(taskId: taskId, completed: true)
+
+            let syncGoals = SyncGoalProgressUseCase(
+                goalRepository: env.goalRepository,
+                dayEntryRepository: env.dayEntryRepository,
+                taskRepository: env.taskRepository
+            )
+            try syncGoals.execute()
+
+            env.syncWidgets()
+            load(tab: currentTab, for: date)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    /// Moves a past task to the user's active Today list
+    func movePastTaskToToday(taskId: UUID, currentTab: TaskTab, for date: Date = Date()) {
+        do {
+            guard var task = try env.taskRepository.fetch(id: taskId) else { return }
+            let activeToday = env.settingsRepository.isOnboardingCompleted
+                ? ActiveDayResolver.resolveActiveDate(for: Date(), settings: env.settingsRepository)
+                : Calendar.current.startOfDay(for: Date())
+
+            let oldTargetDate = task.targetDate
+            let oldTimeframe = task.timeframe
+
+            let maxDailyOrder = (try? env.taskRepository.maxSortOrder(for: activeToday, timeframe: .daily)) ?? -1
+            task.targetDate = activeToday
+            task.timeframe = .daily
+            task.sortOrder = maxDailyOrder + 1
+            try env.taskRepository.save(task)
+
+            let resolver = ResolveDayStatusUseCase(
+                taskRepository: env.taskRepository,
+                categoryRepository: env.categoryRepository,
+                dayEntryRepository: env.dayEntryRepository,
+                settingsRepository: env.settingsRepository,
+                playerProfileRepository: env.playerProfileRepository,
+                xpTransactionRepository: env.xpTransactionRepository
+            )
+            if oldTimeframe == .daily {
+                try resolver.execute(date: oldTargetDate, categoryId: task.categoryId)
+                try resolver.execute(date: oldTargetDate, categoryId: nil)
+            }
+            try resolver.execute(date: activeToday, categoryId: task.categoryId)
+            try resolver.execute(date: activeToday, categoryId: nil)
+
+            let syncGoals = SyncGoalProgressUseCase(
+                goalRepository: env.goalRepository,
+                dayEntryRepository: env.dayEntryRepository,
+                taskRepository: env.taskRepository
+            )
+            try syncGoals.execute()
+
+            env.syncWidgets()
+            load(tab: currentTab, for: date)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    // MARK: - Batch Multi-Task Operations
+
+    func batchCompletePastTasks(taskIds: Set<UUID>, currentTab: TaskTab, for date: Date = Date()) {
+        guard !taskIds.isEmpty else { return }
+        do {
+            let resolver = ResolveDayStatusUseCase(
+                taskRepository: env.taskRepository,
+                categoryRepository: env.categoryRepository,
+                dayEntryRepository: env.dayEntryRepository,
+                settingsRepository: env.settingsRepository,
+                playerProfileRepository: env.playerProfileRepository,
+                xpTransactionRepository: env.xpTransactionRepository
+            )
+            let useCase = CompleteTaskUseCase(
+                taskRepository: env.taskRepository,
+                resolveDayStatus: resolver,
+                settingsRepository: env.settingsRepository,
+                playerProfileRepository: env.playerProfileRepository,
+                xpTransactionRepository: env.xpTransactionRepository,
+                badgeRepository: env.badgeRepository,
+                goalRepository: env.goalRepository,
+                habitRoutineRepository: env.habitRoutineRepository,
+                dayEntryRepository: env.dayEntryRepository
+            )
+            for id in taskIds {
+                try useCase.execute(taskId: id, completed: true)
+            }
+            let syncGoals = SyncGoalProgressUseCase(
+                goalRepository: env.goalRepository,
+                dayEntryRepository: env.dayEntryRepository,
+                taskRepository: env.taskRepository
+            )
+            try syncGoals.execute()
+
+            env.syncWidgets()
+            load(tab: currentTab, for: date)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func batchMovePastTasksToBacklog(taskIds: Set<UUID>, currentTab: TaskTab, for date: Date = Date()) {
+        guard !taskIds.isEmpty else { return }
+        do {
+            var affectedDates = Set<Date>()
+            var maxBacklogOrder = (try? env.taskRepository.maxSortOrder(for: date, timeframe: .backlog)) ?? -1
+
+            for id in taskIds {
+                guard var task = try env.taskRepository.fetch(id: id) else { continue }
+                if task.isLocked { continue }
+                if task.timeframe == .daily {
+                    affectedDates.insert(task.targetDate)
+                }
+                maxBacklogOrder += 1
+                task.timeframe = .backlog
+                task.sortOrder = maxBacklogOrder
+                try env.taskRepository.save(task)
+            }
+
+            let resolver = ResolveDayStatusUseCase(
+                taskRepository: env.taskRepository,
+                categoryRepository: env.categoryRepository,
+                dayEntryRepository: env.dayEntryRepository,
+                settingsRepository: env.settingsRepository,
+                playerProfileRepository: env.playerProfileRepository,
+                xpTransactionRepository: env.xpTransactionRepository
+            )
+            for d in affectedDates {
+                try resolver.execute(date: d, categoryId: nil)
+            }
+
+            let syncGoals = SyncGoalProgressUseCase(
+                goalRepository: env.goalRepository,
+                dayEntryRepository: env.dayEntryRepository,
+                taskRepository: env.taskRepository
+            )
+            try syncGoals.execute()
+
+            env.syncWidgets()
+            load(tab: currentTab, for: date)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func batchMovePastTasksToToday(taskIds: Set<UUID>, currentTab: TaskTab, for date: Date = Date()) {
+        guard !taskIds.isEmpty else { return }
+        do {
+            let activeToday = env.settingsRepository.isOnboardingCompleted
+                ? ActiveDayResolver.resolveActiveDate(for: Date(), settings: env.settingsRepository)
+                : Calendar.current.startOfDay(for: Date())
+
+            var affectedDates = Set<Date>()
+            var maxDailyOrder = (try? env.taskRepository.maxSortOrder(for: activeToday, timeframe: .daily)) ?? -1
+
+            for id in taskIds {
+                guard var task = try env.taskRepository.fetch(id: id) else { continue }
+                if task.isLocked { continue }
+                if task.timeframe == .daily {
+                    affectedDates.insert(task.targetDate)
+                }
+                maxDailyOrder += 1
+                task.targetDate = activeToday
+                task.timeframe = .daily
+                task.sortOrder = maxDailyOrder
+                try env.taskRepository.save(task)
+            }
+
+            let resolver = ResolveDayStatusUseCase(
+                taskRepository: env.taskRepository,
+                categoryRepository: env.categoryRepository,
+                dayEntryRepository: env.dayEntryRepository,
+                settingsRepository: env.settingsRepository,
+                playerProfileRepository: env.playerProfileRepository,
+                xpTransactionRepository: env.xpTransactionRepository
+            )
+            for d in affectedDates {
+                try resolver.execute(date: d, categoryId: nil)
+            }
+            try resolver.execute(date: activeToday, categoryId: nil)
+
+            let syncGoals = SyncGoalProgressUseCase(
+                goalRepository: env.goalRepository,
+                dayEntryRepository: env.dayEntryRepository,
+                taskRepository: env.taskRepository
+            )
+            try syncGoals.execute()
+
+            env.syncWidgets()
+            load(tab: currentTab, for: date)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
     }
 
     // MARK: - Reordering
