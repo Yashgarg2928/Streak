@@ -87,6 +87,7 @@ final class FinanceViewModel {
                 customFriendShares: customFriendShares
             )
             load()
+            env.syncWidgets()
         } catch {
             print("Failed to add transaction: \(error)")
         }
@@ -121,6 +122,7 @@ final class FinanceViewModel {
                 customFriendShares: customFriendShares
             )
             load()
+            env.syncWidgets()
         } catch {
             print("Failed to update transaction: \(error)")
         }
@@ -131,6 +133,7 @@ final class FinanceViewModel {
         do {
             try useCase.execute(id: id)
             load()
+            env.syncWidgets()
         } catch {
             print("Failed to delete transaction: \(error)")
         }
@@ -141,6 +144,7 @@ final class FinanceViewModel {
         do {
             try useCase.execute(transactionId: transactionId, shareId: shareId, isSettled: isSettled)
             load()
+            env.syncWidgets()
         } catch {
             print("Failed to settle split: \(error)")
         }

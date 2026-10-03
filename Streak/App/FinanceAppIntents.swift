@@ -5,6 +5,7 @@ import Foundation
 import AppIntents
 import SwiftUI
 import SwiftData
+import WidgetKit
 
 // MARK: - Finance Category App Enum for Siri & Shortcuts
 
@@ -141,6 +142,28 @@ enum StreakFinanceIntentService {
             transaction: transaction,
             currencySymbol: currency
         )
+
+        // Live sync widgets
+        let catRepo = SwiftDataCategoryRepository(context: ctx)
+        let taskRepo = SwiftDataTaskRepository(context: ctx)
+        let dayEntryRepo = SwiftDataDayEntryRepository(context: ctx)
+        let goalRepo = SwiftDataGoalRepository(context: ctx)
+        let routineRepo = SwiftDataHabitRoutineRepository(context: ctx)
+        let dailyHabitLogRepo = SwiftDataDailyHabitLogRepository(context: ctx)
+        let syncUseCase = SyncWidgetDataUseCase(
+            categoryRepository: catRepo,
+            taskRepository: taskRepo,
+            dayEntryRepository: dayEntryRepo,
+            goalRepository: goalRepo,
+            settingsRepository: settings,
+            habitRoutineRepository: routineRepo,
+            dailyHabitLogRepository: dailyHabitLogRepo,
+            financeRepository: repo
+        )
+        if let widgetData = syncUseCase.execute() {
+            WidgetDataStore.save(widgetData)
+            WidgetCenter.shared.reloadAllTimelines()
+        }
 
         return (transaction, snippet, dialogText)
     }

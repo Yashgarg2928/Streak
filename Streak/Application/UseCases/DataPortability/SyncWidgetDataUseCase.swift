@@ -10,6 +10,7 @@ struct SyncWidgetDataUseCase {
     let settingsRepository: any SettingsRepository
     let habitRoutineRepository: (any HabitRoutineRepository)?
     let dailyHabitLogRepository: (any DailyHabitLogRepository)?
+    let financeRepository: (any FinanceRepository)?
 
     init(
         categoryRepository: any CategoryRepository,
@@ -18,7 +19,8 @@ struct SyncWidgetDataUseCase {
         goalRepository: any GoalRepository,
         settingsRepository: any SettingsRepository,
         habitRoutineRepository: (any HabitRoutineRepository)? = nil,
-        dailyHabitLogRepository: (any DailyHabitLogRepository)? = nil
+        dailyHabitLogRepository: (any DailyHabitLogRepository)? = nil,
+        financeRepository: (any FinanceRepository)? = nil
     ) {
         self.categoryRepository = categoryRepository
         self.taskRepository = taskRepository
@@ -27,6 +29,7 @@ struct SyncWidgetDataUseCase {
         self.settingsRepository = settingsRepository
         self.habitRoutineRepository = habitRoutineRepository
         self.dailyHabitLogRepository = dailyHabitLogRepository
+        self.financeRepository = financeRepository
     }
 
     func execute() -> WidgetData? {
@@ -155,6 +158,23 @@ struct SyncWidgetDataUseCase {
             pending: pendingCount
         )
 
+        // Build monthly expense widget data
+        var monthlyExpenseData: WidgetData.MonthlyExpenseWidgetData? = nil
+        if let financeRepo = financeRepository {
+            if let summary = try? financeRepo.fetchSummary(for: today) {
+                let monthFmt = DateFormatter()
+                monthFmt.dateFormat = "MMMM"
+                let monthName = monthFmt.string(from: today).uppercased()
+                let year = Calendar.current.component(.year, from: today)
+                monthlyExpenseData = WidgetData.MonthlyExpenseWidgetData(
+                    totalSpentThisMonth: summary.totalSpentThisMonth,
+                    currencySymbol: settingsRepository.currencySymbol,
+                    monthName: monthName,
+                    year: year
+                )
+            }
+        }
+
         return WidgetData(
             masterStreak: masterStreak,
             masterStatusToday: masterEntry?.status.rawValue ?? "future",
@@ -169,7 +189,8 @@ struct SyncWidgetDataUseCase {
             categories: catData,
             goals: goalData,
             lastUpdated: Date(),
-            activeDayDeadline: deadline
+            activeDayDeadline: deadline,
+            monthlyExpense: monthlyExpenseData
         )
     }
 }

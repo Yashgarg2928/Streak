@@ -12,5 +12,6 @@ struct StreakWidgetsBundle: WidgetBundle {
         MultiCategoryWidget()
         GoalWidget()
         HabitCommitmentWidget()
+        MonthlyExpenseWidget()
     }
 }

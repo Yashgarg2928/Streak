@@ -158,3 +158,22 @@ Only the user's personal share ($S_{user}$) counts toward personal monthly spend
   - Deletion can also be triggered directly inside the Edit sheet via the bottom destructive button or top-bar trash icon.
 - **Cascade Teardown:** Deleting a transaction permanently purges the transaction record and cascade-deletes all associated child `SplitShareModel`s, preventing dangling records or corrupted debts.
 
+---
+
+## 7. Monthly Expense Widget (`MonthlyExpenseWidget`)
+
+A dedicated, minimalist WidgetKit widget focused purely on monthly spending:
+
+### Features & Display
+- **Minimalist Focus:** Displays only the current month name and the total personal money spent during this month (`totalSpentThisMonth`), with no clutter.
+- **Dynamic Formatter:** Formats amounts according to the user's currency symbol (`₹`, `$`, etc.) with intelligent decimal rounding (e.g. `₹12,450` for whole amounts, `₹850.50` for decimals).
+- **Supported Widget Sizes:**
+  - `.systemSmall`: Compact card with month pill, large hero spending metric, and `SPENT THIS MONTH` label.
+  - `.systemMedium`: Expanded card with month header, spending metric, and quick-access Streak Finance card.
+  - `.accessoryRectangular` / `.accessoryInline` / `.accessoryCircular`: Lock screen support showing month name and current spend.
+- **Instant Deep Linking:** Tapping the widget opens directly into the app's Finance Tracker via `streak://finance`.
+- **Live Auto-Sync:**
+  - Automatically synced on every expense addition, edit, deletion, or settlement via `env.syncWidgets()`.
+  - Automatically synced when logging an expense through Siri or iOS Shortcuts via `StreakFinanceIntentService`.
+  - Automatically rolls over to `₹0` at midnight on the 1st of every month via WidgetKit timeline scheduling.
+

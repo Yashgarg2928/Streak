@@ -16,6 +16,7 @@ struct WidgetData: Codable {
     var goals: [GoalWidgetData]
     var lastUpdated: Date
     var activeDayDeadline: Date
+    var monthlyExpense: MonthlyExpenseWidgetData? = nil
 
     struct TaskSummary: Codable {
         var total: Int
@@ -62,6 +63,13 @@ struct WidgetData: Codable {
         var progressFraction: Double
         var isCompleted: Bool
         var targetDate: Date?
+    }
+
+    struct MonthlyExpenseWidgetData: Codable {
+        var totalSpentThisMonth: Double
+        var currencySymbol: String
+        var monthName: String
+        var year: Int
     }
 }
 

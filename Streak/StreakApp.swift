@@ -94,6 +94,7 @@ struct StreakApp: App {
                     switch url.host {
                     case "tasks": router.selectedTab = .tasks
                     case "home":  router.selectedTab = .home
+                    case "finance": router.selectedTab = .finance
                     default: break
                     }
                 }
