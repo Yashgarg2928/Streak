@@ -53,12 +53,6 @@ struct TaskListView: View {
                         .padding(.horizontal, AppLayout.screenMargin)
                         .padding(.top, AppLayout.itemSpacing)
 
-                    if let pastCount = vm?.pastIncompleteTasks.count, pastCount > 0, !isYesterday {
-                        pastTasksReviewBanner
-                            .padding(.horizontal, AppLayout.screenMargin)
-                            .padding(.top, AppLayout.itemSpacing)
-                    }
-
                     dateToggle
                         .padding(.horizontal, AppLayout.screenMargin)
                         .padding(.top, AppLayout.itemSpacing)
@@ -130,23 +124,19 @@ struct TaskListView: View {
                 Button {
                     showPastTasksReviewSheet = true
                 } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "clock.arrow.circlepath")
-                            .font(.system(size: 11, weight: .bold))
-                        Text("PAST (\(pastCount))")
-                            .font(.system(size: 10, weight: .bold))
-                    }
-                    .foregroundStyle(AppColor.orange)
-                    .padding(.horizontal, 9)
-                    .padding(.vertical, 7)
-                    .background(AppColor.surface)
-                    .clipShape(RoundedRectangle(cornerRadius: AppLayout.cornerRadius))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: AppLayout.cornerRadius)
-                            .stroke(AppColor.orange, lineWidth: AppLayout.borderWidth)
-                    )
+                    Image(systemName: "clock.arrow.circlepath")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundStyle(AppColor.orange)
+                        .frame(width: 30, height: 30)
+                        .background(AppColor.surface)
+                        .clipShape(RoundedRectangle(cornerRadius: AppLayout.cornerRadius))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: AppLayout.cornerRadius)
+                                .stroke(AppColor.orange, lineWidth: AppLayout.borderWidth)
+                        )
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("Missed tasks from previous days: \(pastCount)")
             }
 
             if let count = vm?.tasks.filter({ !$0.isDeleted }).count, count > 1 {
@@ -381,45 +371,6 @@ struct TaskListView: View {
         }
     }
 
-    // MARK: - Past Tasks Review Banner
-
-    private var pastTasksReviewBanner: some View {
-        Button {
-            showPastTasksReviewSheet = true
-        } label: {
-            BrutalistCard(borderColor: AppColor.border) {
-                HStack(spacing: 10) {
-                    Image(systemName: "clock.badge.exclamationmark")
-                        .font(.system(size: 18, weight: .bold))
-                        .foregroundStyle(AppColor.orange)
-
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("\(vm?.pastIncompleteTasks.count ?? 0) MISSED FROM PREVIOUS DAYS")
-                            .font(.system(size: 11, weight: .black, design: .monospaced))
-                            .foregroundStyle(AppColor.textPrimary)
-                        Text("Decide: complete without affecting today, or move to To-Do.")
-                            .font(.system(size: 10, weight: .medium))
-                            .foregroundStyle(AppColor.textSecondary)
-                    }
-
-                    Spacer()
-
-                    HStack(spacing: 4) {
-                        Text("DECIDE")
-                            .font(.system(size: 10, weight: .black))
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 10, weight: .bold))
-                    }
-                    .foregroundStyle(AppColor.background)
-                    .padding(.horizontal, 9)
-                    .padding(.vertical, 5)
-                    .background(AppColor.textPrimary)
-                    .clipShape(RoundedRectangle(cornerRadius: 4))
-                }
-            }
-        }
-        .buttonStyle(.plain)
-    }
 
     // MARK: - Reorder Info Banner
 
