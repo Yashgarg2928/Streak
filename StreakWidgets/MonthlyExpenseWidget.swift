@@ -236,10 +236,11 @@ struct MonthlyExpenseLockRectangular: View {
                 Text("\(entry.monthName) SPENT")
                     .font(.system(size: 9, weight: .bold))
             }
-            .foregroundStyle(.primary)
+            .foregroundStyle(.white)
 
             Text(formatted)
                 .font(.system(.title3, design: .rounded).weight(.heavy))
+                .foregroundStyle(.white)
         }
         .widgetURL(URL(string: "streak://finance"))
     }
@@ -274,13 +275,15 @@ struct MonthlyExpenseLockCircular: View {
         VStack(spacing: 1) {
             Image(systemName: "creditcard.fill")
                 .font(.system(size: 11))
+                .foregroundStyle(.white)
             Text("\(entry.currencySymbol)\(compactAmount)")
                 .font(.system(size: 10, weight: .black, design: .rounded))
                 .minimumScaleFactor(0.7)
                 .lineLimit(1)
+                .foregroundStyle(.white)
             Text(entry.monthName.prefix(3))
                 .font(.system(size: 8, weight: .bold))
-                .foregroundStyle(.primary)
+                .foregroundStyle(.white)
         }
         .widgetURL(URL(string: "streak://finance"))
     }
