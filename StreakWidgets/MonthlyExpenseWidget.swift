@@ -236,7 +236,7 @@ struct MonthlyExpenseLockRectangular: View {
                 Text("\(entry.monthName) SPENT")
                     .font(.system(size: 9, weight: .bold))
             }
-            .foregroundStyle(.secondary)
+            .foregroundStyle(.primary)
 
             Text(formatted)
                 .font(.system(.title3, design: .rounded).weight(.heavy))
@@ -280,7 +280,7 @@ struct MonthlyExpenseLockCircular: View {
                 .lineLimit(1)
             Text(entry.monthName.prefix(3))
                 .font(.system(size: 8, weight: .bold))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.primary)
         }
         .widgetURL(URL(string: "streak://finance"))
     }
