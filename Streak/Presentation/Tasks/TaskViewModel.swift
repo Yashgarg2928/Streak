@@ -315,8 +315,8 @@ final class TaskViewModel {
     func moveToBacklog(taskId: UUID, currentTab: TaskTab, for date: Date = Date()) {
         do {
             guard var task = try env.taskRepository.fetch(id: taskId) else { return }
-            if task.isLocked {
-                errorMessage = "Locked monthly commitments cannot be moved."
+            if task.isLocked || task.routineId != nil {
+                errorMessage = "Habit commitments cannot be moved to to-do list."
                 return
             }
             let oldTargetDate = task.targetDate
@@ -399,6 +399,10 @@ final class TaskViewModel {
     func movePastTaskToToday(taskId: UUID, currentTab: TaskTab, for date: Date = Date()) {
         do {
             guard var task = try env.taskRepository.fetch(id: taskId) else { return }
+            if task.isLocked || task.routineId != nil {
+                errorMessage = "Habit commitments already exist for today."
+                return
+            }
             let activeToday = env.settingsRepository.isOnboardingCompleted
                 ? ActiveDayResolver.resolveActiveDate(for: Date(), settings: env.settingsRepository)
                 : Calendar.current.startOfDay(for: Date())
@@ -490,7 +494,7 @@ final class TaskViewModel {
 
             for id in taskIds {
                 guard var task = try env.taskRepository.fetch(id: id) else { continue }
-                if task.isLocked { continue }
+                if task.isLocked || task.routineId != nil { continue }
                 if task.timeframe == .daily {
                     affectedDates.insert(task.targetDate)
                 }
@@ -538,7 +542,7 @@ final class TaskViewModel {
 
             for id in taskIds {
                 guard var task = try env.taskRepository.fetch(id: id) else { continue }
-                if task.isLocked { continue }
+                if task.isLocked || task.routineId != nil { continue }
                 if task.timeframe == .daily {
                     affectedDates.insert(task.targetDate)
                 }

@@ -195,7 +195,7 @@ struct TaskRowView: View {
                                 .overlay(RoundedRectangle(cornerRadius: 4).stroke(AppColor.red, lineWidth: 1))
                             }
 
-                            if isPast && !task.isCompleted && task.timeframe == .daily {
+                            if isPast && !task.isCompleted && task.timeframe == .daily && task.routineId == nil && !task.isLocked {
                                 HStack(spacing: 3) {
                                     Image(systemName: "clock.arrow.circlepath")
                                         .font(.system(size: 9, weight: .bold))

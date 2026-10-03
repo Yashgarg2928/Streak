@@ -472,12 +472,12 @@ struct TaskListView: View {
                                     onToggle: {
                                         vm?.toggle(taskId: task.id, tab: selectedTab, for: selectedDate ?? activeToday)
                                     },
-                                    onScheduleToday: isYesterday ? {
+                                    onScheduleToday: (isYesterday && task.routineId == nil && !task.isLocked) ? {
                                         vm?.movePastTaskToToday(taskId: task.id, currentTab: selectedTab, for: selectedDate ?? activeToday)
                                     } : nil,
-                                    onMoveToBacklog: {
+                                    onMoveToBacklog: (task.routineId == nil && !task.isLocked) ? {
                                         vm?.moveToBacklog(taskId: task.id, currentTab: selectedTab, for: selectedDate ?? activeToday)
-                                    },
+                                    } : nil,
                                     isReordering: isReordering,
                                     onMoveUp: {
                                         vm?.moveTask(taskId: task.id, direction: .up, tab: selectedTab, for: selectedDate ?? activeToday)

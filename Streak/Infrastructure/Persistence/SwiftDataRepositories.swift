@@ -189,7 +189,13 @@ final class SwiftDataTaskRepository: TaskRepository {
         let cutoff = Calendar.current.startOfDay(for: date)
         let allDaily = try fetch(timeframe: .daily)
         return allDaily
-            .filter { Calendar.current.startOfDay(for: $0.targetDate) < cutoff && !$0.isCompleted && !$0.isDeleted }
+            .filter {
+                Calendar.current.startOfDay(for: $0.targetDate) < cutoff &&
+                !$0.isCompleted &&
+                !$0.isDeleted &&
+                $0.routineId == nil &&
+                !$0.isLocked
+            }
             .sorted { t1, t2 in
                 if t1.targetDate != t2.targetDate {
                     return t1.targetDate > t2.targetDate // most recent past day first
