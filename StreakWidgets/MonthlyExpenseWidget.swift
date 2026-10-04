@@ -114,8 +114,9 @@ struct MonthlyExpenseWidgetSmall: View {
             Text(formatted)
                 .font(.system(size: 26, weight: .heavy, design: .rounded))
                 .foregroundStyle(theme.textPrimary)
-                .minimumScaleFactor(0.55)
+                .minimumScaleFactor(0.4)
                 .lineLimit(1)
+                .allowsTightening(true)
 
             // Minimalist Label
             Text("SPENT THIS MONTH")
@@ -163,8 +164,9 @@ struct MonthlyExpenseWidgetMedium: View {
                 Text(formatted)
                     .font(.system(size: 32, weight: .heavy, design: .rounded))
                     .foregroundStyle(theme.textPrimary)
-                    .minimumScaleFactor(0.6)
+                    .minimumScaleFactor(0.4)
                     .lineLimit(1)
+                    .allowsTightening(true)
 
                 Text("SPENT THIS MONTH")
                     .font(.system(size: 10, weight: .black, design: .monospaced))
@@ -235,13 +237,19 @@ struct MonthlyExpenseLockRectangular: View {
                     .font(.system(size: 9))
                 Text("\(entry.monthName) SPENT")
                     .font(.system(size: 9, weight: .bold))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
             }
             .foregroundStyle(.white)
 
             Text(formatted)
                 .font(.system(.title3, design: .rounded).weight(.heavy))
                 .foregroundStyle(.white)
+                .lineLimit(1)
+                .minimumScaleFactor(0.4)
+                .allowsTightening(true)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .widgetURL(URL(string: "streak://finance"))
     }
 }
@@ -253,6 +261,8 @@ struct MonthlyExpenseLockInline: View {
     var body: some View {
         let formatted = formatCurrency(amount: entry.totalSpentThisMonth, symbol: entry.currencySymbol)
         Text("💳 \(entry.monthName.prefix(3)): \(formatted)")
+            .lineLimit(1)
+            .minimumScaleFactor(0.6)
             .widgetURL(URL(string: "streak://finance"))
     }
 }
@@ -262,7 +272,9 @@ struct MonthlyExpenseLockCircular: View {
     let entry: MonthlyExpenseEntry
 
     var compactAmount: String {
-        if entry.totalSpentThisMonth >= 100_000 {
+        if entry.totalSpentThisMonth >= 1_000_000 {
+            return String(format: "%.1fM", entry.totalSpentThisMonth / 1_000_000)
+        } else if entry.totalSpentThisMonth >= 100_000 {
             return String(format: "%.0fk", entry.totalSpentThisMonth / 1000)
         } else if entry.totalSpentThisMonth >= 1000 {
             return String(format: "%.1fk", entry.totalSpentThisMonth / 1000)
@@ -278,11 +290,14 @@ struct MonthlyExpenseLockCircular: View {
                 .foregroundStyle(.white)
             Text("\(entry.currencySymbol)\(compactAmount)")
                 .font(.system(size: 10, weight: .black, design: .rounded))
-                .minimumScaleFactor(0.7)
+                .minimumScaleFactor(0.4)
                 .lineLimit(1)
+                .allowsTightening(true)
                 .foregroundStyle(.white)
             Text(entry.monthName.prefix(3))
                 .font(.system(size: 8, weight: .bold))
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
                 .foregroundStyle(.white)
         }
         .widgetURL(URL(string: "streak://finance"))
