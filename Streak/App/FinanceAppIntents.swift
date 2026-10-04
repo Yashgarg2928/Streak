@@ -98,7 +98,7 @@ enum StreakFinanceIntentService {
     static func recordExpense(
         amount: Double,
         category: FinanceCategoryAppEnum,
-        note: String,
+        note: String?,
         isSplit: Bool,
         numberOfPeople: Int,
         friendNames: String?
@@ -112,16 +112,21 @@ enum StreakFinanceIntentService {
         let parsedNames: [String]
         if let friendNames, !friendNames.isEmpty {
             parsedNames = friendNames.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
+            // Auto-save friends to fixed friends directory
+            for name in parsedNames {
+                try? repo.saveFriend(Friend(name: name))
+            }
         } else {
             parsedNames = []
         }
 
+        let cleanNote = note?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         let useCase = LogTransactionUseCase(financeRepository: repo)
         let transaction = try useCase.execute(
             amount: amount,
             type: .expense,
             category: category.domainCategory,
-            note: note,
+            note: cleanNote,
             date: Date(),
             isSplit: isSplit,
             numberOfPeople: numberOfPeople,
@@ -181,11 +186,11 @@ public struct LogExpenseIntent: AppIntent {
     @Parameter(title: "Amount", requestValueDialog: "How much did you spend?")
     public var amount: Double
 
+    @Parameter(title: "Note / Description", requestValueDialog: "What was this for? (Add note or tap Done)")
+    public var note: String?
+
     @Parameter(title: "Category", default: .food, requestValueDialog: "Which category?")
     public var category: FinanceCategoryAppEnum
-
-    @Parameter(title: "Note / Description", default: "")
-    public var note: String
 
     @Parameter(title: "Split with anyone?", default: false)
     public var isSplit: Bool
@@ -229,7 +234,7 @@ public struct LogExpenseIntent: AppIntent {
 
 public struct QuickLogExpenseIntent: AppIntent {
     public static var title: LocalizedStringResource = "Quick Log Expense"
-    public static var description = IntentDescription("Instantly prompts for amount and category to log an expense when closing payment apps.")
+    public static var description = IntentDescription("Instantly prompts for amount, note, and category to log an expense when closing payment apps.")
 
     // Runs directly in the top modal banner
     public static var openAppWhenRun: Bool = false
@@ -237,16 +242,14 @@ public struct QuickLogExpenseIntent: AppIntent {
     @Parameter(title: "Amount", requestValueDialog: "How much was the payment?")
     public var amount: Double
 
+    @Parameter(title: "Note", requestValueDialog: "What was this for? (Add note or tap Done)")
+    public var note: String?
+
     @Parameter(title: "Category", default: .food, requestValueDialog: "Category?")
     public var category: FinanceCategoryAppEnum
 
-    @Parameter(title: "Note (Optional)", default: "")
-    public var note: String
-
     public static var parameterSummary: some ParameterSummary {
-        Summary("Quick log \(\.$amount) in \(\.$category)") {
-            \.$note
-        }
+        Summary("Quick log \(\.$amount) with note \(\.$note) in \(\.$category)")
     }
 
     public init() {}

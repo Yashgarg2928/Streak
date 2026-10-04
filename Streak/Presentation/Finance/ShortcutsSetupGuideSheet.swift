@@ -33,7 +33,7 @@ struct ShortcutsSetupGuideSheet: View {
                         badge: "AUTO POP-UP",
                         badgeColor: "#E67E22",
                         title: "Prompt When Closing Payment Apps",
-                        description: "Whenever you pay with Google Pay, Paytm, PhonePe, CRED, or Bank apps, a popup automatically drops from the top of your screen asking for the amount!",
+                        description: "Whenever you pay with Google Pay, Paytm, PhonePe, CRED, or Bank apps, a popup automatically drops from the top of your screen asking for the amount, optional note, and category!",
                         steps: [
                             "Open the Apple **Shortcuts** app on your iPhone.",
                             "Tap the **Automation** tab at the bottom, then tap **+** (New Automation).",

@@ -26,6 +26,7 @@ final class FinanceViewModel {
     var transactions: [FinanceTransaction] = []
     var summary: FinanceSummary = FinanceSummary()
     var pendingSplits: [(transaction: FinanceTransaction, share: SplitShare)] = []
+    var friends: [Friend] = []
 
     var selectedSubTab: FinanceSubTab = .expenses
     var selectedCategoryFilter: FinanceCategory? = nil
@@ -44,6 +45,7 @@ final class FinanceViewModel {
             self.transactions = try env.financeRepository.fetchAllTransactions()
             self.summary = try env.financeRepository.fetchSummary(for: Date())
             self.pendingSplits = try env.financeRepository.fetchPendingSplits()
+            self.friends = try env.financeRepository.fetchFriends()
         } catch {
             print("Failed to load finance data: \(error)")
         }
@@ -149,4 +151,152 @@ final class FinanceViewModel {
             print("Failed to settle split: \(error)")
         }
     }
+
+    // MARK: - Friend Directory & Direct Collection
+
+    public func addFriend(name: String) {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        let friend = Friend(name: trimmed)
+        do {
+            try env.financeRepository.saveFriend(friend)
+            self.friends = try env.financeRepository.fetchFriends()
+        } catch {
+            print("Failed to save friend: \(error)")
+        }
+    }
+
+    public func deleteFriend(id: UUID) {
+        do {
+            try env.financeRepository.deleteFriend(id: id)
+            self.friends = try env.financeRepository.fetchFriends()
+        } catch {
+            print("Failed to delete friend: \(error)")
+        }
+    }
+
+    public func settleAllForFriend(name: String) {
+        do {
+            try env.financeRepository.settleAllSplitsForFriend(name: name)
+            load()
+            env.syncWidgets()
+        } catch {
+            print("Failed to settle all for friend: \(error)")
+        }
+    }
+
+    public func addDirectCollect(
+        friendName: String,
+        amount: Double,
+        note: String = "",
+        category: FinanceCategory = .personal,
+        date: Date = Date()
+    ) {
+        let trimmedFriend = friendName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedFriend.isEmpty, amount > 0 else { return }
+
+        // Automatically save to fixed friends
+        addFriend(name: trimmedFriend)
+
+        let share = SplitShare(
+            personName: trimmedFriend,
+            amountOwed: amount,
+            isSettled: false
+        )
+        let split = SplitDetails(
+            totalAmount: amount,
+            numberOfPeople: 2,
+            myShare: 0.0,
+            splits: [share]
+        )
+        let transaction = FinanceTransaction(
+            amount: amount,
+            type: .expense,
+            category: category,
+            note: note.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Direct to collect from \(trimmedFriend)" : note,
+            date: date,
+            isSplit: true,
+            splitDetails: split
+        )
+        do {
+            try env.financeRepository.saveTransaction(transaction)
+            load()
+            env.syncWidgets()
+        } catch {
+            print("Failed to add direct collect: \(error)")
+        }
+    }
+
+    // MARK: - Friend Tabs & Aggregated Balances
+
+    public var friendTabSummaries: [FriendTabSummary] {
+        var map: [String: (name: String, items: [(transaction: FinanceTransaction, share: SplitShare)])] = [:]
+
+        // Seed with all saved fixed friends
+        for f in friends {
+            let key = f.name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+            if !key.isEmpty {
+                map[key] = (name: f.name, items: [])
+            }
+        }
+
+        // Aggregate every split share across all transactions
+        for tx in transactions {
+            if tx.isSplit, let split = tx.splitDetails {
+                for share in split.splits {
+                    let trimmed = share.personName.trimmingCharacters(in: .whitespacesAndNewlines)
+                    guard !trimmed.isEmpty else { continue }
+                    let key = trimmed.lowercased()
+                    if map[key] == nil {
+                        map[key] = (name: trimmed, items: [])
+                    }
+                    map[key]?.items.append((transaction: tx, share: share))
+                }
+            }
+        }
+
+        var list: [FriendTabSummary] = []
+        for (_, value) in map {
+            let totalOwed = value.items.filter { !$0.share.isSettled }.reduce(0.0) { $0 + $1.share.amountOwed }
+            let totalSettled = value.items.filter { $0.share.isSettled }.reduce(0.0) { $0 + $1.share.amountOwed }
+            let pendingCount = value.items.filter { !$0.share.isSettled }.count
+            let sortedItems = value.items.sorted { $0.transaction.date > $1.transaction.date }
+            list.append(FriendTabSummary(
+                name: value.name,
+                totalOwed: totalOwed,
+                totalSettled: totalSettled,
+                pendingCount: pendingCount,
+                items: sortedItems
+            ))
+        }
+
+        // Sort: Friends with outstanding receivables first (descending), then alphabetically
+        return list.sorted {
+            if $0.totalOwed != $1.totalOwed {
+                return $0.totalOwed > $1.totalOwed
+            }
+            return $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending
+        }
+    }
 }
+
+// MARK: - Friend Tab Summary Model
+
+public struct FriendTabSummary: Identifiable, Equatable {
+    public var id: String { name.lowercased() }
+    public let name: String
+    public var totalOwed: Double
+    public var totalSettled: Double
+    public var totalHistory: Double { totalOwed + totalSettled }
+    public var pendingCount: Int
+    public var items: [(transaction: FinanceTransaction, share: SplitShare)]
+
+    public static func == (lhs: FriendTabSummary, rhs: FriendTabSummary) -> Bool {
+        lhs.name.lowercased() == rhs.name.lowercased() &&
+        abs(lhs.totalOwed - rhs.totalOwed) < 0.001 &&
+        abs(lhs.totalSettled - rhs.totalSettled) < 0.001 &&
+        lhs.pendingCount == rhs.pendingCount &&
+        lhs.items.count == rhs.items.count
+    }
+}
+

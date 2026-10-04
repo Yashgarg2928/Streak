@@ -6,12 +6,26 @@ struct FinanceMainView: View {
     @Environment(AppEnvironment.self) private var env
     @State private var vm: FinanceViewModel? = nil
 
+    enum SplitsViewMode: String, CaseIterable, Identifiable {
+        case byFriend = "BY FRIEND"
+        case allItems = "ALL SPLITS"
+        var id: String { rawValue }
+    }
+
     @State private var showAddTransactionSheet: Bool = false
     @State private var showShortcutsGuideSheet: Bool = false
     @State private var showSettledSplits: Bool = false
     @State private var transactionToEdit: FinanceTransaction? = nil
     @State private var transactionToDelete: FinanceTransaction? = nil
     @State private var showDeleteAlert: Bool = false
+
+    // Friend directory & direct collection state
+    @State private var splitsViewMode: SplitsViewMode = .byFriend
+    @State private var selectedFriendTab: FriendTabSummary? = nil
+    @State private var showDirectCollectSheet: Bool = false
+    @State private var directCollectPreselectedFriend: String? = nil
+    @State private var showAddFriendAlert: Bool = false
+    @State private var newFriendAlertName: String = ""
 
     private func getViewModel() -> FinanceViewModel {
         if let existing = vm {
@@ -106,6 +120,39 @@ struct FinanceMainView: View {
             .sheet(isPresented: $showShortcutsGuideSheet) {
                 ShortcutsSetupGuideSheet()
             }
+            .sheet(isPresented: $showDirectCollectSheet) {
+                AddTransactionSheet(
+                    initialDirectCollectFriend: directCollectPreselectedFriend,
+                    isDirectCollectInitial: true,
+                    onSave: { _, amount, type, category, note, date, isSplit, numPeople, names, customShare, customFriendShares in
+                        activeVM.addTransaction(
+                            amount: amount,
+                            type: type,
+                            category: category,
+                            note: note,
+                            date: date,
+                            isSplit: isSplit,
+                            numberOfPeople: numPeople,
+                            friendNames: names,
+                            customMyShare: customShare,
+                            customFriendShares: customFriendShares
+                        )
+                    }
+                )
+            }
+            .sheet(item: $selectedFriendTab) { friendSummary in
+                FriendTabDetailSheet(
+                    friendSummary: friendSummary,
+                    vm: activeVM,
+                    onAddDirectCollect: { friendName in
+                        directCollectPreselectedFriend = friendName
+                        showDirectCollectSheet = true
+                    },
+                    onEditTransaction: { tx in
+                        transactionToEdit = tx
+                    }
+                )
+            }
             .alert("DELETE EXPENSE", isPresented: $showDeleteAlert, presenting: transactionToDelete) { tx in
                 Button("Delete", role: .destructive) {
                     activeVM.deleteTransaction(id: tx.id)
@@ -115,6 +162,19 @@ struct FinanceMainView: View {
                 }
             } message: { tx in
                 Text("Are you sure you want to delete this \(tx.category.displayName) expense of \(activeVM.currencySymbol)\(String(format: "%.2f", tx.amount))? Any pending friend receivables from this split will also be removed.")
+            }
+            .alert("ADD NEW FIXED FRIEND", isPresented: $showAddFriendAlert) {
+                TextField("Friend's Name", text: $newFriendAlertName)
+                Button("Save Friend") {
+                    let trimmed = newFriendAlertName.trimmingCharacters(in: .whitespacesAndNewlines)
+                    if !trimmed.isEmpty {
+                        activeVM.addFriend(name: trimmed)
+                    }
+                    newFriendAlertName = ""
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("Add a friend to your directory so you can select them with 1-tap when splitting expenses and track their tab.")
             }
             .onAppear {
                 if vm == nil {
@@ -592,63 +652,158 @@ struct FinanceMainView: View {
 
     private func splitsSection(vm: FinanceViewModel) -> some View {
         VStack(alignment: .leading, spacing: 14) {
-            // Header Info & Toggle
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("WHO OWES YOU MONEY")
-                        .font(.system(size: 13, weight: .black, design: .monospaced))
-                        .foregroundStyle(AppColor.textPrimary)
-                    Text("Track receivables from shared expenses & settle up")
-                        .font(.system(size: 11))
-                        .foregroundStyle(AppColor.textSecondary)
+            // Top Action Bar: Direct Collect & Add Friend
+            HStack(spacing: 8) {
+                Button {
+                    directCollectPreselectedFriend = nil
+                    showDirectCollectSheet = true
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.system(size: 12))
+                        Text("DIRECT COLLECT")
+                            .font(.system(size: 11, weight: .black, design: .monospaced))
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 10)
+                    .background(Color(hex: "#8E44AD"))
+                    .foregroundStyle(Color.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                    .overlay(RoundedRectangle(cornerRadius: 6).stroke(AppColor.border, lineWidth: 1.5))
                 }
-
-                Spacer()
+                .buttonStyle(.plain)
 
                 Button {
-                    showSettledSplits.toggle()
+                    newFriendAlertName = ""
+                    showAddFriendAlert = true
                 } label: {
-                    Text(showSettledSplits ? "HIDE SETTLED" : "SHOW ALL")
-                        .font(.system(size: 10, weight: .black, design: .monospaced))
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(AppColor.surface)
-                        .clipShape(RoundedRectangle(cornerRadius: 4))
-                        .overlay(RoundedRectangle(cornerRadius: 4).stroke(AppColor.border, lineWidth: 1.5))
+                    HStack(spacing: 5) {
+                        Image(systemName: "person.badge.plus")
+                            .font(.system(size: 12))
+                        Text("ADD FRIEND")
+                            .font(.system(size: 11, weight: .black, design: .monospaced))
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 10)
+                    .background(AppColor.surface)
+                    .foregroundStyle(AppColor.textPrimary)
+                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                    .overlay(RoundedRectangle(cornerRadius: 6).stroke(AppColor.border, lineWidth: 1.5))
                 }
                 .buttonStyle(.plain)
             }
 
-            // Pending Splits List
-            let allSplitItems = vm.transactions.flatMap { tx -> [(transaction: FinanceTransaction, share: SplitShare)] in
-                guard tx.isSplit, let split = tx.splitDetails else { return [] }
-                return split.splits.map { (transaction: tx, share: $0) }
-            }
-
-            let displayedSplits = allSplitItems.filter { item in
-                showSettledSplits ? true : !item.share.isSettled
-            }
-
-            if displayedSplits.isEmpty {
-                BrutalistCard {
-                    VStack(spacing: 10) {
-                        Text("🎉")
-                            .font(.system(size: 36))
-                        Text("ALL SETTLED UP!")
-                            .font(.system(size: 14, weight: .black, design: .monospaced))
-                            .foregroundStyle(AppColor.textPrimary)
-                        Text("Nobody currently owes you money. Whenever you pay for friends, toggle 'Split' to track who owes you.")
-                            .font(.system(size: 12))
-                            .foregroundStyle(AppColor.textSecondary)
-                            .multilineTextAlignment(.center)
+            // View Mode Switcher
+            HStack(spacing: 8) {
+                ForEach(SplitsViewMode.allCases) { mode in
+                    Button {
+                        splitsViewMode = mode
+                    } label: {
+                        Text(mode.rawValue)
+                            .font(.system(size: 11, weight: .black, design: .monospaced))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 8)
+                            .background(splitsViewMode == mode ? Color(hex: "#8E44AD") : AppColor.surface)
+                            .foregroundStyle(splitsViewMode == mode ? Color.white : AppColor.textPrimary)
+                            .clipShape(RoundedRectangle(cornerRadius: 6))
+                            .overlay(RoundedRectangle(cornerRadius: 6).stroke(AppColor.border, lineWidth: 1.5))
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
+                    .buttonStyle(.plain)
+                }
+            }
+
+            if splitsViewMode == .byFriend {
+                // By Friend Tab View
+                let friendTabs = vm.friendTabSummaries
+                if friendTabs.isEmpty {
+                    BrutalistCard {
+                        VStack(spacing: 10) {
+                            Text("👥")
+                                .font(.system(size: 36))
+                            Text("NO FRIENDS ADDED YET")
+                                .font(.system(size: 14, weight: .black, design: .monospaced))
+                                .foregroundStyle(AppColor.textPrimary)
+                            Text("Add your regular friends to track their individual tabs, lend money directly, or select them with 1-tap when splitting bills.")
+                                .font(.system(size: 12))
+                                .foregroundStyle(AppColor.textSecondary)
+                                .multilineTextAlignment(.center)
+
+                            Button {
+                                newFriendAlertName = ""
+                                showAddFriendAlert = true
+                            } label: {
+                                Text("+ ADD FIRST FRIEND")
+                                    .font(.system(size: 12, weight: .black, design: .monospaced))
+                                    .padding(.horizontal, 14)
+                                    .padding(.vertical, 8)
+                                    .background(Color(hex: "#8E44AD"))
+                                    .foregroundStyle(Color.white)
+                                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                            }
+                            .buttonStyle(.plain)
+                            .padding(.top, 4)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                    }
+                } else {
+                    VStack(spacing: 10) {
+                        ForEach(friendTabs) { friend in
+                            friendTabCard(summary: friend, vm: vm)
+                        }
+                    }
                 }
             } else {
-                VStack(spacing: 10) {
-                    ForEach(displayedSplits, id: \.share.id) { item in
-                        splitShareCard(item: item, vm: vm)
+                // Itemized All Splits View
+                HStack {
+                    Text("ALL SPLIT RECORDS")
+                        .font(.system(size: 11, weight: .black, design: .monospaced))
+                        .foregroundStyle(AppColor.textSecondary)
+                    Spacer()
+                    Button {
+                        showSettledSplits.toggle()
+                    } label: {
+                        Text(showSettledSplits ? "HIDE SETTLED" : "SHOW ALL")
+                            .font(.system(size: 10, weight: .black, design: .monospaced))
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(AppColor.surface)
+                            .clipShape(RoundedRectangle(cornerRadius: 4))
+                            .overlay(RoundedRectangle(cornerRadius: 4).stroke(AppColor.border, lineWidth: 1.5))
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                let allSplitItems = vm.transactions.flatMap { tx -> [(transaction: FinanceTransaction, share: SplitShare)] in
+                    guard tx.isSplit, let split = tx.splitDetails else { return [] }
+                    return split.splits.map { (transaction: tx, share: $0) }
+                }
+
+                let displayedSplits = allSplitItems.filter { item in
+                    showSettledSplits ? true : !item.share.isSettled
+                }
+
+                if displayedSplits.isEmpty {
+                    BrutalistCard {
+                        VStack(spacing: 10) {
+                            Text("🎉")
+                                .font(.system(size: 36))
+                            Text("ALL SETTLED UP!")
+                                .font(.system(size: 14, weight: .black, design: .monospaced))
+                                .foregroundStyle(AppColor.textPrimary)
+                            Text("No split items pending collection.")
+                                .font(.system(size: 12))
+                                .foregroundStyle(AppColor.textSecondary)
+                                .multilineTextAlignment(.center)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                    }
+                } else {
+                    VStack(spacing: 10) {
+                        ForEach(displayedSplits, id: \.share.id) { item in
+                            splitShareCard(item: item, vm: vm)
+                        }
                     }
                 }
             }
@@ -743,6 +898,141 @@ struct FinanceMainView: View {
                                 RoundedRectangle(cornerRadius: 4)
                                     .stroke(AppColor.border, lineWidth: 1.5)
                             )
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+    }
+
+    // MARK: - Friend Tab Card View
+
+    private func friendTabCard(
+        summary: FriendTabSummary,
+        vm: FinanceViewModel
+    ) -> some View {
+        BrutalistCard {
+            VStack(spacing: 12) {
+                Button {
+                    selectedFriendTab = summary
+                } label: {
+                    HStack(alignment: .center, spacing: 12) {
+                        // Initial Avatar
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 6)
+                                .fill(summary.totalOwed > 0 ? Color(hex: "#8E44AD") : Color(hex: "#27AE60"))
+                                .frame(width: 44, height: 44)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .stroke(AppColor.border, lineWidth: 2)
+                                )
+
+                            Text(summary.name.prefix(1).uppercased())
+                                .font(.system(size: 20, weight: .black, design: .monospaced))
+                                .foregroundStyle(Color.white)
+                        }
+
+                        VStack(alignment: .leading, spacing: 3) {
+                            HStack(spacing: 6) {
+                                Text(summary.name)
+                                    .font(.system(size: 15, weight: .bold, design: .monospaced))
+                                    .foregroundStyle(AppColor.textPrimary)
+
+                                if summary.totalOwed > 0 {
+                                    Text("\(summary.pendingCount) PENDING")
+                                        .font(.system(size: 8, weight: .black, design: .monospaced))
+                                        .padding(.horizontal, 4)
+                                        .padding(.vertical, 2)
+                                        .background(Color(hex: "#8E44AD").opacity(0.15))
+                                        .foregroundStyle(Color(hex: "#8E44AD"))
+                                        .clipShape(RoundedRectangle(cornerRadius: 3))
+                                } else {
+                                    Text("SETTLED ✅")
+                                        .font(.system(size: 8, weight: .black, design: .monospaced))
+                                        .padding(.horizontal, 4)
+                                        .padding(.vertical, 2)
+                                        .background(Color(hex: "#27AE60").opacity(0.18))
+                                        .foregroundStyle(Color(hex: "#27AE60"))
+                                        .clipShape(RoundedRectangle(cornerRadius: 3))
+                                }
+                            }
+
+                            Text("Total settled in past: \(vm.currencySymbol)\(String(format: "%.2f", summary.totalSettled)) • \(summary.items.count) total entries")
+                                .font(.system(size: 10, weight: .medium))
+                                .foregroundStyle(AppColor.textSecondary)
+                                .lineLimit(1)
+                        }
+
+                        Spacer()
+
+                        VStack(alignment: .trailing, spacing: 2) {
+                            Text(String(format: "\(vm.currencySymbol)%.2f", summary.totalOwed))
+                                .font(.system(size: 17, weight: .black, design: .monospaced))
+                                .foregroundStyle(summary.totalOwed > 0 ? Color(hex: "#8E44AD") : Color(hex: "#27AE60"))
+
+                            Text(summary.totalOwed > 0 ? "OWED TO YOU" : "BALANCED")
+                                .font(.system(size: 8, weight: .black, design: .monospaced))
+                                .foregroundStyle(AppColor.textSecondary)
+                        }
+                    }
+                }
+                .buttonStyle(.plain)
+
+                Divider()
+
+                // Action Bar
+                HStack(spacing: 8) {
+                    Button {
+                        directCollectPreselectedFriend = summary.name
+                        showDirectCollectSheet = true
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.system(size: 10))
+                            Text("ADD TO TAB")
+                                .font(.system(size: 10, weight: .black, design: .monospaced))
+                        }
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(Color(hex: "#8E44AD").opacity(0.12))
+                        .foregroundStyle(Color(hex: "#8E44AD"))
+                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                        .overlay(RoundedRectangle(cornerRadius: 4).stroke(Color(hex: "#8E44AD"), lineWidth: 1))
+                    }
+                    .buttonStyle(.plain)
+
+                    if summary.totalOwed > 0 {
+                        Button {
+                            vm.settleAllForFriend(name: summary.name)
+                        } label: {
+                            HStack(spacing: 4) {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .font(.system(size: 10))
+                                Text("SETTLE ALL")
+                                    .font(.system(size: 10, weight: .black, design: .monospaced))
+                            }
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(Color(hex: "#27AE60").opacity(0.15))
+                            .foregroundStyle(Color(hex: "#27AE60"))
+                            .clipShape(RoundedRectangle(cornerRadius: 4))
+                            .overlay(RoundedRectangle(cornerRadius: 4).stroke(Color(hex: "#27AE60"), lineWidth: 1))
+                        }
+                        .buttonStyle(.plain)
+                    }
+
+                    Spacer()
+
+                    Button {
+                        selectedFriendTab = summary
+                    } label: {
+                        HStack(spacing: 3) {
+                            Text("VIEW TAB")
+                                .font(.system(size: 10, weight: .black, design: .monospaced))
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 9, weight: .bold))
+                        }
+                        .foregroundStyle(AppColor.textSecondary)
                     }
                     .buttonStyle(.plain)
                 }

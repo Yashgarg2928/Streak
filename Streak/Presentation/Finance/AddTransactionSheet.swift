@@ -47,6 +47,8 @@ struct AddTransactionSheet: View {
     @Environment(AppEnvironment.self) private var env
 
     var transactionToEdit: FinanceTransaction?
+    var initialDirectCollectFriend: String?
+    var isDirectCollectInitial: Bool
     var onSave: ((
         _ id: UUID?,
         _ amount: Double,
@@ -68,6 +70,15 @@ struct AddTransactionSheet: View {
     @State private var note: String
     @State private var date: Date
 
+    // Direct Collect state
+    @State private var isDirectCollectMode: Bool
+    @State private var directCollectFriendName: String
+
+    // Fixed Friends state
+    @State private var savedFriends: [Friend] = []
+    @State private var showNewFriendAlert: Bool = false
+    @State private var newFriendNameInput: String = ""
+
     // Split state
     @State private var isSplit: Bool
     @State private var splitMode: SplitMode
@@ -83,6 +94,8 @@ struct AddTransactionSheet: View {
 
     init(
         transactionToEdit: FinanceTransaction? = nil,
+        initialDirectCollectFriend: String? = nil,
+        isDirectCollectInitial: Bool = false,
         onSave: ((
             _ id: UUID?,
             _ amount: Double,
@@ -99,8 +112,20 @@ struct AddTransactionSheet: View {
         onDelete: ((_ id: UUID) -> Void)? = nil
     ) {
         self.transactionToEdit = transactionToEdit
+        self.initialDirectCollectFriend = initialDirectCollectFriend
+        self.isDirectCollectInitial = isDirectCollectInitial
         self.onSave = onSave
         self.onDelete = onDelete
+
+        let isDirectCollectTx = transactionToEdit?.isSplit == true &&
+            transactionToEdit?.splitDetails?.myShare == 0 &&
+            (transactionToEdit?.splitDetails?.splits.count ?? 0) == 1
+
+        let directMode = isDirectCollectInitial || isDirectCollectTx
+        _isDirectCollectMode = State(initialValue: directMode)
+
+        let initialFriend = initialDirectCollectFriend ?? (isDirectCollectTx ? (transactionToEdit?.splitDetails?.splits.first?.personName ?? "") : "")
+        _directCollectFriendName = State(initialValue: initialFriend)
 
         if let tx = transactionToEdit {
             let amountVal = tx.amount
@@ -164,18 +189,17 @@ struct AddTransactionSheet: View {
         } else {
             _amountString = State(initialValue: "")
             _selectedType = State(initialValue: .expense)
-            _selectedCategory = State(initialValue: .food)
+            _selectedCategory = State(initialValue: isDirectCollectInitial ? .personal : .food)
             _note = State(initialValue: "")
             _date = State(initialValue: Date())
-            _isSplit = State(initialValue: false)
+            _isSplit = State(initialValue: isDirectCollectInitial)
             _splitMode = State(initialValue: .equal)
-            _numberOfPeople = State(initialValue: 3)
-            _friendNamesText = State(initialValue: "")
+            _numberOfPeople = State(initialValue: 2)
+            _friendNamesText = State(initialValue: initialDirectCollectFriend ?? "")
             _isCustomMyShare = State(initialValue: false)
             _customMyShareString = State(initialValue: "")
             _customFriends = State(initialValue: [
-                CustomFriendItem(name: "Friend 1", amountString: ""),
-                CustomFriendItem(name: "Friend 2", amountString: "")
+                CustomFriendItem(name: initialDirectCollectFriend ?? "Friend 1", amountString: "")
             ])
         }
     }
@@ -221,15 +245,28 @@ struct AddTransactionSheet: View {
         return toCollectCalculated / Double(friendsCount)
     }
 
+    private var navigationTitleText: String {
+        if isEditing {
+            return isDirectCollectMode ? "EDIT TO COLLECT" : "EDIT TRANSACTION"
+        } else {
+            return isDirectCollectMode ? "DIRECT TO COLLECT" : "LOG TRANSACTION"
+        }
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
-                    // Type Switcher (EXPENSE vs INCOME)
+                    // Type Switcher (EXPENSE vs TO COLLECT vs INCOME)
                     typePicker
 
                     // Big Amount Input
                     amountSection
+
+                    // Direct Collect Section
+                    if isDirectCollectMode {
+                        directCollectSection
+                    }
 
                     // Category Selector
                     categorySection
@@ -241,7 +278,7 @@ struct AddTransactionSheet: View {
                     dateSection
 
                     // Split Section
-                    if selectedType == .expense {
+                    if selectedType == .expense && !isDirectCollectMode {
                         splitSection
                     }
 
@@ -259,7 +296,7 @@ struct AddTransactionSheet: View {
                 .padding(.vertical, AppLayout.sectionSpacing)
             }
             .background(AppColor.background.ignoresSafeArea())
-            .navigationTitle(isEditing ? "EDIT TRANSACTION" : "LOG TRANSACTION")
+            .navigationTitle(navigationTitleText)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -297,25 +334,60 @@ struct AddTransactionSheet: View {
             } message: {
                 Text("Are you sure you want to delete this expense? Any friend receivables from this split will also be removed.")
             }
+            .onAppear {
+                loadSavedFriends()
+            }
+            .alert("ADD NEW FIXED FRIEND", isPresented: $showNewFriendAlert) {
+                TextField("Friend's Name", text: $newFriendNameInput)
+                Button("Save Friend") {
+                    addNewFriend(name: newFriendNameInput)
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("Save this friend to your fixed directory for 1-tap splitting and tab tracking.")
+            }
         }
     }
 
     // MARK: - Type Picker
 
     private var typePicker: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 6) {
             Button {
                 selectedType = .expense
+                isDirectCollectMode = false
             } label: {
-                HStack(spacing: 6) {
+                HStack(spacing: 4) {
                     Image(systemName: "arrow.down.right.circle.fill")
                     Text("EXPENSE")
                 }
-                .font(.system(size: 13, weight: .black, design: .monospaced))
+                .font(.system(size: 11, weight: .black, design: .monospaced))
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 10)
-                .background(selectedType == .expense ? Color(hex: "#C0392B") : AppColor.surface)
-                .foregroundStyle(selectedType == .expense ? Color.white : AppColor.textPrimary)
+                .background((selectedType == .expense && !isDirectCollectMode) ? Color(hex: "#C0392B") : AppColor.surface)
+                .foregroundStyle((selectedType == .expense && !isDirectCollectMode) ? Color.white : AppColor.textPrimary)
+                .clipShape(RoundedRectangle(cornerRadius: AppLayout.cornerRadius))
+                .overlay(
+                    RoundedRectangle(cornerRadius: AppLayout.cornerRadius)
+                        .stroke(AppColor.border, lineWidth: AppLayout.borderWidth)
+                )
+            }
+            .buttonStyle(.plain)
+
+            Button {
+                isDirectCollectMode = true
+                selectedType = .expense
+                isSplit = true
+            } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: "person.crop.circle.badge.plus")
+                    Text("TO COLLECT")
+                }
+                .font(.system(size: 11, weight: .black, design: .monospaced))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 10)
+                .background(isDirectCollectMode ? Color(hex: "#8E44AD") : AppColor.surface)
+                .foregroundStyle(isDirectCollectMode ? Color.white : AppColor.textPrimary)
                 .clipShape(RoundedRectangle(cornerRadius: AppLayout.cornerRadius))
                 .overlay(
                     RoundedRectangle(cornerRadius: AppLayout.cornerRadius)
@@ -326,17 +398,18 @@ struct AddTransactionSheet: View {
 
             Button {
                 selectedType = .income
+                isDirectCollectMode = false
                 isSplit = false
             } label: {
-                HStack(spacing: 6) {
+                HStack(spacing: 4) {
                     Image(systemName: "arrow.up.left.circle.fill")
                     Text("INCOME")
                 }
-                .font(.system(size: 13, weight: .black, design: .monospaced))
+                .font(.system(size: 11, weight: .black, design: .monospaced))
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 10)
-                .background(selectedType == .income ? Color(hex: "#27AE60") : AppColor.surface)
-                .foregroundStyle(selectedType == .income ? Color.white : AppColor.textPrimary)
+                .background((selectedType == .income && !isDirectCollectMode) ? Color(hex: "#27AE60") : AppColor.surface)
+                .foregroundStyle((selectedType == .income && !isDirectCollectMode) ? Color.white : AppColor.textPrimary)
                 .clipShape(RoundedRectangle(cornerRadius: AppLayout.cornerRadius))
                 .overlay(
                     RoundedRectangle(cornerRadius: AppLayout.cornerRadius)
@@ -436,6 +509,240 @@ struct AddTransactionSheet: View {
                 DatePicker("", selection: $date, displayedComponents: [.date])
                     .labelsHidden()
             }
+        }
+    }
+
+    // MARK: - Direct Collect Section
+
+    private var directCollectSection: some View {
+        BrutalistCard {
+            VStack(alignment: .leading, spacing: 14) {
+                HStack {
+                    HStack(spacing: 5) {
+                        Text("👥")
+                        Text("WHO OWES YOU?")
+                            .font(.system(size: 11, weight: .black, design: .monospaced))
+                            .foregroundStyle(Color(hex: "#8E44AD"))
+                    }
+                    Spacer()
+                    Button {
+                        newFriendNameInput = ""
+                        showNewFriendAlert = true
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "plus")
+                                .font(.system(size: 9, weight: .black))
+                            Text("NEW FRIEND")
+                                .font(.system(size: 9, weight: .black, design: .monospaced))
+                        }
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 4)
+                        .background(Color(hex: "#8E44AD").opacity(0.12))
+                        .foregroundStyle(Color(hex: "#8E44AD"))
+                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                        .overlay(RoundedRectangle(cornerRadius: 4).stroke(Color(hex: "#8E44AD"), lineWidth: 1))
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                // Fixed Friends Quick-Select Chips
+                if !savedFriends.isEmpty {
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text("TAP TO SELECT FRIEND")
+                            .font(.system(size: 9, weight: .black, design: .monospaced))
+                            .foregroundStyle(AppColor.textSecondary)
+
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 6) {
+                                ForEach(savedFriends) { friend in
+                                    let isSelected = directCollectFriendName.lowercased() == friend.name.lowercased()
+                                    Button {
+                                        directCollectFriendName = friend.name
+                                    } label: {
+                                        HStack(spacing: 4) {
+                                            if isSelected {
+                                                Image(systemName: "checkmark")
+                                                    .font(.system(size: 9, weight: .black))
+                                            }
+                                            Text(friend.name)
+                                                .font(.system(size: 11, weight: .bold, design: .monospaced))
+                                        }
+                                        .padding(.horizontal, 10)
+                                        .padding(.vertical, 6)
+                                        .background(isSelected ? Color(hex: "#8E44AD") : AppColor.surface)
+                                        .foregroundStyle(isSelected ? Color.white : AppColor.textPrimary)
+                                        .clipShape(RoundedRectangle(cornerRadius: 6))
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 6)
+                                                .stroke(isSelected ? Color(hex: "#8E44AD") : AppColor.border, lineWidth: 1.5)
+                                        )
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Friend Name Text Field
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("FRIEND NAME")
+                        .font(.system(size: 9, weight: .black, design: .monospaced))
+                        .foregroundStyle(AppColor.textSecondary)
+
+                    TextField("Enter friend's name", text: $directCollectFriendName)
+                        .font(.system(size: 14, weight: .bold, design: .monospaced))
+                        .padding(10)
+                        .background(AppColor.surface)
+                        .clipShape(RoundedRectangle(cornerRadius: 6))
+                        .overlay(RoundedRectangle(cornerRadius: 6).stroke(AppColor.border, lineWidth: 1.5))
+                }
+
+                // Explainer Banner
+                HStack(alignment: .top, spacing: 8) {
+                    Image(systemName: "info.circle.fill")
+                        .font(.system(size: 13))
+                        .foregroundStyle(Color(hex: "#8E44AD"))
+                    Text("Directly adds this receivable to \(directCollectFriendName.isEmpty ? "your friend" : directCollectFriendName)'s tab. Your personal expense will be \(currency)0, and \(currency)\(String(format: "%.2f", parsedAmount)) will be tracked in Splits & Owed.")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(AppColor.textSecondary)
+                }
+                .padding(8)
+                .background(Color(hex: "#8E44AD").opacity(0.06))
+                .clipShape(RoundedRectangle(cornerRadius: 6))
+            }
+        }
+    }
+
+    // MARK: - Fixed Friends Quick Select Bar
+
+    private func fixedFriendsChipBar(mode: SplitMode) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                HStack(spacing: 4) {
+                    Image(systemName: "person.2.fill")
+                        .font(.system(size: 10))
+                    Text("FIXED FRIENDS (1-TAP SELECT)")
+                        .font(.system(size: 10, weight: .black, design: .monospaced))
+                }
+                .foregroundStyle(Color(hex: "#8E44AD"))
+
+                Spacer()
+
+                Button {
+                    newFriendNameInput = ""
+                    showNewFriendAlert = true
+                } label: {
+                    HStack(spacing: 3) {
+                        Image(systemName: "plus")
+                            .font(.system(size: 9, weight: .black))
+                        Text("NEW FRIEND")
+                            .font(.system(size: 9, weight: .black, design: .monospaced))
+                    }
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 3)
+                    .background(Color(hex: "#8E44AD").opacity(0.12))
+                    .foregroundStyle(Color(hex: "#8E44AD"))
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
+                }
+                .buttonStyle(.plain)
+            }
+
+            if savedFriends.isEmpty {
+                Text("No saved friends yet. Tap '+ NEW FRIEND' to save friends for 1-tap splitting.")
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(AppColor.textSecondary)
+                    .padding(.vertical, 2)
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 6) {
+                        ForEach(savedFriends) { friend in
+                            let isSelected = (mode == .equal) ? isFriendSelectedInEqual(friend: friend) : isFriendSelectedInCustom(friend: friend)
+                            Button {
+                                if mode == .equal {
+                                    toggleFixedFriendInEqualSplit(friend: friend)
+                                } else {
+                                    toggleFixedFriendInCustomSplit(friend: friend)
+                                }
+                            } label: {
+                                HStack(spacing: 4) {
+                                    Image(systemName: isSelected ? "checkmark" : "plus")
+                                        .font(.system(size: 9, weight: .black))
+                                    Text(friend.name)
+                                        .font(.system(size: 11, weight: .bold, design: .monospaced))
+                                }
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 5)
+                                .background(isSelected ? Color(hex: "#8E44AD") : AppColor.surface)
+                                .foregroundStyle(isSelected ? Color.white : AppColor.textPrimary)
+                                .clipShape(RoundedRectangle(cornerRadius: 6))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .stroke(isSelected ? Color(hex: "#8E44AD") : AppColor.border, lineWidth: 1.5)
+                                )
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                }
+            }
+        }
+        .padding(.vertical, 4)
+    }
+
+    // MARK: - Friend Management Helpers
+
+    private func loadSavedFriends() {
+        if let list = try? env.financeRepository.fetchFriends() {
+            savedFriends = list
+        }
+    }
+
+    private func addNewFriend(name: String) {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        let friend = Friend(name: trimmed)
+        try? env.financeRepository.saveFriend(friend)
+        loadSavedFriends()
+
+        if isDirectCollectMode {
+            directCollectFriendName = trimmed
+        } else if splitMode == .equal {
+            toggleFixedFriendInEqualSplit(friend: friend)
+        } else {
+            toggleFixedFriendInCustomSplit(friend: friend)
+        }
+    }
+
+    private func isFriendSelectedInEqual(friend: Friend) -> Bool {
+        let names = friendNamesText.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() }
+        return names.contains(friend.name.lowercased())
+    }
+
+    private func toggleFixedFriendInEqualSplit(friend: Friend) {
+        var names = friendNamesText
+            .components(separatedBy: ",")
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+
+        if let idx = names.firstIndex(where: { $0.lowercased() == friend.name.lowercased() }) {
+            names.remove(at: idx)
+        } else {
+            names.append(friend.name)
+        }
+        friendNamesText = names.joined(separator: ", ")
+        numberOfPeople = max(2, names.count + 1)
+    }
+
+    private func isFriendSelectedInCustom(friend: Friend) -> Bool {
+        customFriends.contains { $0.name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == friend.name.lowercased() }
+    }
+
+    private func toggleFixedFriendInCustomSplit(friend: Friend) {
+        if let idx = customFriends.firstIndex(where: { $0.name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == friend.name.lowercased() }) {
+            customFriends.remove(at: idx)
+        } else {
+            customFriends.append(CustomFriendItem(name: friend.name, amountString: ""))
         }
     }
 
@@ -563,6 +870,9 @@ struct AddTransactionSheet: View {
 
     private var equalSplitControls: some View {
         VStack(alignment: .leading, spacing: 10) {
+            // Fixed Friends quick-select chips
+            fixedFriendsChipBar(mode: .equal)
+
             // Number of people Stepper
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
@@ -631,6 +941,9 @@ struct AddTransactionSheet: View {
 
     private var customSplitControls: some View {
         VStack(alignment: .leading, spacing: 12) {
+            // Fixed Friends quick-select chips
+            fixedFriendsChipBar(mode: .custom)
+
             // Split Tools Toolbar
             splitToolsToolbar
 
@@ -955,6 +1268,40 @@ struct AddTransactionSheet: View {
 
             let targetId = transactionToEdit?.id
 
+            if isDirectCollectMode {
+                let cleanName = directCollectFriendName.trimmingCharacters(in: .whitespacesAndNewlines)
+                let finalName = cleanName.isEmpty ? "Friend" : cleanName
+
+                // Automatically save to fixed friends directory
+                try? env.financeRepository.saveFriend(Friend(name: finalName))
+
+                let share = SplitShare(
+                    id: transactionToEdit?.splitDetails?.splits.first?.id ?? UUID(),
+                    personName: finalName,
+                    amountOwed: parsedAmount,
+                    isSettled: transactionToEdit?.splitDetails?.splits.first?.isSettled ?? false,
+                    settledAt: transactionToEdit?.splitDetails?.splits.first?.settledAt
+                )
+                let effectiveShares = [share]
+                let finalNote = note.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Direct to collect from \(finalName)" : note
+
+                onSave?(
+                    targetId,
+                    parsedAmount,
+                    .expense,
+                    selectedCategory,
+                    finalNote,
+                    date,
+                    true,
+                    2,
+                    [finalName],
+                    0.0,
+                    effectiveShares
+                )
+                dismiss()
+                return
+            }
+
             if isSplit {
                 if splitMode == .custom {
                     let validFriends = customFriends
@@ -974,6 +1321,14 @@ struct AddTransactionSheet: View {
 
                     let effectiveShares = validFriends.isEmpty ? [SplitShare(personName: "Friend 1", amountOwed: 0)] : validFriends
                     let customShare = isCustomMyShare ? Double(customMyShareString) : myShareCalculated
+
+                    // Automatically save any new friend names to fixed directory
+                    for share in effectiveShares {
+                        let trimmed = share.personName.trimmingCharacters(in: .whitespacesAndNewlines)
+                        if !trimmed.isEmpty && !trimmed.lowercased().hasPrefix("friend ") {
+                            try? env.financeRepository.saveFriend(Friend(name: trimmed))
+                        }
+                    }
 
                     onSave?(
                         targetId,
@@ -995,6 +1350,11 @@ struct AddTransactionSheet: View {
                         .filter { !$0.isEmpty }
 
                     let customShare: Double? = isCustomMyShare ? Double(customMyShareString) : nil
+
+                    // Automatically save any new friend names to fixed directory
+                    for name in friendNames {
+                        try? env.financeRepository.saveFriend(Friend(name: name))
+                    }
 
                     onSave?(
                         targetId,

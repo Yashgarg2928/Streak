@@ -1063,6 +1063,83 @@ public final class SwiftDataFinanceRepository: FinanceRepository {
             categoryBreakdown: categoryTotals
         )
     }
+
+    // MARK: - Fixed Friends Directory & Batch Operations
+
+    private var fixedFriendsKey: String { "finance_fixed_friends_v1" }
+
+    public func fetchFriends() throws -> [Friend] {
+        let defaults = UserDefaults(suiteName: AppConfig.appGroupID) ?? .standard
+        if let data = defaults.data(forKey: fixedFriendsKey),
+           let list = try? JSONDecoder().decode([Friend].self, from: data) {
+            return list.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+        }
+
+        // Auto-seed from existing transactions if no friends are explicitly saved yet
+        let existingTransactions = try fetchAllTransactions()
+        var discoveredNames = Set<String>()
+        for tx in existingTransactions {
+            if let split = tx.splitDetails {
+                for share in split.splits {
+                    let trimmed = share.personName.trimmingCharacters(in: .whitespacesAndNewlines)
+                    if !trimmed.isEmpty && !trimmed.lowercased().hasPrefix("friend ") {
+                        discoveredNames.insert(trimmed)
+                    }
+                }
+            }
+        }
+
+        if !discoveredNames.isEmpty {
+            let initialFriends = discoveredNames.sorted().map { Friend(name: $0) }
+            if let encoded = try? JSONEncoder().encode(initialFriends) {
+                defaults.set(encoded, forKey: fixedFriendsKey)
+            }
+            return initialFriends
+        }
+
+        return []
+    }
+
+    public func saveFriend(_ friend: Friend) throws {
+        let defaults = UserDefaults(suiteName: AppConfig.appGroupID) ?? .standard
+        var current = (try? fetchFriends()) ?? []
+        let trimmedName = friend.name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedName.isEmpty else { return }
+
+        if let idx = current.firstIndex(where: { $0.id == friend.id || $0.name.lowercased() == trimmedName.lowercased() }) {
+            current[idx].name = trimmedName
+            current[idx].updatedAt = Date()
+        } else {
+            current.append(Friend(id: friend.id, name: trimmedName, createdAt: friend.createdAt, updatedAt: Date()))
+        }
+        let encoded = try JSONEncoder().encode(current)
+        defaults.set(encoded, forKey: fixedFriendsKey)
+    }
+
+    public func deleteFriend(id: UUID) throws {
+        let defaults = UserDefaults(suiteName: AppConfig.appGroupID) ?? .standard
+        var current = (try? fetchFriends()) ?? []
+        current.removeAll { $0.id == id }
+        let encoded = try JSONEncoder().encode(current)
+        defaults.set(encoded, forKey: fixedFriendsKey)
+    }
+
+    public func settleAllSplitsForFriend(name: String) throws {
+        let targetName = name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard !targetName.isEmpty else { return }
+
+        let descriptor = FetchDescriptor<SplitShareModel>(
+            predicate: #Predicate { $0.isSettled == false }
+        )
+        let shares = try context.fetch(descriptor)
+        for share in shares {
+            if share.personName.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == targetName {
+                share.isSettled = true
+                share.settledAt = Date()
+            }
+        }
+        try context.save()
+    }
 }
 
 

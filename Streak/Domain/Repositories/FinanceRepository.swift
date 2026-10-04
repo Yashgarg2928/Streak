@@ -12,4 +12,10 @@ public protocol FinanceRepository {
     func settleSplitShare(transactionId: UUID, shareId: UUID, isSettled: Bool) throws
     func fetchPendingSplits() throws -> [(transaction: FinanceTransaction, share: SplitShare)]
     func fetchSummary(for date: Date) throws -> FinanceSummary
+
+    // Friend Directory & Tabs
+    func fetchFriends() throws -> [Friend]
+    func saveFriend(_ friend: Friend) throws
+    func deleteFriend(id: UUID) throws
+    func settleAllSplitsForFriend(name: String) throws
 }

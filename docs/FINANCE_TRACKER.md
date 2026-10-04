@@ -177,3 +177,54 @@ A dedicated, minimalist WidgetKit widget focused purely on monthly spending:
   - Automatically synced when logging an expense through Siri or iOS Shortcuts via `StreakFinanceIntentService`.
   - Automatically rolls over to `₹0` at midnight on the 1st of every month via WidgetKit timeline scheduling.
 
+---
+
+## 8. Fixed Friends Directory & Friend Tabs
+
+The app includes a persistent directory of saved **Fixed Friends** and dedicated **Friend Tabs** to eliminate repetitive typing and track individual friend debts:
+
+### 1-Tap Friend Selection in Splits
+- Saved friends appear as horizontal chips in both `DIVIDE EQUALLY` and `CUSTOM AMOUNTS` modes.
+- Tapping a chip toggles the friend into the split instantly (e.g. `[✓ Rohan]`, `[+ Priya]`), adjusting `numberOfPeople` and individual split rows automatically.
+- A `+ NEW FRIEND` button allows adding and saving new friends to the directory on the fly.
+- Any new friend names entered during splits or direct collects are automatically saved to the persistent directory.
+
+### Friend Tabs & Aggregate Ledgers
+- In **SPLITS & OWED**, users can toggle between:
+  - **`👥 BY FRIEND` (Friend Tabs):** Shows each friend with their avatar, currently pending owed amount, total settled in the past, and transaction count.
+  - **`🧾 ALL SPLITS`:** Itemized list of every individual split share with filter for settled items.
+- **Friend Tab Detail Sheet (`FriendTabDetailSheet`):**
+  - Tapping any friend card opens their comprehensive tab ledger.
+  - Shows total outstanding balance vs total historically settled.
+  - Complete chronological history of all shared expenses and direct amounts lent.
+  - Individual item settle/undo toggles and transaction edit buttons.
+- **1-Tap Batch Settlement (`SETTLE ALL`):**
+  - Marks all pending receivables for that specific friend as paid back with a single tap.
+
+---
+
+## 9. Direct "To Collect" (Manual Money Lent / Tab Additions)
+
+Users can record money lent or paid on behalf of a friend directly without splitting an expense:
+
+### Dedicated "TO COLLECT" Flow
+- Accessible via the **`+ DIRECT COLLECT`** button in the Splits tab or the **`TO COLLECT`** option in the transaction sheet.
+- **Zero Personal Share:** Automatically sets `myShare = 0`, ensuring the lent money is not counted toward the user's personal monthly spending budget.
+- **Direct Tab Allocation:** The full amount is assigned to the selected friend as an unsettled `SplitShare` and tracked in their tab ledger.
+- **Fast 1-Tap Entry:**
+  - Tap any fixed friend chip to select who owes you.
+  - Enter the amount, note (e.g. *"Lent cash for lunch"*), and optional category.
+  - Saves directly to the friend's tab and updates the master summary receivables metric.
+
+---
+
+## 10. Interactive Note in Siri & Shortcuts Top Banner
+
+The floating window triggered by closing payment apps, double-tapping the back of the iPhone, or pressing the Action Button prompts interactively for all key details:
+
+### Interactive Banner Prompts
+1. **Amount Dialog:** *"How much was the payment?"*
+2. **Note Dialog:** *"What was this for? (Add note or tap Done)"* — allows typing or dictating what the payment was for on the spot so expenses are never forgotten.
+3. **Category Picker:** Select from standard spending categories (*Food & Dining, Groceries, Shopping, etc.*).
+4. **Auto-Friend Capture:** Any friend names passed in Shortcuts or Siri are automatically saved to the Fixed Friends directory.
+
