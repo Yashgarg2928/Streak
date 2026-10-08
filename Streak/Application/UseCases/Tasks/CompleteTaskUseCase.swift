@@ -69,7 +69,8 @@ struct CompleteTaskUseCase {
                 dayEntryRepository: dRepo,
                 taskRepository: taskRepository,
                 goalRepository: gRepo,
-                habitRoutineRepository: hRepo
+                habitRoutineRepository: hRepo,
+                settingsRepository: settingsRepository
             )
             
             let xpAmount: Int
@@ -98,10 +99,18 @@ struct CompleteTaskUseCase {
             
             // Check if day became overall green
             let masterEntries = try dRepo.fetchAll(categoryId: nil)
-            if let todayEntry = masterEntries.first(where: { Calendar.current.isDate($0.date, inSameDayAs: task.targetDate) }),
+            let dayFormatter = DateFormatter()
+            dayFormatter.dateFormat = "yyyy-MM-dd"
+            dayFormatter.locale = Locale(identifier: "en_US_POSIX")
+            let dayMarker = "[day:\(dayFormatter.string(from: task.targetDate))]"
+            let bonusAlreadyAwarded = try xRepo.fetchAll().contains {
+                $0.reason == .overallGreenDay && ($0.note?.contains(dayMarker) ?? false)
+            }
+            if !bonusAlreadyAwarded,
+               let todayEntry = masterEntries.first(where: { Calendar.current.isDate($0.date, inSameDayAs: task.targetDate) }),
                todayEntry.status == .green {
                 // Streak multiplier check
-                let streak = (try? CalculateStreakUseCase(dayEntryRepository: dRepo).execute(categoryId: nil)) ?? 1
+                let streak = (try? CalculateStreakUseCase(dayEntryRepository: dRepo, settingsRepository: settingsRepository).execute(categoryId: nil)) ?? 1
                 let multiplier: Double
                 switch streak {
                 case 7...13: multiplier = 1.2
@@ -112,7 +121,7 @@ struct CompleteTaskUseCase {
                 default: multiplier = 1.0
                 }
                 let bonus = Int(50.0 * multiplier)
-                _ = try awardUseCase.execute(amount: bonus, reason: .overallGreenDay, note: "Overall Green Day (\(streak)d streak multiplier)")
+                _ = try awardUseCase.execute(amount: bonus, reason: .overallGreenDay, note: "Overall Green Day (\(streak)d streak multiplier) \(dayMarker)")
             }
         }
     }

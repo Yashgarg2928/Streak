@@ -51,7 +51,7 @@ struct SyncWidgetDataUseCase {
         let goals = try goalRepository.fetchAll()
 
         let masterEntry = try dayEntryRepository.fetch(date: today, categoryId: nil)
-        let masterStreak = try CalculateStreakUseCase(dayEntryRepository: dayEntryRepository)
+        let masterStreak = try CalculateStreakUseCase(dayEntryRepository: dayEntryRepository, settingsRepository: settingsRepository)
             .execute(categoryId: nil)
 
         // Master recent days
@@ -66,7 +66,7 @@ struct SyncWidgetDataUseCase {
 
         var catData: [WidgetData.CategoryWidgetData] = []
         for cat in categories {
-            let streak = try CalculateStreakUseCase(dayEntryRepository: dayEntryRepository)
+            let streak = try CalculateStreakUseCase(dayEntryRepository: dayEntryRepository, settingsRepository: settingsRepository)
                 .execute(categoryId: cat.id)
             let todayEntry = try dayEntryRepository.fetch(date: today, categoryId: cat.id)
             let allEntries = try dayEntryRepository.fetchAll(categoryId: cat.id)
@@ -95,6 +95,7 @@ struct SyncWidgetDataUseCase {
         )
         let taskItems = todayTasks.map { task in
             WidgetData.TaskItem(
+                id: task.id.uuidString,
                 title: task.title,
                 isCompleted: task.isCompleted,
                 categoryColorHex: task.categoryId.flatMap { catColorMap[$0] }
@@ -129,7 +130,16 @@ struct SyncWidgetDataUseCase {
         var pendingCount = 0
 
         for routine in habitRoutines {
-            let status = logMap[routine.id] ?? .pending
+            // The habit's task is the source of truth; an explicit "not followed" check-in marks it failed.
+            let task = todayTasks.first { $0.routineId == routine.id }
+            let status: HabitCheckStatus
+            if task?.isCompleted == true {
+                status = .followed
+            } else if logMap[routine.id] == .failed {
+                status = .failed
+            } else {
+                status = .pending
+            }
             let statusString: String
             switch status {
             case .followed:

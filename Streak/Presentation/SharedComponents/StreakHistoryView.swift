@@ -21,12 +21,12 @@ struct StreakHistoryView: View {
             BrutalistCard {
                 HStack(spacing: 12) {
                     Image(systemName: "trophy.fill")
-                        .font(.system(size: 22, weight: .bold))
+                        .font(.app(size: 22, weight: .bold))
                         .foregroundStyle(AppColor.green)
 
                     VStack(alignment: .leading, spacing: 2) {
                         Text("ALL-TIME BEST")
-                            .font(.system(size: 10, weight: .black))
+                            .font(.app(size: 10, weight: .black))
                             .foregroundStyle(AppColor.textSecondary)
                         Text("\(highStreak) DAYS")
                             .font(.system(.title2, design: .monospaced).weight(.black))
@@ -41,7 +41,7 @@ struct StreakHistoryView: View {
                         let fraction = totalGreen > 0 ? min(Double(highStreak) / Double(totalGreen), 1.0) : 0.0
                         VStack(alignment: .trailing, spacing: 4) {
                             Text("OF \(totalGreen) TOTAL")
-                                .font(.system(size: 9, weight: .bold))
+                                .font(.app(size: 9, weight: .bold))
                                 .foregroundStyle(AppColor.textSecondary)
                             GeometryReader { geo in
                                 ZStack(alignment: .leading) {
@@ -90,7 +90,7 @@ struct StreakHistoryView: View {
                 HStack(alignment: .center, spacing: 8) {
                     // Flame icon — larger for current/best
                     Image(systemName: isHigh ? "flame.fill" : "flame")
-                        .font(.system(size: isHigh ? 16 : 13, weight: .bold))
+                        .font(.app(size: isHigh ? 16 : 13, weight: .bold))
                         .foregroundStyle(isHigh ? AppColor.green : AppColor.textSecondary)
 
                     // Day count
@@ -101,7 +101,7 @@ struct StreakHistoryView: View {
                     // Best / Current badges
                     if isHigh {
                         Text("BEST")
-                            .font(.system(size: 8, weight: .black))
+                            .font(.app(size: 8, weight: .black))
                             .foregroundStyle(AppColor.background)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 3)
@@ -110,7 +110,7 @@ struct StreakHistoryView: View {
                     }
                     if isLatest {
                         Text("LATEST")
-                            .font(.system(size: 8, weight: .black))
+                            .font(.app(size: 8, weight: .black))
                             .foregroundStyle(AppColor.background)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 3)
@@ -122,7 +122,7 @@ struct StreakHistoryView: View {
 
                     // Date range
                     Text("\(dateFormatter.string(from: run.startDate)) – \(dateFormatter.string(from: run.endDate))")
-                        .font(.system(size: 10, weight: .medium))
+                        .font(.app(size: 10, weight: .medium))
                         .foregroundStyle(AppColor.textSecondary)
                 }
 

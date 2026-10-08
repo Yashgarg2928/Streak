@@ -64,11 +64,11 @@ struct WorkoutMainView: View {
             if let errorMsg = activeVM.errorMessage {
                 HStack {
                     Text("⚠️ \(errorMsg)")
-                        .font(.system(size: 11, weight: .bold))
+                        .font(.app(size: 11, weight: .bold))
                         .foregroundStyle(AppColor.red)
                     Spacer()
                     Button("✕") { activeVM.errorMessage = nil }
-                        .font(.system(size: 12, weight: .bold))
+                        .font(.app(size: 12, weight: .bold))
                         .foregroundStyle(AppColor.textSecondary)
                 }
                 .padding(8)
@@ -82,11 +82,11 @@ struct WorkoutMainView: View {
             if let successMsg = activeVM.successMessage {
                 HStack {
                     Text("✅ \(successMsg)")
-                        .font(.system(size: 11, weight: .bold))
+                        .font(.app(size: 11, weight: .bold))
                         .foregroundStyle(AppColor.green)
                     Spacer()
                     Button("✕") { activeVM.successMessage = nil }
-                        .font(.system(size: 12, weight: .bold))
+                        .font(.app(size: 12, weight: .bold))
                         .foregroundStyle(AppColor.textSecondary)
                 }
                 .padding(8)
@@ -101,6 +101,7 @@ struct WorkoutMainView: View {
                 VStack(spacing: AppLayout.itemSpacing) {
                     switch subTab {
                     case .workout:
+                        AppleHealthCard(date: selectedDate)
                         workoutLoggingView(vm: activeVM)
                     case .nutrition:
                         nutritionLoggingView(vm: activeVM)
@@ -174,7 +175,7 @@ struct WorkoutMainView: View {
                 } label: {
                     HStack(spacing: 4) {
                         Text("🤖 AI PROMPTS")
-                            .font(.system(size: 10, weight: .black, design: .monospaced))
+                            .font(.app(size: 10, weight: .black, design: .monospaced))
                     }
                     .foregroundStyle(AppColor.background)
                     .padding(.horizontal, 10)
@@ -188,7 +189,7 @@ struct WorkoutMainView: View {
                     showExportSheet = true
                 } label: {
                     Image(systemName: "square.and.arrow.up")
-                        .font(.system(size: 14, weight: .bold))
+                        .font(.app(size: 14, weight: .bold))
                         .foregroundStyle(AppColor.textPrimary)
                         .padding(8)
                         .background(AppColor.surface)
@@ -211,9 +212,9 @@ struct WorkoutMainView: View {
                 } label: {
                     HStack(spacing: 4) {
                         Text(tab.emoji)
-                            .font(.system(size: 12))
+                            .font(.app(size: 12))
                         Text(tab.rawValue)
-                            .font(.system(size: 11, weight: .bold, design: .monospaced))
+                            .font(.app(size: 11, weight: .bold, design: .monospaced))
                     }
                     .foregroundStyle(isSelected ? AppColor.background : AppColor.textPrimary)
                     .frame(maxWidth: .infinity)
@@ -237,7 +238,7 @@ struct WorkoutMainView: View {
                 vm?.load(date: selectedDate)
             } label: {
                 Image(systemName: "chevron.left")
-                    .font(.system(size: 12, weight: .bold))
+                    .font(.app(size: 12, weight: .bold))
                     .foregroundStyle(AppColor.textPrimary)
                     .padding(8)
                     .background(AppColor.surface)
@@ -249,7 +250,7 @@ struct WorkoutMainView: View {
             Spacer()
 
             Text(formattedDate(selectedDate))
-                .font(.system(size: 13, weight: .black, design: .monospaced))
+                .font(.app(size: 13, weight: .black, design: .monospaced))
                 .foregroundStyle(AppColor.textPrimary)
 
             Spacer()
@@ -259,7 +260,7 @@ struct WorkoutMainView: View {
                 vm?.load(date: selectedDate)
             } label: {
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 12, weight: .bold))
+                    .font(.app(size: 12, weight: .bold))
                     .foregroundStyle(AppColor.textPrimary)
                     .padding(8)
                     .background(AppColor.surface)
@@ -280,7 +281,7 @@ struct WorkoutMainView: View {
                     HStack {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("ACTIVE WEEKLY PLAN")
-                                .font(.system(size: 10, weight: .bold, design: .monospaced))
+                                .font(.app(size: 10, weight: .bold, design: .monospaced))
                                 .foregroundStyle(AppColor.textSecondary)
                             Text(vm.activePlan?.title ?? "No Weekly Plan Configured")
                                 .font(.system(.headline).weight(.bold))
@@ -297,7 +298,7 @@ struct WorkoutMainView: View {
                                         Image(systemName: "arrow.clockwise")
                                         Text("RE-SYNC TODAY")
                                     }
-                                    .font(.system(size: 10, weight: .bold))
+                                    .font(.app(size: 10, weight: .bold))
                                     .foregroundStyle(AppColor.green)
                                     .padding(.horizontal, 8)
                                     .padding(.vertical, 6)
@@ -315,7 +316,7 @@ struct WorkoutMainView: View {
                                     Image(systemName: "square.and.arrow.down")
                                     Text("IMPORT JSON")
                                 }
-                                .font(.system(size: 10, weight: .bold))
+                                .font(.app(size: 10, weight: .bold))
                                 .foregroundStyle(AppColor.textPrimary)
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 6)
@@ -338,7 +339,7 @@ struct WorkoutMainView: View {
             // Exercise List & Frictionless Set Tracker
             HStack {
                 Text("TODAY'S EXERCISES (\(vm.dailyWorkoutLog.exercises.count))")
-                    .font(.system(size: 11, weight: .bold, design: .monospaced))
+                    .font(.app(size: 11, weight: .bold, design: .monospaced))
                     .foregroundStyle(AppColor.textSecondary)
                 Spacer()
                 Button {
@@ -348,7 +349,7 @@ struct WorkoutMainView: View {
                         Image(systemName: "plus")
                         Text("ADD EXERCISE")
                     }
-                    .font(.system(size: 10, weight: .bold))
+                    .font(.app(size: 10, weight: .bold))
                     .foregroundStyle(AppColor.green)
                 }
                 .buttonStyle(.plain)
@@ -382,7 +383,7 @@ struct WorkoutMainView: View {
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(exercise.category.uppercased())
-                            .font(.system(size: 9, weight: .bold, design: .monospaced))
+                            .font(.app(size: 9, weight: .bold, design: .monospaced))
                             .foregroundStyle(AppColor.textSecondary)
                         Text(exercise.exerciseName)
                             .font(.system(.subheadline, weight: .bold))
@@ -396,7 +397,7 @@ struct WorkoutMainView: View {
                                 Image(systemName: "play.tv.fill")
                                 Text("TUTORIAL")
                             }
-                            .font(.system(size: 9, weight: .black))
+                            .font(.app(size: 9, weight: .black))
                             .foregroundStyle(AppColor.red)
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
@@ -410,7 +411,7 @@ struct WorkoutMainView: View {
                         vm.deleteExercise(id: exercise.id)
                     } label: {
                         Image(systemName: "trash")
-                            .font(.system(size: 11))
+                            .font(.app(size: 11))
                             .foregroundStyle(AppColor.textDisabled)
                     }
                     .buttonStyle(.plain)
@@ -418,7 +419,7 @@ struct WorkoutMainView: View {
 
                 if let notes = exercise.notes, !notes.isEmpty {
                     Text("💡 \(notes)")
-                        .font(.system(size: 10))
+                        .font(.app(size: 10))
                         .foregroundStyle(AppColor.textSecondary)
                 }
 
@@ -426,7 +427,7 @@ struct WorkoutMainView: View {
                 if let steps = exercise.stepCount {
                     HStack {
                         Text("🚶 Step Count:")
-                            .font(.system(size: 11, weight: .bold))
+                            .font(.app(size: 11, weight: .bold))
                             .foregroundStyle(AppColor.textPrimary)
                         Spacer()
                         TextField("0", value: Binding(
@@ -434,7 +435,7 @@ struct WorkoutMainView: View {
                             set: { vm.updateStepCount(exerciseId: exercise.id, steps: $0) }
                         ), format: .number)
                         .keyboardType(.numberPad)
-                        .font(.system(size: 12, weight: .bold, design: .monospaced))
+                        .font(.app(size: 12, weight: .bold, design: .monospaced))
                         .multilineTextAlignment(.trailing)
                         .frame(width: 90)
                         .padding(.horizontal, 8)
@@ -443,7 +444,7 @@ struct WorkoutMainView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 4))
                         .overlay(RoundedRectangle(cornerRadius: 4).stroke(AppColor.border, lineWidth: 1))
                         Text("steps")
-                            .font(.system(size: 10))
+                            .font(.app(size: 10))
                             .foregroundStyle(AppColor.textSecondary)
                     }
                 } else {
@@ -459,7 +460,7 @@ struct WorkoutMainView: View {
                             Text("DONE")
                                 .frame(width: 45, alignment: .trailing)
                         }
-                        .font(.system(size: 9, weight: .bold, design: .monospaced))
+                        .font(.app(size: 9, weight: .bold, design: .monospaced))
                         .foregroundStyle(AppColor.textDisabled)
 
                         ForEach(Array(exercise.sets.enumerated()), id: \.element.id) { index, setLog in
@@ -475,7 +476,7 @@ struct WorkoutMainView: View {
                                 Image(systemName: "plus.circle.fill")
                                 Text("ADD SET")
                             }
-                            .font(.system(size: 10, weight: .bold))
+                            .font(.app(size: 10, weight: .bold))
                             .foregroundStyle(AppColor.green)
                         }
                         .buttonStyle(.plain)
@@ -487,7 +488,7 @@ struct WorkoutMainView: View {
                                 vm.removeSet(from: exercise.id)
                             } label: {
                                 Text("- REMOVE SET")
-                                    .font(.system(size: 10, weight: .bold))
+                                    .font(.app(size: 10, weight: .bold))
                                     .foregroundStyle(AppColor.red)
                             }
                             .buttonStyle(.plain)
@@ -502,7 +503,7 @@ struct WorkoutMainView: View {
     private func setRowView(exerciseId: UUID, setIndex: Int, setLog: WorkoutSetLog, vm: WorkoutViewModel) -> some View {
         HStack {
             Text("#\(setLog.setNumber)")
-                .font(.system(size: 11, weight: .bold, design: .monospaced))
+                .font(.app(size: 11, weight: .bold, design: .monospaced))
                 .foregroundStyle(AppColor.textSecondary)
                 .frame(width: 35, alignment: .leading)
 
@@ -511,7 +512,7 @@ struct WorkoutMainView: View {
                 set: { vm.updateSet(exerciseId: exerciseId, setIndex: setIndex, weight: $0) }
             ), format: .number)
             .keyboardType(.decimalPad)
-            .font(.system(size: 12, weight: .bold, design: .monospaced))
+            .font(.app(size: 12, weight: .bold, design: .monospaced))
             .multilineTextAlignment(.center)
             .padding(.vertical, 4)
             .background(AppColor.blank)
@@ -523,7 +524,7 @@ struct WorkoutMainView: View {
                 set: { vm.updateSet(exerciseId: exerciseId, setIndex: setIndex, reps: $0) }
             ), format: .number)
             .keyboardType(.numberPad)
-            .font(.system(size: 12, weight: .bold, design: .monospaced))
+            .font(.app(size: 12, weight: .bold, design: .monospaced))
             .multilineTextAlignment(.center)
             .padding(.vertical, 4)
             .background(AppColor.blank)
@@ -534,7 +535,7 @@ struct WorkoutMainView: View {
                 vm.updateSet(exerciseId: exerciseId, setIndex: setIndex, isCompleted: !setLog.isCompleted)
             } label: {
                 Image(systemName: setLog.isCompleted ? "checkmark.square.fill" : "square")
-                    .font(.system(size: 18, weight: .bold))
+                    .font(.app(size: 18, weight: .bold))
                     .foregroundStyle(setLog.isCompleted ? AppColor.green : AppColor.textDisabled)
             }
             .buttonStyle(.plain)
@@ -552,7 +553,7 @@ struct WorkoutMainView: View {
                     HStack {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("DAILY MACRONUTRIENTS")
-                                .font(.system(size: 10, weight: .bold, design: .monospaced))
+                                .font(.app(size: 10, weight: .bold, design: .monospaced))
                                 .foregroundStyle(AppColor.textSecondary)
                             Text("\(vm.totalDailyCalories) / \(vm.macroGoals.targetCalories) KCAL")
                                 .font(.system(.title3, design: .monospaced).weight(.black))
@@ -567,7 +568,7 @@ struct WorkoutMainView: View {
                                 Image(systemName: "slider.horizontal.3")
                                 Text("GOALS")
                             }
-                            .font(.system(size: 10, weight: .bold))
+                            .font(.app(size: 10, weight: .bold))
                             .foregroundStyle(AppColor.textPrimary)
                             .padding(.horizontal, 10)
                             .padding(.vertical, 6)
@@ -595,7 +596,7 @@ struct WorkoutMainView: View {
                         Image(systemName: "plus")
                         Text("ADD MEAL")
                     }
-                    .font(.system(size: 11, weight: .bold))
+                    .font(.app(size: 11, weight: .bold))
                     .foregroundStyle(AppColor.background)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 10)
@@ -611,7 +612,7 @@ struct WorkoutMainView: View {
                         Image(systemName: "square.and.arrow.down")
                         Text("IMPORT JSON")
                     }
-                    .font(.system(size: 11, weight: .bold))
+                    .font(.app(size: 11, weight: .bold))
                     .foregroundStyle(AppColor.textPrimary)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 10)
@@ -625,7 +626,7 @@ struct WorkoutMainView: View {
             // Meal Logs List
             HStack {
                 Text("LOGGED MEALS (\(vm.dailyMealLogs.count))")
-                    .font(.system(size: 11, weight: .bold, design: .monospaced))
+                    .font(.app(size: 11, weight: .bold, design: .monospaced))
                     .foregroundStyle(AppColor.textSecondary)
                 Spacer()
             }
@@ -654,11 +655,11 @@ struct WorkoutMainView: View {
         return VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text(title)
-                    .font(.system(size: 9, weight: .bold, design: .monospaced))
+                    .font(.app(size: 9, weight: .bold, design: .monospaced))
                     .foregroundStyle(AppColor.textSecondary)
                 Spacer()
                 Text("\(Int(current)) / \(Int(target)) \(unit)")
-                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                    .font(.app(size: 10, weight: .bold, design: .monospaced))
                     .foregroundStyle(AppColor.textPrimary)
             }
 
@@ -683,21 +684,21 @@ struct WorkoutMainView: View {
                     HStack(spacing: 6) {
                         Text(meal.mealType.emoji)
                         Text(meal.mealType.rawValue.uppercased())
-                            .font(.system(size: 9, weight: .black, design: .monospaced))
+                            .font(.app(size: 9, weight: .black, design: .monospaced))
                             .foregroundStyle(AppColor.textSecondary)
                     }
 
                     Spacer()
 
                     Text("\(meal.calories) KCAL")
-                        .font(.system(size: 11, weight: .black, design: .monospaced))
+                        .font(.app(size: 11, weight: .black, design: .monospaced))
                         .foregroundStyle(AppColor.green)
 
                     Button {
                         vm.deleteMealLog(id: meal.id)
                     } label: {
                         Image(systemName: "trash")
-                            .font(.system(size: 11))
+                            .font(.app(size: 11))
                             .foregroundStyle(AppColor.textDisabled)
                     }
                     .buttonStyle(.plain)
@@ -710,7 +711,7 @@ struct WorkoutMainView: View {
 
                 if !meal.details.isEmpty {
                     Text(meal.details)
-                        .font(.system(size: 10))
+                        .font(.app(size: 10))
                         .foregroundStyle(AppColor.textSecondary)
                 }
 
@@ -736,10 +737,10 @@ struct WorkoutMainView: View {
     private func macroTag(label: String, value: Double, unit: String, color: Color) -> some View {
         HStack(spacing: 3) {
             Text(label)
-                .font(.system(size: 9, weight: .black))
+                .font(.app(size: 9, weight: .black))
                 .foregroundStyle(color)
             Text("\(Int(value))\(unit)")
-                .font(.system(size: 10, weight: .bold, design: .monospaced))
+                .font(.app(size: 10, weight: .bold, design: .monospaced))
                 .foregroundStyle(AppColor.textPrimary)
         }
         .padding(.horizontal, 6)
@@ -757,7 +758,7 @@ struct WorkoutMainView: View {
             BrutalistCard {
                 VStack(alignment: .leading, spacing: 10) {
                     Text("30-DAY WORKOUT VOLUME (KG LIFTED)")
-                        .font(.system(size: 10, weight: .bold, design: .monospaced))
+                        .font(.app(size: 10, weight: .bold, design: .monospaced))
                         .foregroundStyle(AppColor.textSecondary)
 
                     if vm.historicalWorkoutLogs.isEmpty {
@@ -782,7 +783,7 @@ struct WorkoutMainView: View {
             BrutalistCard {
                 VStack(alignment: .leading, spacing: 10) {
                     Text("DAILY CALORIE & PROTEIN INTAKE TRENDS")
-                        .font(.system(size: 10, weight: .bold, design: .monospaced))
+                        .font(.app(size: 10, weight: .bold, design: .monospaced))
                         .foregroundStyle(AppColor.textSecondary)
 
                     if vm.historicalMealLogs.isEmpty {
@@ -812,7 +813,7 @@ struct WorkoutMainView: View {
             BrutalistCard(borderColor: AppColor.green) {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("📤 EXPORT DATA FOR AI REVIEW")
-                        .font(.system(size: 11, weight: .bold, design: .monospaced))
+                        .font(.app(size: 11, weight: .bold, design: .monospaced))
                         .foregroundStyle(AppColor.textPrimary)
 
                     Text("Export your complete workout volume, set weights, and macro logs to feed into ChatGPT / Gemini for personalized AI fitness coaching!")
@@ -823,7 +824,7 @@ struct WorkoutMainView: View {
                         showExportSheet = true
                     } label: {
                         Text("EXPORT FITNESS HISTORY JSON")
-                            .font(.system(size: 11, weight: .black, design: .monospaced))
+                            .font(.app(size: 11, weight: .black, design: .monospaced))
                             .foregroundStyle(AppColor.background)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 10)

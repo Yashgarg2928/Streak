@@ -15,6 +15,7 @@ final class GoalDetailViewModel {
     // Log inputs
     var logValueString = ""
     var logNote = ""
+    var errorMessage: String? = nil
     
     init(env: AppEnvironment, goalId: UUID) {
         self.env = env
@@ -43,7 +44,8 @@ final class GoalDetailViewModel {
             let syncUseCase = SyncGoalProgressUseCase(
                 goalRepository: env.goalRepository,
                 dayEntryRepository: env.dayEntryRepository,
-                taskRepository: env.taskRepository
+                taskRepository: env.taskRepository,
+                settingsRepository: env.settingsRepository
             )
             let logUseCase = LogGoalProgressUseCase(
                 goalRepository: env.goalRepository,
@@ -61,7 +63,7 @@ final class GoalDetailViewModel {
             load()
             env.syncWidgets()
         } catch {
-            print("Failed to log progress: \(error)")
+            errorMessage = "Couldn't log progress: \(error.localizedDescription)"
         }
     }
 }
@@ -69,6 +71,7 @@ final class GoalDetailViewModel {
 struct GoalDetailView: View {
     let env: AppEnvironment
     @State private var vm: GoalDetailViewModel
+    @State private var showDeleteConfirmation = false
     @Environment(\.dismiss) private var dismiss
     
     init(env: AppEnvironment, goalId: UUID) {
@@ -171,7 +174,7 @@ struct GoalDetailView: View {
                                         HStack(alignment: .top) {
                                             VStack(alignment: .leading, spacing: 4) {
                                                 Text(formatDate(entry.date).uppercased())
-                                                    .font(.system(size: 10, weight: .bold))
+                                                    .font(.app(size: 10, weight: .bold))
                                                     .foregroundStyle(AppColor.textSecondary)
                                                 
                                                 if let note = entry.note {
@@ -209,15 +212,35 @@ struct GoalDetailView: View {
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button {
-                    let deleteUseCase = DeleteGoalUseCase(goalRepository: env.goalRepository)
-                    try? deleteUseCase.execute(id: vm.goalId)
-                    env.syncWidgets()
-                    dismiss()
+                    showDeleteConfirmation = true
                 } label: {
                     Image(systemName: "trash")
                         .foregroundStyle(.red)
                 }
+                .accessibilityLabel("Delete goal")
             }
+        }
+        .confirmationDialog("Delete this goal?", isPresented: $showDeleteConfirmation, titleVisibility: .visible) {
+            Button("Delete Goal", role: .destructive) {
+                do {
+                    try DeleteGoalUseCase(goalRepository: env.goalRepository).execute(id: vm.goalId)
+                    env.syncWidgets()
+                    dismiss()
+                } catch {
+                    vm.errorMessage = "Couldn't delete goal: \(error.localizedDescription)"
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Its progress history is deleted too. This can't be undone.")
+        }
+        .alert("Something went wrong", isPresented: Binding(
+            get: { vm.errorMessage != nil },
+            set: { if !$0 { vm.errorMessage = nil } }
+        )) {
+            Button("OK", role: .cancel) { vm.errorMessage = nil }
+        } message: {
+            Text(vm.errorMessage ?? "")
         }
         .onAppear {
             vm.load()

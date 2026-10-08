@@ -16,19 +16,19 @@ struct ShortcutsSetupGuideSheet: View {
                         VStack(alignment: .leading, spacing: 6) {
                             HStack(spacing: 8) {
                                 Text("⚡")
-                                    .font(.system(size: 24))
+                                    .font(.app(size: 24))
                                 Text("INSTANT PAYMENT TRACKING")
-                                    .font(.system(size: 15, weight: .black, design: .monospaced))
+                                    .font(.app(size: 15, weight: .black, design: .monospaced))
                                     .foregroundStyle(AppColor.textPrimary)
                             }
                             Text("Track expenses directly from the top of your iPhone screen without opening the Streak app.")
-                                .font(.system(size: 13, weight: .medium))
+                                .font(.app(size: 13, weight: .medium))
                                 .foregroundStyle(AppColor.textSecondary)
                         }
                     }
 
                     // Feature 1: Auto-popup on closing payment apps
-                    guideCard(
+                    ShortcutGuideCard(
                         stepNumber: "1",
                         badge: "AUTO POP-UP",
                         badgeColor: "#E67E22",
@@ -42,11 +42,12 @@ struct ShortcutsSetupGuideSheet: View {
                             "Check **Is Closed** (uncheck 'Is Opened').",
                             "Select **Run Immediately** (turn off 'Notify When Run').",
                             "Tap **Next**, then choose **Quick Log Expense** from Streak."
-                        ]
+                        ],
+                        stepLabel: "METHOD"
                     )
 
                     // Feature 2: Double-Tap Back of iPhone (Back Tap)
-                    guideCard(
+                    ShortcutGuideCard(
                         stepNumber: "2",
                         badge: "DOUBLE-TAP",
                         badgeColor: "#2980B9",
@@ -58,11 +59,12 @@ struct ShortcutsSetupGuideSheet: View {
                             "Select **Double Tap** (or Triple Tap).",
                             "Scroll down to the **Shortcuts** section and select **Log Expense** or **Quick Expense**.",
                             "Now, whenever you double-tap the back of your iPhone, the top input banner will instantly open!"
-                        ]
+                        ],
+                        stepLabel: "METHOD"
                     )
 
                     // Feature 3: Action Button (iPhone 15 Pro / 16 / 17)
-                    guideCard(
+                    ShortcutGuideCard(
                         stepNumber: "3",
                         badge: "ACTION BUTTON",
                         badgeColor: "#27AE60",
@@ -73,7 +75,8 @@ struct ShortcutsSetupGuideSheet: View {
                             "Swipe across to the **Shortcut** option.",
                             "Tap the selector and pick **Log Expense in Streak**.",
                             "Press and hold the Action button anytime to log an expense!"
-                        ]
+                        ],
+                        stepLabel: "METHOD"
                     )
 
                     // Done Button
@@ -81,7 +84,7 @@ struct ShortcutsSetupGuideSheet: View {
                         dismiss()
                     } label: {
                         Text("GOT IT, CLOSE GUIDE")
-                            .font(.system(size: 13, weight: .black, design: .monospaced))
+                            .font(.app(size: 13, weight: .black, design: .monospaced))
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 14)
                             .background(AppColor.border)
@@ -104,60 +107,6 @@ struct ShortcutsSetupGuideSheet: View {
                     .font(.system(.body, design: .monospaced).weight(.bold))
                     .foregroundStyle(AppColor.textSecondary)
                 }
-            }
-        }
-    }
-
-    private func guideCard(
-        stepNumber: String,
-        badge: String,
-        badgeColor: String,
-        title: String,
-        description: String,
-        steps: [String]
-    ) -> some View {
-        BrutalistCard {
-            VStack(alignment: .leading, spacing: 12) {
-                HStack(spacing: 8) {
-                    Text(badge)
-                        .font(.system(size: 9, weight: .black, design: .monospaced))
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 3)
-                        .background(Color(hex: badgeColor))
-                        .foregroundStyle(Color.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 4))
-
-                    Spacer()
-
-                    Text("METHOD \(stepNumber)")
-                        .font(.system(size: 10, weight: .black, design: .monospaced))
-                        .foregroundStyle(AppColor.textSecondary)
-                }
-
-                Text(title)
-                    .font(.system(size: 16, weight: .bold, design: .monospaced))
-                    .foregroundStyle(AppColor.textPrimary)
-
-                Text(description)
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(AppColor.textSecondary)
-
-                VStack(alignment: .leading, spacing: 8) {
-                    ForEach(Array(steps.enumerated()), id: \.offset) { index, step in
-                        HStack(alignment: .top, spacing: 8) {
-                            Text("\(index + 1).")
-                                .font(.system(size: 12, weight: .black, design: .monospaced))
-                                .foregroundStyle(AppColor.textPrimary)
-                            Text(.init(step))
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundStyle(AppColor.textPrimary)
-                        }
-                    }
-                }
-                .padding(10)
-                .background(AppColor.surface)
-                .clipShape(RoundedRectangle(cornerRadius: 6))
-                .overlay(RoundedRectangle(cornerRadius: 6).stroke(AppColor.border, lineWidth: 1.5))
             }
         }
     }

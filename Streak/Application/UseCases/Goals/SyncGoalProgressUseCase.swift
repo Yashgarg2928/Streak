@@ -7,6 +7,7 @@ struct SyncGoalProgressUseCase {
     let goalRepository: any GoalRepository
     let dayEntryRepository: any DayEntryRepository
     let taskRepository: any TaskRepository
+    let settingsRepository: any SettingsRepository
 
     func execute() throws {
         let goals = try goalRepository.fetchAll()
@@ -16,7 +17,7 @@ struct SyncGoalProgressUseCase {
             switch goal.goalType {
             case .consecutiveStreak:
                 if let categoryId = goal.categoryId {
-                    let streak = try CalculateStreakUseCase(dayEntryRepository: dayEntryRepository)
+                    let streak = try CalculateStreakUseCase(dayEntryRepository: dayEntryRepository, settingsRepository: settingsRepository)
                         .execute(categoryId: categoryId)
                     goal.currentValue = Double(streak)
                 }

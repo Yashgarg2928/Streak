@@ -13,5 +13,6 @@ struct StreakWidgetsBundle: WidgetBundle {
         GoalWidget()
         HabitCommitmentWidget()
         MonthlyExpenseWidget()
+        DayCountdownLiveActivity()
     }
 }

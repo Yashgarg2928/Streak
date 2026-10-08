@@ -284,6 +284,10 @@ struct LargeHeatmap: View {
             return renderingMode == .fullColor ? WColor.green : .white
         case "red":
             return renderingMode == .fullColor ? WColor.red : .white.opacity(0.3)
+        case "frozen":
+            return renderingMode == .fullColor ? WColor.frozen : .white.opacity(0.6)
+        case "rest":
+            return renderingMode == .fullColor ? WColor.rest : .white.opacity(0.2)
         default:
             return renderingMode == .fullColor ? WColor.blank.opacity(0.4) : .white.opacity(0.1)
         }

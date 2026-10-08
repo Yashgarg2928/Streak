@@ -38,7 +38,8 @@ final class GoalsViewModel {
             let syncUseCase = SyncGoalProgressUseCase(
                 goalRepository: env.goalRepository,
                 dayEntryRepository: env.dayEntryRepository,
-                taskRepository: env.taskRepository
+                taskRepository: env.taskRepository,
+                settingsRepository: env.settingsRepository
             )
             try syncUseCase.execute()
             
@@ -63,7 +64,8 @@ final class GoalsViewModel {
             let syncUseCase = SyncGoalProgressUseCase(
                 goalRepository: env.goalRepository,
                 dayEntryRepository: env.dayEntryRepository,
-                taskRepository: env.taskRepository
+                taskRepository: env.taskRepository,
+                settingsRepository: env.settingsRepository
             )
             let createUseCase = CreateGoalUseCase(
                 goalRepository: env.goalRepository,
@@ -87,19 +89,6 @@ final class GoalsViewModel {
             errorMessage = error.localizedDescription
             isSaving = false
             return false
-        }
-    }
-    
-    func deleteGoal(id: UUID) {
-        do {
-            let useCase = DeleteGoalUseCase(goalRepository: env.goalRepository)
-            try useCase.execute(id: id)
-            
-            // Reload list and widgets
-            load()
-            env.syncWidgets()
-        } catch {
-            print("Failed to delete goal: \(error)")
         }
     }
 }

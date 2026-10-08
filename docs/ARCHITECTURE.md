@@ -274,3 +274,28 @@ No existing file needs to be modified except `AppEnvironment` and `AppRouter`.
 - Infrastructure layer: integration tests with in-memory SwiftData
 - Presentation layer: SwiftUI previews + manual testing
 - No UI test framework in v1 (no automation tooling overhead)
+
+---
+
+## 11. Additions — 2026-10-08
+
+**Application layer (use cases)**
+| Use case | Job |
+|---|---|
+| `ResolveDayStatusUseCase` | Now counts planned tasks only, handles rest days, keeps `.frozen` days, auto-uses a Streak Freeze (`allowAutoFreeze`) |
+| `CalculateStreakUseCase` | Needs `settingsRepository`; counts from the active day, skips in-progress / rest / frozen days |
+| `CalculateHabitStreakUseCase` | Per-habit streak + recent `HabitDay` states from the habit's tasks |
+| `LogHealthSnapshotUseCase` | Upserts a day's Apple Health totals (nil fields keep stored values) |
+
+**App layer (orchestration that needs the whole `AppEnvironment`)**
+| Type | Job |
+|---|---|
+| `DaySweeper` | Single launch / foreground / background sweep (widget queue, habit tasks, Health rules, finalize ended days, today, goals, widgets) |
+| `HealthSync` | Stores a Health snapshot and ticks habits whose `HealthRule` is met |
+| `LogHealthDataIntent` | Shortcuts action feeding `HealthSync` |
+| `DayCountdownActivityManager` | Starts / updates / ends the Lock Screen Live Activity |
+| `AppEnvironment.setTaskCompleted` | The one task-completion flow (status, XP, badges, goals, widgets) used by Today, Tasks, the check-in, the widget queue and Health |
+| `AppEnvironment.live(context:)` / `currentOrStandalone()` | Builds the environment; App Intents reuse the running app's instance |
+
+**Infrastructure**: `BackupService` (SQLite `VACUUM INTO` snapshot + settings), `SwiftDataHealthSnapshotRepository`.
+`CoreHabit` (entity, repository, DI) was removed; `CoreHabitModel` stays in the schema only so existing stores open without a destructive migration.

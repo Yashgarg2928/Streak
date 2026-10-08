@@ -58,19 +58,19 @@ struct WorkoutPlanImportSheet: View {
             VStack(alignment: .leading, spacing: AppLayout.itemSpacing) {
                 HStack {
                     Text("PASTE WEEKLY WORKOUT PLAN (JSON)")
-                        .font(.system(size: 11, weight: .bold, design: .monospaced))
+                        .font(.app(size: 11, weight: .bold, design: .monospaced))
                         .foregroundStyle(AppColor.textSecondary)
                     Spacer()
                     Button("Load Template") {
                         jsonText = sampleJSONTemplate
                         errorMessage = nil
                     }
-                    .font(.system(size: 11, weight: .bold))
+                    .font(.app(size: 11, weight: .bold))
                     .foregroundStyle(AppColor.green)
                 }
 
                 TextEditor(text: $jsonText)
-                    .font(.system(size: 11, design: .monospaced))
+                    .font(.app(size: 11, design: .monospaced))
                     .padding(8)
                     .background(AppColor.blank)
                     .clipShape(RoundedRectangle(cornerRadius: 6))

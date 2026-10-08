@@ -517,3 +517,18 @@ Fullscreen overlay displayed on initial launch when active boundaries are not ye
 ```
 
 All widgets: paper background, thick border, same design language as the app.
+
+---
+
+## 10. Additions — 2026-10-08
+
+- **Tab bar:** Today · Tasks · Fitness · Finance · Profile (max 5 so nothing hides under "More").
+- **Today (6.1 replacement):** countdown → Today card (planned done X/Y, progress bar, tap-to-complete rows with BONUS tag / flame (habit) / heart (Health-linked habit), ADD TASK + CHECK-IN buttons) → backup reminder → Overall card (streak, freezes ready, heatmap) → Habits (per-habit 7-day strip + 🔥 streak, MANAGE → habits sheet) → Goals (top 3) → Categories.
+- **Habit commitments sheet:** day-1 lock banner, Active and Ended Sprints sections; each row shows type · end date · schedule · category, Health rule, 🔥 streak, 14-day `HabitHistoryStrip`, delete (with confirmation) or LOCKED.
+- **New habit sheet:** adds SCHEDULE (`WeekdayPicker`) and AUTO-COMPLETE FROM APPLE HEALTH (metric menu + target).
+- **End-of-Day Check-In (6.5 replacement):** habits Followed / Not followed, 1–5 rating, Wins / What slipped / Tomorrow's priorities, Past check-ins.
+- **Fitness → Apple Health card:** synced time, Steps / Exercise / Active / Workouts tiles, auto-ticked habits with progress; SET UP / GUIDE opens the Shortcuts setup guide.
+- **Settings:** + Rest days (`WeekdayPicker`), Lock Screen countdown toggle, Backup & Restore card; wake-up placeholder removed.
+- **Heatmap colors:** green, red, blank, plus `rest` (#A9B7C6 / #5C6B7A) and `frozen` (#2E86C1 / #64B5F6).
+- **Typography:** fixed sizes use `Font.app(size:)` — Dynamic Type aware, 11pt minimum, capped at 1.6×.
+- **Shared components:** `WeekdayPicker`, `HabitHistoryStrip`, `ShortcutGuideCard`.

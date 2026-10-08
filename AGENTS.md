@@ -57,8 +57,10 @@ The doc-sync skill (`.kiro/skills/doc-sync.md`) has the exact mapping of what to
 - No loading spinners. No skeleton loaders. No illustrations in empty states.
 
 ### Data
-- Day status: `.green` (all tasks done) or `.red` (missed OR no tasks set). No partial state.
-- Any red day resets streak. No exceptions.
+- Day status: `.green` (all *planned* tasks done) or `.red` (missed OR no tasks planned). No partial state.
+  Neutral statuses: `.rest` (scheduled rest weekday) and `.frozen` (Streak Freeze) neither extend nor break a streak.
+- Tasks added after the planning deadline are BONUS tasks: XP only, never affect day status.
+- Any red day resets streak (a Streak Freeze in inventory is auto-used to protect a running streak).
 - Categories: archive only, never hard delete.
 - Tasks: today or tomorrow only (v1).
 

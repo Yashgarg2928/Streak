@@ -9,13 +9,14 @@ public struct CheckAndAwardBadgesUseCase {
     let taskRepository: any TaskRepository
     let goalRepository: any GoalRepository
     let habitRoutineRepository: any HabitRoutineRepository
+    let settingsRepository: any SettingsRepository
 
     public func execute() throws {
         let profile = try playerProfileRepository.fetchProfile()
         let existingBadges = Set(try badgeRepository.fetchAll().map(\.badgeKey))
         let level = profile.currentLevel
         
-        let masterStreak = try CalculateStreakUseCase(dayEntryRepository: dayEntryRepository)
+        let masterStreak = try CalculateStreakUseCase(dayEntryRepository: dayEntryRepository, settingsRepository: settingsRepository)
             .execute(categoryId: nil)
         let totalTasks = (try? taskRepository.fetchAll())?.filter { $0.isCompleted }.count ?? 0
         let routinesCount = (try? habitRoutineRepository.fetchAll())?.count ?? 0

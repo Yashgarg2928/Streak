@@ -5,7 +5,8 @@ import SwiftUI
 struct RootView: View {
     @Environment(AppEnvironment.self) private var env
     @Environment(AppRouter.self) private var router
-    
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     @State private var showOnboarding: Bool = false
 
     var body: some View {
@@ -13,7 +14,7 @@ struct RootView: View {
 
         TabView(selection: $router.selectedTab) {
             HomeView()
-                .tabItem { Label("Home", systemImage: "square.grid.2x2") }
+                .tabItem { Label("Today", systemImage: "square.grid.2x2") }
                 .tag(Tab.home)
 
             TaskListView()
@@ -21,21 +22,33 @@ struct RootView: View {
                 .tag(Tab.tasks)
 
             WorkoutMainView()
-                .tabItem { Label("Workout", systemImage: "figure.run") }
+                .tabItem { Label("Fitness", systemImage: "figure.run") }
                 .tag(Tab.workout)
 
             FinanceMainView()
                 .tabItem { Label("Finance", systemImage: "indianrupeesign.circle") }
                 .tag(Tab.finance)
 
-            GoalListView(env: env)
-                .tabItem { Label("Goals", systemImage: "flag") }
-                .tag(Tab.goals)
-
             ProfileView()
                 .tabItem { Label("Profile", systemImage: "person.crop.circle") }
                 .tag(Tab.profile)
         }
+        // When the active day rolls over while the app is open, sweep so the new day's
+        // habit tasks, status, widgets and countdown appear without reopening the app.
+        .task {
+            var lastActiveDay = ActiveDayResolver.resolveActiveDate(for: Date(), settings: env.settingsRepository)
+            while !Swift.Task.isCancelled {
+                try? await Swift.Task.sleep(for: .seconds(20))
+                let activeDay = ActiveDayResolver.resolveActiveDate(for: Date(), settings: env.settingsRepository)
+                if activeDay != lastActiveDay {
+                    lastActiveDay = activeDay
+                    DaySweeper.run(env: env)
+                }
+            }
+        }
+        // AppFont sizes are resolved when views are built, so rebuild on text-size changes.
+        .id(dynamicTypeSize)
+        .dynamicTypeSize(...DynamicTypeSize.accessibility2)
         .tint(AppColor.textPrimary)
         .onAppear {
             styleTabBar()
@@ -53,11 +66,21 @@ struct RootView: View {
                 AddCategoryView()
             case .editCategory(let id):
                 AddCategoryView(editingId: id)
+            case .settings:
+                NavigationStack {
+                    SettingsView(env: env)
+                        .toolbar {
+                            ToolbarItem(placement: .cancellationAction) {
+                                Button("Done") { router.dismiss() }
+                                    .fontWeight(.bold)
+                            }
+                        }
+                }
             case .addTransaction:
                 AddTransactionSheet(
                     onSave: { _, amount, type, category, note, date, isSplit, numPeople, names, customShare, customFriendShares in
                         let useCase = LogTransactionUseCase(financeRepository: env.financeRepository)
-                        try? useCase.execute(
+                        _ = try useCase.execute(
                             amount: amount,
                             type: type,
                             category: category,
@@ -69,6 +92,7 @@ struct RootView: View {
                             customMyShare: customShare,
                             customFriendShares: customFriendShares
                         )
+                        env.syncWidgets()
                     }
                 )
             case .editTransaction(let id):
@@ -78,7 +102,7 @@ struct RootView: View {
                         onSave: { targetId, amount, type, category, note, date, isSplit, numPeople, names, customShare, customFriendShares in
                             if let targetId {
                                 let useCase = UpdateTransactionUseCase(financeRepository: env.financeRepository)
-                                try? useCase.execute(
+                                _ = try useCase.execute(
                                     id: targetId,
                                     amount: amount,
                                     type: type,
@@ -91,11 +115,13 @@ struct RootView: View {
                                     customMyShare: customShare,
                                     customFriendShares: customFriendShares
                                 )
+                                env.syncWidgets()
                             }
                         },
                         onDelete: { deleteId in
                             let useCase = DeleteTransactionUseCase(financeRepository: env.financeRepository)
-                            try? useCase.execute(id: deleteId)
+                            try useCase.execute(id: deleteId)
+                            env.syncWidgets()
                         }
                     )
                 } else {
@@ -103,8 +129,6 @@ struct RootView: View {
                 }
             case .shortcutsGuide:
                 ShortcutsSetupGuideSheet()
-            default:
-                EmptyView()
             }
         }
     }

@@ -26,6 +26,7 @@ final class OverallDetailViewModel {
     
     // Habit routines data for matrix
     var routines: [HabitRoutine] = []
+    var errorMessage: String? = nil
     var allDailyTasks: [Task] = []
     
     // Month selector state for matrix view
@@ -130,7 +131,9 @@ final class OverallDetailViewModel {
         categoryId: UUID?,
         type: HabitRoutineType,
         startDate: Date = Date(),
-        endDate: Date = Date()
+        endDate: Date = Date(),
+        weekdays: Set<Int> = [],
+        healthRule: HealthRule? = nil
     ) {
         guard !title.trimmingCharacters(in: .whitespaces).isEmpty else { return }
         do {
@@ -158,7 +161,9 @@ final class OverallDetailViewModel {
                 type: type,
                 startDate: start,
                 endDate: end,
-                isLocked: isLocked
+                isLocked: isLocked,
+                weekdays: weekdays,
+                healthRule: healthRule
             )
             try env.habitRoutineRepository.save(routine)
             
@@ -170,7 +175,7 @@ final class OverallDetailViewModel {
             
             load()
         } catch {
-            print("Failed to add routine: \(error)")
+            errorMessage = "Couldn't add habit: \(error.localizedDescription)"
         }
     }
     
@@ -245,6 +250,10 @@ final class OverallDetailViewModel {
         guard day >= routineStart, day <= routineEnd else {
             return .future
         }
+
+        if !routine.isScheduled(on: day) {
+            return .rest
+        }
         
         if let task = allDailyTasks.first(where: { $0.routineId == routine.id && calendar.isDate($0.targetDate, inSameDayAs: day) }) {
             if task.isCompleted {
@@ -315,7 +324,7 @@ struct OverallDetailView: View {
                                 // Column header placeholder aligning with month & date row
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text("TASKS")
-                                        .font(.system(size: 10, weight: .bold, design: .monospaced))
+                                        .font(.app(size: 10, weight: .bold, design: .monospaced))
                                         .foregroundStyle(AppColor.textSecondary)
                                         .frame(height: 16, alignment: .bottom)
                                     Spacer().frame(height: 14)
@@ -329,7 +338,7 @@ struct OverallDetailView: View {
                                 ForEach(vm.routines) { routine in
                                     HStack {
                                         Text(routine.title)
-                                            .font(.system(size: 10, weight: .bold))
+                                            .font(.app(size: 10, weight: .bold))
                                             .foregroundStyle(AppColor.textPrimary)
                                             .lineLimit(1)
                                         Spacer()
@@ -343,9 +352,9 @@ struct OverallDetailView: View {
                                 } label: {
                                     HStack(spacing: 4) {
                                         Image(systemName: "plus")
-                                            .font(.system(size: 8, weight: .black))
+                                            .font(.app(size: 8, weight: .black))
                                         Text("ADD HABIT")
-                                            .font(.system(size: 8, weight: .black))
+                                            .font(.app(size: 8, weight: .black))
                                     }
                                     .foregroundStyle(AppColor.textPrimary)
                                     .padding(.horizontal, 8)
@@ -382,14 +391,14 @@ struct OverallDetailView: View {
                                                 
                                                 VStack(alignment: .center, spacing: 4) {
                                                     Text(vm.monthAbbreviation(for: monthStart))
-                                                        .font(.system(size: 10, weight: .black, design: .monospaced))
+                                                        .font(.app(size: 10, weight: .black, design: .monospaced))
                                                         .foregroundStyle(AppColor.textPrimary)
                                                         .frame(height: 16)
                                                     
                                                     HStack(spacing: 6) {
                                                         ForEach(weeksInMonth, id: \.self) { monday in
                                                             Text("\(Calendar.current.component(.day, from: monday))")
-                                                                .font(.system(size: 9, weight: .bold, design: .monospaced))
+                                                                .font(.app(size: 9, weight: .bold, design: .monospaced))
                                                                 .foregroundStyle(AppColor.textSecondary)
                                                                 .frame(width: 96, alignment: .center)
                                                         }
@@ -463,7 +472,7 @@ struct OverallDetailView: View {
                     BrutalistCard {
                         VStack(alignment: .leading, spacing: 12) {
                             Text("COMPLETION RATE (0% - 100%)")
-                                .font(.system(size: 10, weight: .bold))
+                                .font(.app(size: 10, weight: .bold))
                                 .foregroundStyle(AppColor.textSecondary)
                             
                             if vm.dataPoints.isEmpty {
@@ -561,7 +570,7 @@ struct OverallDetailView: View {
                                             .frame(width: 8, height: 8)
                                         
                                         Text(category?.name.uppercased() ?? "UNCATEGORIZED")
-                                            .font(.system(size: 11, weight: .bold))
+                                            .font(.app(size: 11, weight: .bold))
                                             .foregroundStyle(AppColor.textPrimary)
                                     }
                                     .padding(.bottom, 4)
@@ -570,7 +579,7 @@ struct OverallDetailView: View {
                                         HStack(spacing: 10) {
                                             Image(systemName: task.isCompleted ? "checkmark.square.fill" : "square")
                                                 .foregroundStyle(task.isCompleted ? AppColor.green : AppColor.textSecondary)
-                                                .font(.system(size: 18))
+                                                .font(.app(size: 18))
                                             
                                             Text(task.title)
                                                 .font(.system(.body))
@@ -601,14 +610,24 @@ struct OverallDetailView: View {
                 vm.loadTasksForSelectedDate()
             }
         }
+        .alert("Something went wrong", isPresented: Binding(
+            get: { vm.errorMessage != nil },
+            set: { if !$0 { vm.errorMessage = nil } }
+        )) {
+            Button("OK", role: .cancel) { vm.errorMessage = nil }
+        } message: {
+            Text(vm.errorMessage ?? "")
+        }
         .sheet(isPresented: $showAddRoutine) {
-            AddHabitRoutineSheet(categories: Array(vm.categoriesMap.values).sorted(by: { $0.name < $1.name })) { title, categoryId, type, startDate, endDate in
+            AddHabitRoutineSheet(categories: Array(vm.categoriesMap.values).sorted(by: { $0.name < $1.name })) { title, categoryId, type, startDate, endDate, weekdays, healthRule in
                 vm.addHabitRoutine(
                     title: title,
                     categoryId: categoryId,
                     type: type,
                     startDate: startDate,
-                    endDate: endDate
+                    endDate: endDate,
+                    weekdays: weekdays,
+                    healthRule: healthRule
                 )
             }
         }
@@ -622,7 +641,7 @@ struct OverallDetailView: View {
                 }
             } label: {
                 Image(systemName: "chevron.left")
-                    .font(.system(size: 11, weight: .bold))
+                    .font(.app(size: 11, weight: .bold))
                     .foregroundStyle(AppColor.textPrimary)
                     .padding(8)
                     .background(AppColor.surface)
@@ -648,7 +667,7 @@ struct OverallDetailView: View {
                 }
             } label: {
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 11, weight: .bold))
+                    .font(.app(size: 11, weight: .bold))
                     .foregroundStyle(AppColor.textPrimary)
                     .padding(8)
                     .background(AppColor.surface)
@@ -740,7 +759,7 @@ struct LegendItem: View {
                         .stroke(AppColor.border.opacity(0.15), lineWidth: 0.5)
                 )
             Text(label)
-                .font(.system(size: 10, weight: .bold, design: .monospaced))
+                .font(.app(size: 10, weight: .bold, design: .monospaced))
                 .foregroundStyle(AppColor.textSecondary)
         }
     }

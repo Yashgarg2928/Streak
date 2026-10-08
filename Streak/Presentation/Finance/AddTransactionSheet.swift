@@ -61,8 +61,8 @@ struct AddTransactionSheet: View {
         _ friendNames: [String],
         _ customMyShare: Double?,
         _ customFriendShares: [SplitShare]?
-    ) -> Void)?
-    var onDelete: ((_ id: UUID) -> Void)?
+    ) throws -> Void)?
+    var onDelete: ((_ id: UUID) throws -> Void)?
 
     @State private var amountString: String
     @State private var selectedType: TransactionType
@@ -91,6 +91,7 @@ struct AddTransactionSheet: View {
     @State private var customFriends: [CustomFriendItem]
 
     @State private var showDeleteConfirmation: Bool = false
+    @State private var saveError: String? = nil
 
     init(
         transactionToEdit: FinanceTransaction? = nil,
@@ -108,8 +109,8 @@ struct AddTransactionSheet: View {
             _ friendNames: [String],
             _ customMyShare: Double?,
             _ customFriendShares: [SplitShare]?
-        ) -> Void)? = nil,
-        onDelete: ((_ id: UUID) -> Void)? = nil
+        ) throws -> Void)? = nil,
+        onDelete: ((_ id: UUID) throws -> Void)? = nil
     ) {
         self.transactionToEdit = transactionToEdit
         self.initialDirectCollectFriend = initialDirectCollectFriend
@@ -313,7 +314,7 @@ struct AddTransactionSheet: View {
                             showDeleteConfirmation = true
                         } label: {
                             Image(systemName: "trash")
-                                .font(.system(size: 14, weight: .bold))
+                                .font(.app(size: 14, weight: .bold))
                                 .foregroundStyle(Color(hex: "#C0392B"))
                         }
                     }
@@ -325,10 +326,14 @@ struct AddTransactionSheet: View {
                 titleVisibility: .visible
             ) {
                 Button("Delete Expense", role: .destructive) {
-                    if let tx = transactionToEdit {
-                        onDelete?(tx.id)
+                    do {
+                        if let tx = transactionToEdit {
+                            try onDelete?(tx.id)
+                        }
+                        dismiss()
+                    } catch {
+                        saveError = error.localizedDescription
                     }
-                    dismiss()
                 }
                 Button("Cancel", role: .cancel) {}
             } message: {
@@ -336,6 +341,14 @@ struct AddTransactionSheet: View {
             }
             .onAppear {
                 loadSavedFriends()
+            }
+            .alert("Couldn't save", isPresented: Binding(
+                get: { saveError != nil },
+                set: { if !$0 { saveError = nil } }
+            )) {
+                Button("OK", role: .cancel) { saveError = nil }
+            } message: {
+                Text(saveError ?? "")
             }
             .alert("ADD NEW FIXED FRIEND", isPresented: $showNewFriendAlert) {
                 TextField("Friend's Name", text: $newFriendNameInput)
@@ -361,7 +374,7 @@ struct AddTransactionSheet: View {
                     Image(systemName: "arrow.down.right.circle.fill")
                     Text("EXPENSE")
                 }
-                .font(.system(size: 11, weight: .black, design: .monospaced))
+                .font(.app(size: 11, weight: .black, design: .monospaced))
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 10)
                 .background((selectedType == .expense && !isDirectCollectMode) ? Color(hex: "#C0392B") : AppColor.surface)
@@ -383,7 +396,7 @@ struct AddTransactionSheet: View {
                     Image(systemName: "person.crop.circle.badge.plus")
                     Text("TO COLLECT")
                 }
-                .font(.system(size: 11, weight: .black, design: .monospaced))
+                .font(.app(size: 11, weight: .black, design: .monospaced))
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 10)
                 .background(isDirectCollectMode ? Color(hex: "#8E44AD") : AppColor.surface)
@@ -405,7 +418,7 @@ struct AddTransactionSheet: View {
                     Image(systemName: "arrow.up.left.circle.fill")
                     Text("INCOME")
                 }
-                .font(.system(size: 11, weight: .black, design: .monospaced))
+                .font(.app(size: 11, weight: .black, design: .monospaced))
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 10)
                 .background((selectedType == .income && !isDirectCollectMode) ? Color(hex: "#27AE60") : AppColor.surface)
@@ -426,16 +439,16 @@ struct AddTransactionSheet: View {
         BrutalistCard {
             VStack(alignment: .leading, spacing: 6) {
                 Text("AMOUNT")
-                    .font(.system(size: 11, weight: .black, design: .monospaced))
+                    .font(.app(size: 11, weight: .black, design: .monospaced))
                     .foregroundStyle(AppColor.textSecondary)
 
                 HStack(spacing: 8) {
                     Text(currency)
-                        .font(.system(size: 32, weight: .black, design: .monospaced))
+                        .font(.app(size: 32, weight: .black, design: .monospaced))
                         .foregroundStyle(AppColor.textPrimary)
 
                     TextField("0.00", text: $amountString)
-                        .font(.system(size: 36, weight: .black, design: .monospaced))
+                        .font(.app(size: 36, weight: .black, design: .monospaced))
                         .foregroundStyle(AppColor.textPrimary)
                         .keyboardType(.decimalPad)
                 }
@@ -448,7 +461,7 @@ struct AddTransactionSheet: View {
     private var categorySection: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("CATEGORY")
-                .font(.system(size: 11, weight: .black, design: .monospaced))
+                .font(.app(size: 11, weight: .black, design: .monospaced))
                 .foregroundStyle(AppColor.textSecondary)
 
             ScrollView(.horizontal, showsIndicators: false) {
@@ -460,9 +473,9 @@ struct AddTransactionSheet: View {
                         } label: {
                             HStack(spacing: 6) {
                                 Text(cat.emoji)
-                                    .font(.system(size: 15))
+                                    .font(.app(size: 15))
                                 Text(cat.displayName)
-                                    .font(.system(size: 12, weight: .bold, design: .monospaced))
+                                    .font(.app(size: 12, weight: .bold, design: .monospaced))
                             }
                             .padding(.horizontal, 10)
                             .padding(.vertical, 8)
@@ -487,11 +500,11 @@ struct AddTransactionSheet: View {
         BrutalistCard {
             VStack(alignment: .leading, spacing: 6) {
                 Text("NOTE / DESCRIPTION")
-                    .font(.system(size: 11, weight: .black, design: .monospaced))
+                    .font(.app(size: 11, weight: .black, design: .monospaced))
                     .foregroundStyle(AppColor.textSecondary)
 
                 TextField("e.g. Dinner with team, Blinkit groceries...", text: $note)
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(.app(size: 14, weight: .semibold))
                     .foregroundStyle(AppColor.textPrimary)
             }
         }
@@ -503,7 +516,7 @@ struct AddTransactionSheet: View {
         BrutalistCard {
             HStack {
                 Text("TRANSACTION DATE")
-                    .font(.system(size: 11, weight: .black, design: .monospaced))
+                    .font(.app(size: 11, weight: .black, design: .monospaced))
                     .foregroundStyle(AppColor.textSecondary)
                 Spacer()
                 DatePicker("", selection: $date, displayedComponents: [.date])
@@ -521,7 +534,7 @@ struct AddTransactionSheet: View {
                     HStack(spacing: 5) {
                         Text("👥")
                         Text("WHO OWES YOU?")
-                            .font(.system(size: 11, weight: .black, design: .monospaced))
+                            .font(.app(size: 11, weight: .black, design: .monospaced))
                             .foregroundStyle(Color(hex: "#8E44AD"))
                     }
                     Spacer()
@@ -531,9 +544,9 @@ struct AddTransactionSheet: View {
                     } label: {
                         HStack(spacing: 4) {
                             Image(systemName: "plus")
-                                .font(.system(size: 9, weight: .black))
+                                .font(.app(size: 9, weight: .black))
                             Text("NEW FRIEND")
-                                .font(.system(size: 9, weight: .black, design: .monospaced))
+                                .font(.app(size: 9, weight: .black, design: .monospaced))
                         }
                         .padding(.horizontal, 7)
                         .padding(.vertical, 4)
@@ -549,7 +562,7 @@ struct AddTransactionSheet: View {
                 if !savedFriends.isEmpty {
                     VStack(alignment: .leading, spacing: 5) {
                         Text("TAP TO SELECT FRIEND")
-                            .font(.system(size: 9, weight: .black, design: .monospaced))
+                            .font(.app(size: 9, weight: .black, design: .monospaced))
                             .foregroundStyle(AppColor.textSecondary)
 
                         ScrollView(.horizontal, showsIndicators: false) {
@@ -562,10 +575,10 @@ struct AddTransactionSheet: View {
                                         HStack(spacing: 4) {
                                             if isSelected {
                                                 Image(systemName: "checkmark")
-                                                    .font(.system(size: 9, weight: .black))
+                                                    .font(.app(size: 9, weight: .black))
                                             }
                                             Text(friend.name)
-                                                .font(.system(size: 11, weight: .bold, design: .monospaced))
+                                                .font(.app(size: 11, weight: .bold, design: .monospaced))
                                         }
                                         .padding(.horizontal, 10)
                                         .padding(.vertical, 6)
@@ -587,11 +600,11 @@ struct AddTransactionSheet: View {
                 // Friend Name Text Field
                 VStack(alignment: .leading, spacing: 4) {
                     Text("FRIEND NAME")
-                        .font(.system(size: 9, weight: .black, design: .monospaced))
+                        .font(.app(size: 9, weight: .black, design: .monospaced))
                         .foregroundStyle(AppColor.textSecondary)
 
                     TextField("Enter friend's name", text: $directCollectFriendName)
-                        .font(.system(size: 14, weight: .bold, design: .monospaced))
+                        .font(.app(size: 14, weight: .bold, design: .monospaced))
                         .padding(10)
                         .background(AppColor.surface)
                         .clipShape(RoundedRectangle(cornerRadius: 6))
@@ -601,10 +614,10 @@ struct AddTransactionSheet: View {
                 // Explainer Banner
                 HStack(alignment: .top, spacing: 8) {
                     Image(systemName: "info.circle.fill")
-                        .font(.system(size: 13))
+                        .font(.app(size: 13))
                         .foregroundStyle(Color(hex: "#8E44AD"))
                     Text("Directly adds this receivable to \(directCollectFriendName.isEmpty ? "your friend" : directCollectFriendName)'s tab. Your personal expense will be \(currency)0, and \(currency)\(String(format: "%.2f", parsedAmount)) will be tracked in Splits & Owed.")
-                        .font(.system(size: 11, weight: .medium))
+                        .font(.app(size: 11, weight: .medium))
                         .foregroundStyle(AppColor.textSecondary)
                 }
                 .padding(8)
@@ -621,9 +634,9 @@ struct AddTransactionSheet: View {
             HStack {
                 HStack(spacing: 4) {
                     Image(systemName: "person.2.fill")
-                        .font(.system(size: 10))
+                        .font(.app(size: 10))
                     Text("FIXED FRIENDS (1-TAP SELECT)")
-                        .font(.system(size: 10, weight: .black, design: .monospaced))
+                        .font(.app(size: 10, weight: .black, design: .monospaced))
                 }
                 .foregroundStyle(Color(hex: "#8E44AD"))
 
@@ -635,9 +648,9 @@ struct AddTransactionSheet: View {
                 } label: {
                     HStack(spacing: 3) {
                         Image(systemName: "plus")
-                            .font(.system(size: 9, weight: .black))
+                            .font(.app(size: 9, weight: .black))
                         Text("NEW FRIEND")
-                            .font(.system(size: 9, weight: .black, design: .monospaced))
+                            .font(.app(size: 9, weight: .black, design: .monospaced))
                     }
                     .padding(.horizontal, 6)
                     .padding(.vertical, 3)
@@ -650,7 +663,7 @@ struct AddTransactionSheet: View {
 
             if savedFriends.isEmpty {
                 Text("No saved friends yet. Tap '+ NEW FRIEND' to save friends for 1-tap splitting.")
-                    .font(.system(size: 10, weight: .medium))
+                    .font(.app(size: 10, weight: .medium))
                     .foregroundStyle(AppColor.textSecondary)
                     .padding(.vertical, 2)
             } else {
@@ -667,9 +680,9 @@ struct AddTransactionSheet: View {
                             } label: {
                                 HStack(spacing: 4) {
                                     Image(systemName: isSelected ? "checkmark" : "plus")
-                                        .font(.system(size: 9, weight: .black))
+                                        .font(.app(size: 9, weight: .black))
                                     Text(friend.name)
-                                        .font(.system(size: 11, weight: .bold, design: .monospaced))
+                                        .font(.app(size: 11, weight: .bold, design: .monospaced))
                                 }
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 5)
@@ -763,15 +776,15 @@ struct AddTransactionSheet: View {
                                         .stroke(AppColor.border, lineWidth: 2)
                                 )
                             Text("👥")
-                                .font(.system(size: 16))
+                                .font(.app(size: 16))
                         }
 
                         VStack(alignment: .leading, spacing: 2) {
                             Text("SPLIT WITH FRIENDS")
-                                .font(.system(size: 13, weight: .black, design: .monospaced))
+                                .font(.app(size: 13, weight: .black, design: .monospaced))
                                 .foregroundStyle(AppColor.textPrimary)
                             Text("Divide equally or set custom amounts per friend")
-                                .font(.system(size: 11))
+                                .font(.app(size: 11))
                                 .foregroundStyle(AppColor.textSecondary)
                         }
                     }
@@ -812,7 +825,7 @@ struct AddTransactionSheet: View {
                     Image(systemName: "equal")
                     Text("DIVIDE EQUALLY")
                 }
-                .font(.system(size: 11, weight: .black, design: .monospaced))
+                .font(.app(size: 11, weight: .black, design: .monospaced))
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 8)
                 .background(splitMode == .equal ? Color(hex: "#8E44AD") : AppColor.surface)
@@ -829,7 +842,7 @@ struct AddTransactionSheet: View {
                     Image(systemName: "slider.horizontal.3")
                     Text("CUSTOM AMOUNTS")
                 }
-                .font(.system(size: 11, weight: .black, design: .monospaced))
+                .font(.app(size: 11, weight: .black, design: .monospaced))
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 8)
                 .background(splitMode == .custom ? Color(hex: "#8E44AD") : AppColor.surface)
@@ -877,10 +890,10 @@ struct AddTransactionSheet: View {
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("TOTAL PEOPLE")
-                        .font(.system(size: 11, weight: .black, design: .monospaced))
+                        .font(.app(size: 11, weight: .black, design: .monospaced))
                         .foregroundStyle(AppColor.textSecondary)
                     Text("You + \(max(1, numberOfPeople - 1)) friends")
-                        .font(.system(size: 12, weight: .bold))
+                        .font(.app(size: 12, weight: .bold))
                         .foregroundStyle(AppColor.textPrimary)
                 }
 
@@ -891,7 +904,7 @@ struct AddTransactionSheet: View {
                         if numberOfPeople > 2 { numberOfPeople -= 1 }
                     } label: {
                         Image(systemName: "minus")
-                            .font(.system(size: 14, weight: .black))
+                            .font(.app(size: 14, weight: .black))
                             .frame(width: 34, height: 34)
                             .background(AppColor.surface)
                             .clipShape(RoundedRectangle(cornerRadius: 6))
@@ -900,14 +913,14 @@ struct AddTransactionSheet: View {
                     .buttonStyle(.plain)
 
                     Text("\(numberOfPeople)")
-                        .font(.system(size: 18, weight: .black, design: .monospaced))
+                        .font(.app(size: 18, weight: .black, design: .monospaced))
                         .frame(minWidth: 24)
 
                     Button {
                         if numberOfPeople < 20 { numberOfPeople += 1 }
                     } label: {
                         Image(systemName: "plus")
-                            .font(.system(size: 14, weight: .black))
+                            .font(.app(size: 14, weight: .black))
                             .frame(width: 34, height: 34)
                             .background(AppColor.surface)
                             .clipShape(RoundedRectangle(cornerRadius: 6))
@@ -924,11 +937,11 @@ struct AddTransactionSheet: View {
             // Friend Names text field
             VStack(alignment: .leading, spacing: 4) {
                 Text("FRIEND NAMES (OPTIONAL, COMMA-SEPARATED)")
-                    .font(.system(size: 10, weight: .black, design: .monospaced))
+                    .font(.app(size: 10, weight: .black, design: .monospaced))
                     .foregroundStyle(AppColor.textSecondary)
 
                 TextField("e.g. Rohan, Aman, Priya", text: $friendNamesText)
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(.app(size: 13, weight: .semibold))
                     .padding(10)
                     .background(AppColor.surface)
                     .clipShape(RoundedRectangle(cornerRadius: 6))
@@ -951,11 +964,11 @@ struct AddTransactionSheet: View {
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
                     Text("FRIENDS & CUSTOM AMOUNTS")
-                        .font(.system(size: 10, weight: .black, design: .monospaced))
+                        .font(.app(size: 10, weight: .black, design: .monospaced))
                         .foregroundStyle(AppColor.textSecondary)
                     Spacer()
                     Text("\(customFriends.count) friends")
-                        .font(.system(size: 10, weight: .bold, design: .monospaced))
+                        .font(.app(size: 10, weight: .bold, design: .monospaced))
                         .foregroundStyle(AppColor.textSecondary)
                 }
 
@@ -969,9 +982,9 @@ struct AddTransactionSheet: View {
                 } label: {
                     HStack(spacing: 6) {
                         Image(systemName: "plus.circle.fill")
-                            .font(.system(size: 13))
+                            .font(.app(size: 13))
                         Text("ADD ANOTHER FRIEND")
-                            .font(.system(size: 11, weight: .black, design: .monospaced))
+                            .font(.app(size: 11, weight: .black, design: .monospaced))
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 10)
@@ -995,11 +1008,11 @@ struct AddTransactionSheet: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text("🛠️ CUSTOM SPLIT TOOLS")
-                    .font(.system(size: 10, weight: .black, design: .monospaced))
+                    .font(.app(size: 10, weight: .black, design: .monospaced))
                     .foregroundStyle(Color(hex: "#8E44AD"))
                 Spacer()
                 Text("Quick helpers")
-                    .font(.system(size: 9, weight: .bold, design: .monospaced))
+                    .font(.app(size: 9, weight: .bold, design: .monospaced))
                     .foregroundStyle(AppColor.textSecondary)
             }
 
@@ -1011,9 +1024,9 @@ struct AddTransactionSheet: View {
                     } label: {
                         HStack(spacing: 4) {
                             Image(systemName: "wand.and.stars")
-                                .font(.system(size: 11))
+                                .font(.app(size: 11))
                             Text("Split Remainder")
-                                .font(.system(size: 11, weight: .bold, design: .monospaced))
+                                .font(.app(size: 11, weight: .bold, design: .monospaced))
                         }
                         .padding(.horizontal, 10)
                         .padding(.vertical, 7)
@@ -1030,9 +1043,9 @@ struct AddTransactionSheet: View {
                     } label: {
                         HStack(spacing: 4) {
                             Image(systemName: "equal.circle")
-                                .font(.system(size: 11))
+                                .font(.app(size: 11))
                             Text("Split Evenly")
-                                .font(.system(size: 11, weight: .bold, design: .monospaced))
+                                .font(.app(size: 11, weight: .bold, design: .monospaced))
                         }
                         .padding(.horizontal, 10)
                         .padding(.vertical, 7)
@@ -1049,9 +1062,9 @@ struct AddTransactionSheet: View {
                     } label: {
                         HStack(spacing: 4) {
                             Image(systemName: "arrow.counterclockwise")
-                                .font(.system(size: 11))
+                                .font(.app(size: 11))
                             Text("Clear Amounts")
-                                .font(.system(size: 11, weight: .bold, design: .monospaced))
+                                .font(.app(size: 11, weight: .bold, design: .monospaced))
                         }
                         .padding(.horizontal, 10)
                         .padding(.vertical, 7)
@@ -1117,13 +1130,13 @@ struct AddTransactionSheet: View {
                     .frame(width: 32, height: 32)
                     .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color(hex: "#8E44AD"), lineWidth: 1.5))
                 Text(friend.wrappedValue.name.isEmpty ? "👤" : String(friend.wrappedValue.name.prefix(1)).uppercased())
-                    .font(.system(size: 13, weight: .black, design: .monospaced))
+                    .font(.app(size: 13, weight: .black, design: .monospaced))
                     .foregroundStyle(Color(hex: "#8E44AD"))
             }
 
             // Name field
             TextField("Friend name", text: friend.name)
-                .font(.system(size: 13, weight: .bold, design: .monospaced))
+                .font(.app(size: 13, weight: .bold, design: .monospaced))
                 .padding(8)
                 .background(AppColor.surface)
                 .clipShape(RoundedRectangle(cornerRadius: 6))
@@ -1133,10 +1146,10 @@ struct AddTransactionSheet: View {
             // Amount field with currency symbol
             HStack(spacing: 4) {
                 Text(currency)
-                    .font(.system(size: 12, weight: .black, design: .monospaced))
+                    .font(.app(size: 12, weight: .black, design: .monospaced))
                     .foregroundStyle(Color(hex: "#8E44AD"))
                 TextField("0.00", text: friend.amountString)
-                    .font(.system(size: 14, weight: .black, design: .monospaced))
+                    .font(.app(size: 14, weight: .black, design: .monospaced))
                     .keyboardType(.decimalPad)
                     .frame(width: 72)
             }
@@ -1149,7 +1162,7 @@ struct AddTransactionSheet: View {
             // Settled Status badge if friend already settled
             if friend.wrappedValue.isSettled {
                 Text("PAID")
-                    .font(.system(size: 8, weight: .black, design: .monospaced))
+                    .font(.app(size: 8, weight: .black, design: .monospaced))
                     .padding(.horizontal, 4)
                     .padding(.vertical, 4)
                     .background(Color(hex: "#27AE60").opacity(0.15))
@@ -1165,7 +1178,7 @@ struct AddTransactionSheet: View {
                     }
                 } label: {
                     Image(systemName: "trash")
-                        .font(.system(size: 12))
+                        .font(.app(size: 12))
                         .foregroundStyle(Color(hex: "#C0392B"))
                         .frame(width: 30, height: 30)
                         .background(AppColor.surface)
@@ -1183,11 +1196,11 @@ struct AddTransactionSheet: View {
         VStack(spacing: 8) {
             HStack {
                 Text("SPLIT BREAKDOWN")
-                    .font(.system(size: 10, weight: .black, design: .monospaced))
+                    .font(.app(size: 10, weight: .black, design: .monospaced))
                     .foregroundStyle(Color(hex: "#8E44AD"))
                 Spacer()
                 Text("Total: \(currency)\(String(format: "%.2f", parsedAmount))")
-                    .font(.system(size: 11, weight: .bold, design: .monospaced))
+                    .font(.app(size: 11, weight: .bold, design: .monospaced))
             }
 
             Divider()
@@ -1195,10 +1208,10 @@ struct AddTransactionSheet: View {
             HStack(spacing: 12) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("YOUR SHARE")
-                        .font(.system(size: 10, weight: .bold, design: .monospaced))
+                        .font(.app(size: 10, weight: .bold, design: .monospaced))
                         .foregroundStyle(AppColor.textSecondary)
                     Text("\(currency)\(String(format: "%.2f", myShareCalculated))")
-                        .font(.system(size: 16, weight: .black, design: .monospaced))
+                        .font(.app(size: 16, weight: .black, design: .monospaced))
                         .foregroundStyle(AppColor.textPrimary)
                 }
 
@@ -1206,10 +1219,10 @@ struct AddTransactionSheet: View {
 
                 VStack(alignment: .trailing, spacing: 2) {
                     Text("TO COLLECT")
-                        .font(.system(size: 10, weight: .bold, design: .monospaced))
+                        .font(.app(size: 10, weight: .bold, design: .monospaced))
                         .foregroundStyle(Color(hex: "#8E44AD"))
                     Text("\(currency)\(String(format: "%.2f", toCollectCalculated))")
-                        .font(.system(size: 16, weight: .black, design: .monospaced))
+                        .font(.app(size: 16, weight: .black, design: .monospaced))
                         .foregroundStyle(Color(hex: "#8E44AD"))
                 }
             }
@@ -1219,34 +1232,34 @@ struct AddTransactionSheet: View {
                 if abs(diff) < 0.01 {
                     HStack(spacing: 4) {
                         Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 10))
+                            .font(.app(size: 10))
                         Text("100% accounted for (Balanced)")
-                            .font(.system(size: 10, weight: .bold, design: .monospaced))
+                            .font(.app(size: 10, weight: .bold, design: .monospaced))
                     }
                     .foregroundStyle(Color(hex: "#27AE60"))
                     .frame(maxWidth: .infinity, alignment: .leading)
                 } else if diff > 0.01 {
                     HStack(spacing: 4) {
                         Image(systemName: "info.circle.fill")
-                            .font(.system(size: 10))
+                            .font(.app(size: 10))
                         Text("\(currency)\(String(format: "%.2f", diff)) remainder (Added to your share)")
-                            .font(.system(size: 10, weight: .bold, design: .monospaced))
+                            .font(.app(size: 10, weight: .bold, design: .monospaced))
                     }
                     .foregroundStyle(Color(hex: "#2980B9"))
                     .frame(maxWidth: .infinity, alignment: .leading)
                 } else {
                     HStack(spacing: 4) {
                         Image(systemName: "bolt.fill")
-                            .font(.system(size: 10))
+                            .font(.app(size: 10))
                         Text("Custom amounts recorded (Collection: \(currency)\(String(format: "%.2f", customFriendsTotal)))")
-                            .font(.system(size: 10, weight: .bold, design: .monospaced))
+                            .font(.app(size: 10, weight: .bold, design: .monospaced))
                     }
                     .foregroundStyle(Color(hex: "#8E44AD"))
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
             } else {
                 Text("(\(currency)\(String(format: "%.2f", perFriendShareCalculated)) from each of the \(max(1, numberOfPeople - 1)) friends)")
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(.app(size: 11, weight: .semibold))
                     .foregroundStyle(AppColor.textSecondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
@@ -1262,136 +1275,144 @@ struct AddTransactionSheet: View {
 
     // MARK: - Save Button
 
-    private var saveButton: some View {
-        Button {
-            guard parsedAmount > 0 else { return }
+    private func performSave() throws {
+        guard parsedAmount > 0 else { return }
 
-            let targetId = transactionToEdit?.id
+        let targetId = transactionToEdit?.id
 
-            if isDirectCollectMode {
-                let cleanName = directCollectFriendName.trimmingCharacters(in: .whitespacesAndNewlines)
-                let finalName = cleanName.isEmpty ? "Friend" : cleanName
+        if isDirectCollectMode {
+            let cleanName = directCollectFriendName.trimmingCharacters(in: .whitespacesAndNewlines)
+            let finalName = cleanName.isEmpty ? "Friend" : cleanName
 
-                // Automatically save to fixed friends directory
-                try? env.financeRepository.saveFriend(Friend(name: finalName))
+            // Automatically save to fixed friends directory
+            try? env.financeRepository.saveFriend(Friend(name: finalName))
 
-                let share = SplitShare(
-                    id: transactionToEdit?.splitDetails?.splits.first?.id ?? UUID(),
-                    personName: finalName,
-                    amountOwed: parsedAmount,
-                    isSettled: transactionToEdit?.splitDetails?.splits.first?.isSettled ?? false,
-                    settledAt: transactionToEdit?.splitDetails?.splits.first?.settledAt
-                )
-                let effectiveShares = [share]
-                let finalNote = note.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Direct to collect from \(finalName)" : note
+            let share = SplitShare(
+                id: transactionToEdit?.splitDetails?.splits.first?.id ?? UUID(),
+                personName: finalName,
+                amountOwed: parsedAmount,
+                isSettled: transactionToEdit?.splitDetails?.splits.first?.isSettled ?? false,
+                settledAt: transactionToEdit?.splitDetails?.splits.first?.settledAt
+            )
+            let effectiveShares = [share]
+            let finalNote = note.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Direct to collect from \(finalName)" : note
 
-                onSave?(
-                    targetId,
-                    parsedAmount,
-                    .expense,
-                    selectedCategory,
-                    finalNote,
-                    date,
-                    true,
-                    2,
-                    [finalName],
-                    0.0,
-                    effectiveShares
-                )
-                dismiss()
-                return
-            }
+            try onSave?(
+                targetId,
+                parsedAmount,
+                .expense,
+                selectedCategory,
+                finalNote,
+                date,
+                true,
+                2,
+                [finalName],
+                0.0,
+                effectiveShares
+            )
+            dismiss()
+            return
+        }
 
-            if isSplit {
-                if splitMode == .custom {
-                    let validFriends = customFriends
-                        .filter { $0.amount > 0 || !$0.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
-                        .enumerated()
-                        .map { (index, item) in
-                            let cleanName = item.name.trimmingCharacters(in: .whitespacesAndNewlines)
-                            let finalName = cleanName.isEmpty ? "Friend \(index + 1)" : cleanName
-                            return SplitShare(
-                                id: item.id,
-                                personName: finalName,
-                                amountOwed: item.amount,
-                                isSettled: item.isSettled,
-                                settledAt: item.settledAt
-                            )
-                        }
-
-                    let effectiveShares = validFriends.isEmpty ? [SplitShare(personName: "Friend 1", amountOwed: 0)] : validFriends
-                    let customShare = isCustomMyShare ? Double(customMyShareString) : myShareCalculated
-
-                    // Automatically save any new friend names to fixed directory
-                    for share in effectiveShares {
-                        let trimmed = share.personName.trimmingCharacters(in: .whitespacesAndNewlines)
-                        if !trimmed.isEmpty && !trimmed.lowercased().hasPrefix("friend ") {
-                            try? env.financeRepository.saveFriend(Friend(name: trimmed))
-                        }
+        if isSplit {
+            if splitMode == .custom {
+                let validFriends = customFriends
+                    .filter { $0.amount > 0 || !$0.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+                    .enumerated()
+                    .map { (index, item) in
+                        let cleanName = item.name.trimmingCharacters(in: .whitespacesAndNewlines)
+                        let finalName = cleanName.isEmpty ? "Friend \(index + 1)" : cleanName
+                        return SplitShare(
+                            id: item.id,
+                            personName: finalName,
+                            amountOwed: item.amount,
+                            isSettled: item.isSettled,
+                            settledAt: item.settledAt
+                        )
                     }
 
-                    onSave?(
-                        targetId,
-                        parsedAmount,
-                        selectedType,
-                        selectedCategory,
-                        note,
-                        date,
-                        true,
-                        effectiveShares.count + 1,
-                        [],
-                        customShare,
-                        effectiveShares
-                    )
-                } else {
-                    let friendNames = friendNamesText
-                        .components(separatedBy: ",")
-                        .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-                        .filter { !$0.isEmpty }
+                let effectiveShares = validFriends.isEmpty ? [SplitShare(personName: "Friend 1", amountOwed: 0)] : validFriends
+                let customShare = isCustomMyShare ? Double(customMyShareString) : myShareCalculated
 
-                    let customShare: Double? = isCustomMyShare ? Double(customMyShareString) : nil
-
-                    // Automatically save any new friend names to fixed directory
-                    for name in friendNames {
-                        try? env.financeRepository.saveFriend(Friend(name: name))
+                // Automatically save any new friend names to fixed directory
+                for share in effectiveShares {
+                    let trimmed = share.personName.trimmingCharacters(in: .whitespacesAndNewlines)
+                    if !trimmed.isEmpty && !trimmed.lowercased().hasPrefix("friend ") {
+                        try? env.financeRepository.saveFriend(Friend(name: trimmed))
                     }
-
-                    onSave?(
-                        targetId,
-                        parsedAmount,
-                        selectedType,
-                        selectedCategory,
-                        note,
-                        date,
-                        true,
-                        numberOfPeople,
-                        friendNames,
-                        customShare,
-                        nil
-                    )
                 }
-            } else {
-                onSave?(
+
+                try onSave?(
                     targetId,
                     parsedAmount,
                     selectedType,
                     selectedCategory,
                     note,
                     date,
-                    false,
-                    1,
+                    true,
+                    effectiveShares.count + 1,
                     [],
-                    nil,
+                    customShare,
+                    effectiveShares
+                )
+            } else {
+                let friendNames = friendNamesText
+                    .components(separatedBy: ",")
+                    .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                    .filter { !$0.isEmpty }
+
+                let customShare: Double? = isCustomMyShare ? Double(customMyShareString) : nil
+
+                // Automatically save any new friend names to fixed directory
+                for name in friendNames {
+                    try? env.financeRepository.saveFriend(Friend(name: name))
+                }
+
+                try onSave?(
+                    targetId,
+                    parsedAmount,
+                    selectedType,
+                    selectedCategory,
+                    note,
+                    date,
+                    true,
+                    numberOfPeople,
+                    friendNames,
+                    customShare,
                     nil
                 )
             }
-            dismiss()
+        } else {
+            try onSave?(
+                targetId,
+                parsedAmount,
+                selectedType,
+                selectedCategory,
+                note,
+                date,
+                false,
+                1,
+                [],
+                nil,
+                nil
+            )
+        }
+        dismiss()
+    }
+
+    private var saveButton: some View {
+        Button {
+            do {
+                try performSave()
+            } catch {
+                saveError = error.localizedDescription
+            }
         } label: {
             HStack(spacing: 8) {
                 Image(systemName: isEditing ? "arrow.triangle.2.circlepath" : "checkmark.circle.fill")
-                    .font(.system(size: 16, weight: .bold))
+                    .font(.app(size: 16, weight: .bold))
                 Text(isEditing ? "UPDATE TRANSACTION" : "SAVE TRANSACTION")
-                    .font(.system(size: 14, weight: .black, design: .monospaced))
+                    .font(.app(size: 14, weight: .black, design: .monospaced))
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 14)
@@ -1410,9 +1431,9 @@ struct AddTransactionSheet: View {
         } label: {
             HStack(spacing: 8) {
                 Image(systemName: "trash.fill")
-                    .font(.system(size: 14, weight: .bold))
+                    .font(.app(size: 14, weight: .bold))
                 Text("DELETE TRANSACTION")
-                    .font(.system(size: 13, weight: .black, design: .monospaced))
+                    .font(.app(size: 13, weight: .black, design: .monospaced))
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 12)

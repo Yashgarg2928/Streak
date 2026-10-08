@@ -46,6 +46,16 @@ enum AppColor {
         trait.userInterfaceStyle == .dark ? UIColor(Color(hex: "#2C2C2E")) : UIColor(Color(hex: "#D0C9B8"))
     })
 
+    /// Frozen (streak-freeze protected) day.
+    static let frozen = Color(uiColor: UIColor { trait in
+        trait.userInterfaceStyle == .dark ? UIColor(Color(hex: "#64B5F6")) : UIColor(Color(hex: "#2E86C1"))
+    })
+
+    /// Scheduled rest day.
+    static let rest = Color(uiColor: UIColor { trait in
+        trait.userInterfaceStyle == .dark ? UIColor(Color(hex: "#5C6B7A")) : UIColor(Color(hex: "#A9B7C6"))
+    })
+
     static let neutralDot = Color(uiColor: UIColor { trait in
         trait.userInterfaceStyle == .dark ? UIColor(Color(hex: "#999999")) : UIColor(Color(hex: "#8A8A8A"))
     })
@@ -62,6 +72,27 @@ enum AppLayout {
     static let heatmapCell:     CGFloat = 12
     static let heatmapGap:      CGFloat = 3
     static let minTapTarget:    CGFloat = 44
+}
+
+// MARK: - Typography
+// Fixed-size fonts throughout the app go through `.app(size:)`, which scales with the
+// user's text-size setting and never drops below a readable minimum.
+
+enum AppFont {
+    static let minimumSize: CGFloat = 11
+    /// Large accessibility sizes are capped so dense layouts stay usable.
+    static let maximumScale: CGFloat = 1.6
+
+    static func scaled(_ size: CGFloat) -> CGFloat {
+        let base = max(size, minimumSize)
+        return min(UIFontMetrics.default.scaledValue(for: base), base * maximumScale)
+    }
+}
+
+extension Font {
+    static func app(size: CGFloat, weight: Font.Weight? = nil, design: Font.Design? = nil) -> Font {
+        .system(size: AppFont.scaled(size), weight: weight, design: design)
+    }
 }
 
 // MARK: - Color hex initialiser
@@ -89,6 +120,8 @@ extension DayStatus {
         case .green:  return AppColor.green
         case .red:    return AppColor.red
         case .future: return AppColor.blank
+        case .rest:   return AppColor.rest
+        case .frozen: return AppColor.frozen
         }
     }
 }

@@ -21,6 +21,8 @@ enum FinanceSubTab: String, CaseIterable, Identifiable {
 
 @Observable
 final class FinanceViewModel {
+    /// Set when a user action fails; FinanceMainView shows it in an alert.
+    var errorMessage: String? = nil
     private let env: AppEnvironment
 
     var transactions: [FinanceTransaction] = []
@@ -73,26 +75,22 @@ final class FinanceViewModel {
         friendNames: [String] = [],
         customMyShare: Double? = nil,
         customFriendShares: [SplitShare]? = nil
-    ) {
+    ) throws {
         let useCase = LogTransactionUseCase(financeRepository: env.financeRepository)
-        do {
-            _ = try useCase.execute(
-                amount: amount,
-                type: type,
-                category: category,
-                note: note,
-                date: date,
-                isSplit: isSplit,
-                numberOfPeople: numberOfPeople,
-                friendNames: friendNames,
-                customMyShare: customMyShare,
-                customFriendShares: customFriendShares
-            )
-            load()
-            env.syncWidgets()
-        } catch {
-            print("Failed to add transaction: \(error)")
-        }
+        _ = try useCase.execute(
+            amount: amount,
+            type: type,
+            category: category,
+            note: note,
+            date: date,
+            isSplit: isSplit,
+            numberOfPeople: numberOfPeople,
+            friendNames: friendNames,
+            customMyShare: customMyShare,
+            customFriendShares: customFriendShares
+        )
+        load()
+        env.syncWidgets()
     }
 
     public func updateTransaction(
@@ -107,38 +105,30 @@ final class FinanceViewModel {
         friendNames: [String] = [],
         customMyShare: Double? = nil,
         customFriendShares: [SplitShare]? = nil
-    ) {
+    ) throws {
         let useCase = UpdateTransactionUseCase(financeRepository: env.financeRepository)
-        do {
-            _ = try useCase.execute(
-                id: id,
-                amount: amount,
-                type: type,
-                category: category,
-                note: note,
-                date: date,
-                isSplit: isSplit,
-                numberOfPeople: numberOfPeople,
-                friendNames: friendNames,
-                customMyShare: customMyShare,
-                customFriendShares: customFriendShares
-            )
-            load()
-            env.syncWidgets()
-        } catch {
-            print("Failed to update transaction: \(error)")
-        }
+        _ = try useCase.execute(
+            id: id,
+            amount: amount,
+            type: type,
+            category: category,
+            note: note,
+            date: date,
+            isSplit: isSplit,
+            numberOfPeople: numberOfPeople,
+            friendNames: friendNames,
+            customMyShare: customMyShare,
+            customFriendShares: customFriendShares
+        )
+        load()
+        env.syncWidgets()
     }
 
-    public func deleteTransaction(id: UUID) {
+    public func deleteTransaction(id: UUID) throws {
         let useCase = DeleteTransactionUseCase(financeRepository: env.financeRepository)
-        do {
-            try useCase.execute(id: id)
-            load()
-            env.syncWidgets()
-        } catch {
-            print("Failed to delete transaction: \(error)")
-        }
+        try useCase.execute(id: id)
+        load()
+        env.syncWidgets()
     }
 
     public func settleSplit(transactionId: UUID, shareId: UUID, isSettled: Bool = true) {
@@ -148,7 +138,7 @@ final class FinanceViewModel {
             load()
             env.syncWidgets()
         } catch {
-            print("Failed to settle split: \(error)")
+            errorMessage = "Couldn't settle split: \(error.localizedDescription)"
         }
     }
 
@@ -162,7 +152,7 @@ final class FinanceViewModel {
             try env.financeRepository.saveFriend(friend)
             self.friends = try env.financeRepository.fetchFriends()
         } catch {
-            print("Failed to save friend: \(error)")
+            errorMessage = "Couldn't save friend: \(error.localizedDescription)"
         }
     }
 
@@ -171,7 +161,7 @@ final class FinanceViewModel {
             try env.financeRepository.deleteFriend(id: id)
             self.friends = try env.financeRepository.fetchFriends()
         } catch {
-            print("Failed to delete friend: \(error)")
+            errorMessage = "Couldn't delete friend: \(error.localizedDescription)"
         }
     }
 
@@ -181,7 +171,7 @@ final class FinanceViewModel {
             load()
             env.syncWidgets()
         } catch {
-            print("Failed to settle all for friend: \(error)")
+            errorMessage = "Couldn't settle all for friend: \(error.localizedDescription)"
         }
     }
 
@@ -223,7 +213,7 @@ final class FinanceViewModel {
             load()
             env.syncWidgets()
         } catch {
-            print("Failed to add direct collect: \(error)")
+            errorMessage = "Couldn't add direct collect: \(error.localizedDescription)"
         }
     }
 

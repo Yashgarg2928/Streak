@@ -17,7 +17,7 @@ struct WorkoutDataExportSheet: View {
             VStack(alignment: .leading, spacing: AppLayout.itemSpacing) {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("EXPORT DATE RANGE")
-                        .font(.system(size: 11, weight: .bold, design: .monospaced))
+                        .font(.app(size: 11, weight: .bold, design: .monospaced))
                         .foregroundStyle(AppColor.textSecondary)
 
                     HStack {
@@ -32,7 +32,7 @@ struct WorkoutDataExportSheet: View {
                         Button("GENERATE") {
                             generateExport()
                         }
-                        .font(.system(size: 11, weight: .bold))
+                        .font(.app(size: 11, weight: .bold))
                         .foregroundStyle(AppColor.background)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 6)
@@ -45,7 +45,7 @@ struct WorkoutDataExportSheet: View {
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {
                             Text("EXPORTED AI JSON")
-                                .font(.system(size: 11, weight: .bold, design: .monospaced))
+                                .font(.app(size: 11, weight: .bold, design: .monospaced))
                                 .foregroundStyle(AppColor.textSecondary)
                             Spacer()
                             Button {
@@ -59,7 +59,7 @@ struct WorkoutDataExportSheet: View {
                                     Image(systemName: copied ? "checkmark" : "doc.on.doc")
                                     Text(copied ? "COPIED!" : "COPY TO CLIPBOARD")
                                 }
-                                .font(.system(size: 10, weight: .bold))
+                                .font(.app(size: 10, weight: .bold))
                                 .foregroundStyle(copied ? AppColor.green : AppColor.textPrimary)
                                 .padding(.horizontal, 10)
                                 .padding(.vertical, 6)
@@ -71,7 +71,7 @@ struct WorkoutDataExportSheet: View {
 
                         ScrollView {
                             Text(exportedJSON)
-                                .font(.system(size: 10, design: .monospaced))
+                                .font(.app(size: 10, design: .monospaced))
                                 .foregroundStyle(AppColor.textPrimary)
                                 .padding(10)
                                 .frame(maxWidth: .infinity, alignment: .leading)

@@ -55,6 +55,7 @@
 		DC0921D62FFF025200457120 /* Exceptions for "Streak" folder in "StreakWidgetsExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Infrastructure/DayCountdownAttributes.swift,
 				Infrastructure/WidgetDataStore.swift,
 			);
 			target = DC0921AA2FFEFF9400457120 /* StreakWidgetsExtension */;

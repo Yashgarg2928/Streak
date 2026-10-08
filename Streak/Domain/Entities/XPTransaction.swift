@@ -18,6 +18,7 @@ public enum XPTransactionReason: String, Codable {
     case categoryRedDayDecay = "Missed Category Day"
     case habitMissedDecay = "Missed Habit"
     case streakBreakPenalty = "Streak Reset Penalty"
+    case streakFreezeUsed = "Streak Freeze Used"
     
     // Purchases / Redemption
     case shopPurchase = "Shop Purchase"

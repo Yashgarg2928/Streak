@@ -7,38 +7,38 @@ import SwiftData
 
 enum ModelContainerFactory {
 
+    static let schema = Schema([
+        CategoryModel.self,
+        TaskModel.self,
+        DayEntryModel.self,
+        GoalModel.self,
+        GoalProgressEntryModel.self,
+        ReflectionEntryModel.self,
+        HabitRoutineModel.self,
+        PlayerProfileModel.self,
+        BadgeModel.self,
+        XPTransactionModel.self,
+        ShopItemModel.self,
+        CustomRewardModel.self,
+        CoreHabitModel.self,
+        DailyHabitLogModel.self,
+        WorkoutPlanModel.self,
+        DailyWorkoutLogModel.self,
+        MealLogModel.self,
+        MacroGoalsModel.self,
+        FinanceTransactionModel.self,
+        SplitShareModel.self,
+        HealthSnapshotModel.self,
+    ])
+
+    /// On-disk location of the SQLite store (used by backup/restore).
+    static var storeURL: URL {
+        ModelConfiguration(schema: schema, isStoredInMemoryOnly: false).url
+    }
+
     static func makeContainer(inMemory: Bool = false) throws -> ModelContainer {
-        let schema = Schema([
-            CategoryModel.self,
-            TaskModel.self,
-            DayEntryModel.self,
-            GoalModel.self,
-            GoalProgressEntryModel.self,
-            ReflectionEntryModel.self,
-            HabitRoutineModel.self,
-            PlayerProfileModel.self,
-            BadgeModel.self,
-            XPTransactionModel.self,
-            ShopItemModel.self,
-            CustomRewardModel.self,
-            CoreHabitModel.self,
-            DailyHabitLogModel.self,
-            WorkoutPlanModel.self,
-            DailyWorkoutLogModel.self,
-            MealLogModel.self,
-            MacroGoalsModel.self,
-            FinanceTransactionModel.self,
-            SplitShareModel.self,
-        ])
-
-        let config: ModelConfiguration
-        if inMemory {
-            // ponytail: in-memory config used in tests/previews — no disk I/O
-            config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
-        } else {
-            config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-        }
-
+        // ponytail: in-memory config used in tests/previews — no disk I/O
+        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: inMemory)
         return try ModelContainer(for: schema, configurations: config)
     }
 }

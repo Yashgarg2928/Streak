@@ -24,6 +24,7 @@ struct WidgetData: Codable {
     }
 
     struct TaskItem: Codable {
+        var id: String? = nil                  // task UUID string (nil in data written by older builds)
         var title: String
         var isCompleted: Bool
         var categoryColorHex: String?
@@ -98,5 +99,42 @@ enum WidgetDataStore {
         guard let defaults = UserDefaults(suiteName: appGroupID) else { return }
         defaults.removeObject(forKey: key)
         defaults.synchronize()
+    }
+}
+
+// MARK: - Interactive widget queue
+// Widgets can't open the SwiftData store, so a tap on a widget checkbox updates the
+// cached WidgetData optimistically and queues the change here. The app applies the
+// queue through the normal task-completion flow the next time it runs.
+
+enum WidgetTaskToggleQueue {
+    struct Toggle: Codable {
+        var taskId: String
+        var completed: Bool
+        var toggledAt: Date
+    }
+
+    static let key = "pendingWidgetTaskToggles"
+
+    static func enqueue(taskId: String, completed: Bool) {
+        guard let defaults = UserDefaults(suiteName: WidgetDataStore.appGroupID) else { return }
+        var toggles = load(from: defaults).filter { $0.taskId != taskId }
+        toggles.append(Toggle(taskId: taskId, completed: completed, toggledAt: Date()))
+        if let encoded = try? JSONEncoder().encode(toggles) {
+            defaults.set(encoded, forKey: key)
+        }
+    }
+
+    /// Returns every queued toggle and clears the queue.
+    static func drain() -> [Toggle] {
+        guard let defaults = UserDefaults(suiteName: WidgetDataStore.appGroupID) else { return [] }
+        let toggles = load(from: defaults)
+        defaults.removeObject(forKey: key)
+        return toggles
+    }
+
+    private static func load(from defaults: UserDefaults) -> [Toggle] {
+        guard let data = defaults.data(forKey: key) else { return [] }
+        return (try? JSONDecoder().decode([Toggle].self, from: data)) ?? []
     }
 }

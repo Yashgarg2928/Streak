@@ -6,34 +6,30 @@ public final class GeminiNotificationService {
     public static let shared = GeminiNotificationService()
     private init() {}
 
+    /// Rolling alias for Google's newest Flash model, so retiring a model version doesn't
+    /// silently break AI notifications again (gemini-1.5-flash was shut down in 2025).
+    private static let endpoint = URL(string: "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent")!
+
+    private func makeRequest(apiKey: String, prompt: String) throws -> URLRequest {
+        var request = URLRequest(url: Self.endpoint)
+        request.httpMethod = "POST"
+        request.timeoutInterval = 20
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        // Key goes in a header rather than the URL so it never lands in URL logs.
+        request.setValue(apiKey, forHTTPHeaderField: "x-goog-api-key")
+        let body: [String: Any] = ["contents": [["parts": [["text": prompt]]]]]
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        return request
+    }
+
     public func testApiKey(_ apiKey: String) async throws -> String {
         let cleanKey = apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !cleanKey.isEmpty else {
             throw NSError(domain: "GeminiService", code: 400, userInfo: [NSLocalizedDescriptionKey: "API Key cannot be empty."])
         }
 
-        let urlString = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=\(cleanKey)"
-        guard let url = URL(string: urlString) else {
-            throw NSError(domain: "GeminiService", code: 400, userInfo: [NSLocalizedDescriptionKey: "Invalid API URL."])
-        }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
         let promptText = "Generate a single 1-sentence spicy notification to encourage a user to do their daily habits. Keep it funny, punchy, under 100 characters. Return plain text only."
-
-        let body: [String: Any] = [
-            "contents": [
-                [
-                    "parts": [
-                        ["text": promptText]
-                    ]
-                ]
-            ]
-        ]
-
-        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        let request = try makeRequest(apiKey: cleanKey, prompt: promptText)
 
         let (data, response) = try await URLSession.shared.data(for: request)
 
@@ -73,8 +69,8 @@ public final class GeminiNotificationService {
         switch touchpoint {
         case .morningHype: touchpointDescription = "Morning hype notification (8:00 AM)"
         case .middayNudge: touchpointDescription = "Mid-day check-in nudge (3:00 PM)"
-        case .planningAlert: touchpointDescription = "Nightly planning deadline alert (10:00 PM)"
-        case .emergencyCutoff: touchpointDescription = "Emergency cutoff warning 1 hour before midnight"
+        case .planningAlert: touchpointDescription = "Nightly reminder to plan tomorrow's tasks"
+        case .emergencyCutoff: touchpointDescription = "Emergency warning 1 hour before the active day ends"
         }
 
         let habitsList = habitTitles.prefix(3).joined(separator: ", ")
@@ -92,25 +88,8 @@ public final class GeminiNotificationService {
         Example: {"title": "🔥 Streak in Danger!", "body": "Your 7-day streak needs 2 hrs DSA. Get off social media!"}
         """
 
-        let urlString = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=\(cleanKey)"
-        guard let url = URL(string: urlString) else { return nil }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        let body: [String: Any] = [
-            "contents": [
-                [
-                    "parts": [
-                        ["text": promptText]
-                    ]
-                ]
-            ]
-        ]
-
         do {
-            request.httpBody = try JSONSerialization.data(withJSONObject: body)
+            let request = try makeRequest(apiKey: cleanKey, prompt: promptText)
             let (data, response) = try await URLSession.shared.data(for: request)
             guard let httpResp = response as? HTTPURLResponse, httpResp.statusCode == 200 else { return nil }
 

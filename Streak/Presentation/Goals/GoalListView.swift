@@ -5,17 +5,27 @@ import SwiftUI
 
 struct GoalListView: View {
     let env: AppEnvironment
+    /// false when pushed onto an existing NavigationStack (e.g. from Home).
+    var embedInNavigationStack: Bool = true
     @State private var vm: GoalsViewModel
     @State private var showAddSheet = false
     @State private var selectedGoalId: UUID? = nil
     
-    init(env: AppEnvironment) {
+    init(env: AppEnvironment, embedInNavigationStack: Bool = true) {
         self.env = env
+        self.embedInNavigationStack = embedInNavigationStack
         _vm = State(initialValue: GoalsViewModel(env: env))
     }
     
     var body: some View {
-        NavigationStack {
+        if embedInNavigationStack {
+            NavigationStack { content }
+        } else {
+            content
+        }
+    }
+
+    private var content: some View {
             ScrollView {
                 VStack(alignment: .leading, spacing: AppLayout.sectionSpacing) {
                     if vm.goals.isEmpty {
@@ -80,7 +90,6 @@ struct GoalListView: View {
             .onAppear {
                 vm.load()
             }
-        }
     }
     
     private func goalCard(_ goal: Goal) -> some View {
@@ -104,7 +113,7 @@ struct GoalListView: View {
                         
                         if goal.isCompleted {
                             Text("COMPLETED")
-                                .font(.system(size: 9, weight: .black))
+                                .font(.app(size: 9, weight: .black))
                                 .foregroundStyle(.white)
                                 .padding(.horizontal, 6)
                                 .padding(.vertical, 3)

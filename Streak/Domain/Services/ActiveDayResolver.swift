@@ -121,4 +121,11 @@ public final class ActiveDayResolver {
         
         return deadline
     }
+
+    /// Whether `date` falls on one of the user's scheduled rest weekdays.
+    public static func isRestDay(_ date: Date, settings: SettingsRepository) -> Bool {
+        let weekdays = settings.restWeekdays
+        guard !weekdays.isEmpty else { return false }
+        return weekdays.contains(Calendar.current.component(.weekday, from: date))
+    }
 }

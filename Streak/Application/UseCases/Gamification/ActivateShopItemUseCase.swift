@@ -21,17 +21,20 @@ struct ActivateShopItemUseCase {
     let shopItemRepository: any ShopItemRepository
     let dayEntryRepository: any DayEntryRepository
     let settingsRepository: any SettingsRepository
+    let categoryRepository: any CategoryRepository
 
     init(
         playerProfileRepository: any PlayerProfileRepository,
         shopItemRepository: any ShopItemRepository,
         dayEntryRepository: any DayEntryRepository,
-        settingsRepository: any SettingsRepository
+        settingsRepository: any SettingsRepository,
+        categoryRepository: any CategoryRepository
     ) {
         self.playerProfileRepository = playerProfileRepository
         self.shopItemRepository = shopItemRepository
         self.dayEntryRepository = dayEntryRepository
         self.settingsRepository = settingsRepository
+        self.categoryRepository = categoryRepository
     }
 
     func execute(itemId: UUID) throws {
@@ -52,17 +55,9 @@ struct ActivateShopItemUseCase {
 
         switch item.itemType {
         case .streakFreeze:
-            // Manually activating a Streak Freeze applies a freeze shield to protect active day status!
-            let activeDate = ActiveDayResolver.resolveActiveDate(for: now, settings: settingsRepository)
-            let existingEntry = try dayEntryRepository.fetch(date: activeDate, categoryId: nil)
-            let freezeEntry = DayEntry(
-                date: activeDate,
-                categoryId: nil,
-                status: .green,
-                taskCount: existingEntry?.taskCount ?? 0,
-                completedCount: existingEntry?.completedCount ?? 0
-            )
-            try dayEntryRepository.save(freezeEntry)
+            // Equipping a Streak Freeze protects today: it can't turn red, and it neither
+            // extends nor breaks the streak (unless every task still gets done).
+            try protectActiveDay(now: now)
             if profile.streakFreezes > 0 {
                 profile.streakFreezes -= 1
             }
@@ -80,15 +75,7 @@ struct ActivateShopItemUseCase {
             profile.activeBoostExpiry = expiry
 
         case .weekendShield, .restDayPass, .bingeNightPass:
-            let activeDate = ActiveDayResolver.resolveActiveDate(for: now, settings: settingsRepository)
-            let freezeEntry = DayEntry(
-                date: activeDate,
-                categoryId: nil,
-                status: .green,
-                taskCount: 0,
-                completedCount: 0
-            )
-            try dayEntryRepository.save(freezeEntry)
+            try protectActiveDay(now: now)
             item.expiresAt = now.addingTimeInterval(24 * 3600)
 
         case .prestigeBadgeSlot, .legendaryStreakArmor:
@@ -98,5 +85,23 @@ struct ActivateShopItemUseCase {
         profile.lastUpdated = now
         try playerProfileRepository.saveProfile(profile)
         try shopItemRepository.save(item)
+    }
+
+    /// Marks the active day as `.frozen` for the master streak and every category that isn't already green.
+    private func protectActiveDay(now: Date) throws {
+        let activeDate = ActiveDayResolver.resolveActiveDate(for: now, settings: settingsRepository)
+        let categoryIds: [UUID?] = [nil] + (try categoryRepository.fetchActive()).map { Optional($0.id) }
+        for categoryId in categoryIds {
+            let existing = try dayEntryRepository.fetch(date: activeDate, categoryId: categoryId)
+            guard existing?.status != .green else { continue }
+            try dayEntryRepository.save(DayEntry(
+                id: existing?.id ?? UUID(),
+                date: activeDate,
+                categoryId: categoryId,
+                status: .frozen,
+                taskCount: existing?.taskCount ?? 0,
+                completedCount: existing?.completedCount ?? 0
+            ))
+        }
     }
 }

@@ -369,3 +369,32 @@ The App Group shared container exposes a lightweight read-only snapshot for widg
 | GoalProgressEntry: one per goal per day | Upsert logic in `LogGoalProgressUseCase` |
 | Tasks only for today or tomorrow | Validated in `AddTaskUseCase` |
 | Color contrast enforcement | Minimum luminance difference validated on input |
+
+---
+
+## Changes — 2026-10-08
+
+- **DayStatus** gains two neutral values: `rest` (scheduled rest weekday, never red) and `frozen` (protected by a Streak Freeze).
+  Both are skipped by streak counting and bridge streak-history runs. Stored as `DayEntryModel.statusRaw` ("rest" / "frozen").
+- **DayEntry.taskCount / completedCount** now count *planned* tasks only (standalone tasks created after the planning
+  deadline are BONUS and excluded).
+- **HabitRoutine.weekdays: Set<Int>** (1 = Sunday … 7 = Saturday, empty = every day). Persisted as optional
+  `HabitRoutineModel.weekdaysCSV: String?` — lightweight migration, existing routines run every day.
+- **Settings (App Group UserDefaults):** `restWeekdays: [Int]`, `lastBackupDate: Date?`, `isLiveActivityEnabled: Bool` (default true).
+  `isPlanningAlertEnabled` is now actually bound to the Settings toggle.
+- **XPTransactionReason.streakFreezeUsed** — 0-XP log entry when a freeze is auto-used.
+- **WidgetData.TaskItem.id: String?** — task UUID for interactive widget checkboxes; **WidgetTaskToggleQueue** in App Group
+  UserDefaults (`pendingWidgetTaskToggles`).
+- **Backup file** (replaces the never-built JSON export): binary plist
+  `{ app: "Streak", formatVersion: 1, createdAt, store: <SQLite snapshot>, appGroupDefaults, standardDefaults }`.
+
+### Additions (round 2)
+
+- **HealthSnapshot** (new entity, `HealthSnapshotModel`): `date` (start of active day, unique per day), `steps`,
+  `activeEnergyKcal`, `exerciseMinutes`, `workoutCount`, `workoutMinutes`, `updatedAt`. Written only by the Shortcuts
+  action. New table → lightweight migration.
+- **HabitRoutine.healthRule: HealthRule?** — `{ metric: steps | exerciseMinutes | activeEnergy | workouts, target: Int }`,
+  persisted as optional `HabitRoutineModel.healthRuleRaw` ("steps:10000").
+- **Habit status source of truth:** a habit is *followed* when its generated task is completed. `DailyHabitLog` now
+  only adds an explicit "not followed" mark (used by the check-in XP penalty and the Habit Commitments widget).
+- **CoreHabit** removed from Domain / repositories / DI. `CoreHabitModel` remains in the schema (unused) for safe migration.

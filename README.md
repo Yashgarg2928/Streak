@@ -17,9 +17,11 @@ Streak is a local-first, privacy-respecting iOS habit tracker built with Swift 5
 
 Streak is designed for **extreme accountability**. It enforces a brutal consistency policy:
 
-* **Strict Binary State:** A day is either **Green** (all tasks completed) or **Red** (any task missed, or no tasks scheduled). There are no partial states.
-* **Brutal Reset:** Any single Red day immediately resets your streak to `0`. No exceptions.
-* **Lockout Rule:** If no tasks are scheduled for the upcoming active day before your custom rollover deadline, the day is permanently locked as Red.
+* **Strict Binary State:** A day is either **Green** (all planned tasks completed) or **Red** (any planned task missed, or nothing planned). There are no partial states.
+* **Brutal Reset:** Any single Red day resets your streak to `0`, unless a **Streak Freeze** from the shop covers it (used automatically when a miss would break a running streak).
+* **Lockout Rule:** If no tasks are scheduled for the active day before your planning deadline, the day is locked as Red.
+* **Bonus Tasks:** Tasks added after the planning deadline earn XP but never change the day's status.
+* **Rest Days:** Weekdays you mark as rest days never turn red and don't break your streak.
 
 ---
 
@@ -33,8 +35,11 @@ Streak is designed for **extreme accountability**. It enforces a brutal consiste
 6. **Dynamic Light & Dark Neo-Brutalism** – High-contrast design system supporting Light Mode (`#F5F0E8`), Dark Mode (`#121212`), and System automatic theme switching with dynamic `AppColor` tokens.
 7. **Soft-Deletion Protection** – Deleted tasks move to the bottom of the list with a strike-through and `(Deleted)` badge without breaking or ruining historical streaks. Second swipe permanently purges.
 8. **Game-Style Goals** – Track progress across four goal types (consecutive streaks, cumulative days, milestone progress, and task counters).
-9. **Daily Assist** – End-of-day reflection forms to log accomplishments, missed items, and tomorrow's priorities (stored locally).
-10. **In-App Reset All Data** – Easily reset all data from Settings (SwiftData entities, App Group widget stores, and UserDefaults).
+9. **End-of-Day Check-In** – Mark habit commitments followed / not followed, rate the day 1–5, and log wins, misses and tomorrow's priorities.
+10. **Today Screen** – Tasks left, time left and tap-to-complete checkboxes front and center, followed by the overall streak, goals and categories.
+11. **Backup & Restore** – Export a full backup file (database + settings) to Files and restore it after a reinstall or on a new phone.
+12. **Interactive Widgets & Lock Screen Countdown** – Tick tasks straight from the Tasks widget; a Live Activity counts down the last hours of your day.
+13. **In-App Reset All Data** – Easily reset all data from Settings (SwiftData entities, App Group widget stores, and UserDefaults).
 
 ---
 

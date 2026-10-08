@@ -92,58 +92,6 @@ final class TaskViewModel {
         }
     }
 
-    func addHabitRoutine(
-        title: String,
-        categoryId: UUID?,
-        type: HabitRoutineType,
-        startDate: Date = Date(),
-        endDate: Date = Date(),
-        for currentDate: Date = Date()
-    ) {
-        guard !title.trimmingCharacters(in: .whitespaces).isEmpty else { return }
-        do {
-            let cal = Calendar.current
-            let start: Date
-            let end: Date
-            let isLocked: Bool
-            
-            switch type {
-            case .monthlyFixed:
-                // Full current month range
-                let comps = cal.dateComponents([.year, .month], from: currentDate)
-                start = cal.date(from: comps) ?? currentDate
-                let range = cal.range(of: .day, in: .month, for: currentDate)?.count ?? 30
-                end = cal.date(byAdding: .day, value: range - 1, to: start) ?? currentDate
-                isLocked = true
-            case .customRange:
-                start = cal.startOfDay(for: startDate)
-                end = cal.startOfDay(for: endDate)
-                isLocked = false
-            }
-            
-            let routine = HabitRoutine(
-                title: title,
-                categoryId: categoryId,
-                type: type,
-                startDate: start,
-                endDate: end,
-                isLocked: isLocked
-            )
-            try env.habitRoutineRepository.save(routine)
-            
-            // Auto-generate daily task for current active date
-            let generator = GenerateRoutineTasksUseCase(
-                habitRoutineRepository: env.habitRoutineRepository,
-                taskRepository: env.taskRepository
-            )
-            _ = try generator.execute(for: currentDate)
-            
-            load(tab: .daily, for: currentDate)
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-    }
-
     func deleteHabitRoutine(id: UUID, for date: Date = Date()) {
         do {
             guard let routine = try env.habitRoutineRepository.fetch(id: id) else { return }
@@ -178,7 +126,8 @@ final class TaskViewModel {
             let syncGoals = SyncGoalProgressUseCase(
                 goalRepository: env.goalRepository,
                 dayEntryRepository: env.dayEntryRepository,
-                taskRepository: env.taskRepository
+                taskRepository: env.taskRepository,
+                settingsRepository: env.settingsRepository
             )
             try syncGoals.execute()
             
@@ -197,7 +146,7 @@ final class TaskViewModel {
                 let deadline = ActiveDayResolver.planningDeadline(for: date, settings: env.settingsRepository)
                 if Date() > deadline {
                     let cutoffStr = ActiveDayResolver.formattedPlanningDeadline(settings: env.settingsRepository)
-                    triggerLateTaskWarning(message: "Tasks added after the planning cutoff (\(cutoffStr)) are marked [ADDED LATE] and cannot turn today GREEN.")
+                    triggerLateTaskWarning(message: "Added after the planning cutoff (\(cutoffStr)), so it's a BONUS task: it earns XP but doesn't affect today's status.")
                 }
             }
         } catch {
@@ -208,35 +157,7 @@ final class TaskViewModel {
     func toggle(taskId: UUID, tab: TaskTab = .daily, for date: Date = Date()) {
         do {
             guard let task = tasks.first(where: { $0.id == taskId }) else { return }
-            let resolver = ResolveDayStatusUseCase(
-                taskRepository: env.taskRepository,
-                categoryRepository: env.categoryRepository,
-                dayEntryRepository: env.dayEntryRepository,
-                settingsRepository: env.settingsRepository,
-                playerProfileRepository: env.playerProfileRepository,
-                xpTransactionRepository: env.xpTransactionRepository
-            )
-            let useCase = CompleteTaskUseCase(
-                taskRepository: env.taskRepository,
-                resolveDayStatus: resolver,
-                settingsRepository: env.settingsRepository,
-                playerProfileRepository: env.playerProfileRepository,
-                xpTransactionRepository: env.xpTransactionRepository,
-                badgeRepository: env.badgeRepository,
-                goalRepository: env.goalRepository,
-                habitRoutineRepository: env.habitRoutineRepository,
-                dayEntryRepository: env.dayEntryRepository
-            )
-            try useCase.execute(taskId: taskId, completed: !task.isCompleted)
-
-            let syncGoals = SyncGoalProgressUseCase(
-                goalRepository: env.goalRepository,
-                dayEntryRepository: env.dayEntryRepository,
-                taskRepository: env.taskRepository
-            )
-            try syncGoals.execute()
-            
-            env.syncWidgets()
+            try env.setTaskCompleted(taskId, completed: !task.isCompleted)
             load(tab: tab, for: date)
         } catch {
             errorMessage = error.localizedDescription
@@ -287,7 +208,8 @@ final class TaskViewModel {
             let syncGoals = SyncGoalProgressUseCase(
                 goalRepository: env.goalRepository,
                 dayEntryRepository: env.dayEntryRepository,
-                taskRepository: env.taskRepository
+                taskRepository: env.taskRepository,
+                settingsRepository: env.settingsRepository
             )
             try syncGoals.execute()
             
@@ -343,7 +265,8 @@ final class TaskViewModel {
             let syncGoals = SyncGoalProgressUseCase(
                 goalRepository: env.goalRepository,
                 dayEntryRepository: env.dayEntryRepository,
-                taskRepository: env.taskRepository
+                taskRepository: env.taskRepository,
+                settingsRepository: env.settingsRepository
             )
             try syncGoals.execute()
 
@@ -384,7 +307,8 @@ final class TaskViewModel {
             let syncGoals = SyncGoalProgressUseCase(
                 goalRepository: env.goalRepository,
                 dayEntryRepository: env.dayEntryRepository,
-                taskRepository: env.taskRepository
+                taskRepository: env.taskRepository,
+                settingsRepository: env.settingsRepository
             )
             try syncGoals.execute()
 
@@ -434,7 +358,8 @@ final class TaskViewModel {
             let syncGoals = SyncGoalProgressUseCase(
                 goalRepository: env.goalRepository,
                 dayEntryRepository: env.dayEntryRepository,
-                taskRepository: env.taskRepository
+                taskRepository: env.taskRepository,
+                settingsRepository: env.settingsRepository
             )
             try syncGoals.execute()
 
@@ -475,7 +400,8 @@ final class TaskViewModel {
             let syncGoals = SyncGoalProgressUseCase(
                 goalRepository: env.goalRepository,
                 dayEntryRepository: env.dayEntryRepository,
-                taskRepository: env.taskRepository
+                taskRepository: env.taskRepository,
+                settingsRepository: env.settingsRepository
             )
             try syncGoals.execute()
 
@@ -519,7 +445,8 @@ final class TaskViewModel {
             let syncGoals = SyncGoalProgressUseCase(
                 goalRepository: env.goalRepository,
                 dayEntryRepository: env.dayEntryRepository,
-                taskRepository: env.taskRepository
+                taskRepository: env.taskRepository,
+                settingsRepository: env.settingsRepository
             )
             try syncGoals.execute()
 
@@ -569,7 +496,8 @@ final class TaskViewModel {
             let syncGoals = SyncGoalProgressUseCase(
                 goalRepository: env.goalRepository,
                 dayEntryRepository: env.dayEntryRepository,
-                taskRepository: env.taskRepository
+                taskRepository: env.taskRepository,
+                settingsRepository: env.settingsRepository
             )
             try syncGoals.execute()
 

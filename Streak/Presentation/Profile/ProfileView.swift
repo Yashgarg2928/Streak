@@ -79,12 +79,12 @@ struct ProfileView: View {
             }
             .alert("Notice", isPresented: Binding(
                 get: { vm?.errorMessage != nil || vm?.successMessage != nil },
-                set: { _ in
-                    // Dismiss alert
+                set: { isPresented in
+                    if !isPresented { vm?.clearMessages() }
                 }
             )) {
                 Button("OK", role: .cancel) {
-                    // Clear messages
+                    vm?.clearMessages()
                 }
             } message: {
                 if let err = vm?.errorMessage {
@@ -111,9 +111,9 @@ struct ProfileView: View {
             } label: {
                 HStack(spacing: 5) {
                     Image(systemName: "gearshape.fill")
-                        .font(.system(size: 11, weight: .bold))
+                        .font(.app(size: 11, weight: .bold))
                     Text("SETTINGS")
-                        .font(.system(size: 10, weight: .bold))
+                        .font(.app(size: 10, weight: .bold))
                 }
                 .foregroundStyle(AppColor.textPrimary)
                 .padding(.horizontal, 10)
@@ -142,9 +142,9 @@ struct ProfileView: View {
                     // Level badge
                     HStack(spacing: 4) {
                         Text("LVL")
-                            .font(.system(size: 10, weight: .black, design: .monospaced))
+                            .font(.app(size: 10, weight: .black, design: .monospaced))
                         Text("\(level)")
-                            .font(.system(size: 16, weight: .black, design: .monospaced))
+                            .font(.app(size: 16, weight: .black, design: .monospaced))
                     }
                     .foregroundStyle(AppColor.background)
                     .padding(.horizontal, 10)
@@ -160,7 +160,7 @@ struct ProfileView: View {
                                 .foregroundStyle(AppColor.textPrimary)
                         }
                         Text(title.subtitle)
-                            .font(.system(size: 11, weight: .medium))
+                            .font(.app(size: 11, weight: .medium))
                             .foregroundStyle(AppColor.textSecondary)
                     }
 
@@ -172,7 +172,7 @@ struct ProfileView: View {
                             .font(.system(.title3, design: .monospaced).weight(.black))
                             .foregroundStyle(AppColor.textPrimary)
                         Text("TOTAL EARNED")
-                            .font(.system(size: 9, weight: .bold))
+                            .font(.app(size: 9, weight: .bold))
                             .foregroundStyle(AppColor.textSecondary)
                     }
                 }
@@ -189,7 +189,7 @@ struct ProfileView: View {
                     HStack(spacing: 4) {
                         Text("⛄")
                         Text("STREAK FREEZES: \(vm.profile.streakFreezes)/2")
-                            .font(.system(size: 10, weight: .bold, design: .monospaced))
+                            .font(.app(size: 10, weight: .bold, design: .monospaced))
                             .foregroundStyle(AppColor.textPrimary)
                     }
                     .padding(.horizontal, 8)
@@ -201,7 +201,7 @@ struct ProfileView: View {
                     if let expiry = vm.profile.activeBoostExpiry, expiry > Date() {
                         HStack(spacing: 4) {
                             Text("⚡ 2× XP ACTIVE")
-                                .font(.system(size: 10, weight: .bold, design: .monospaced))
+                                .font(.app(size: 10, weight: .bold, design: .monospaced))
                                 .foregroundStyle(AppColor.green)
                         }
                         .padding(.horizontal, 8)
@@ -225,7 +225,7 @@ struct ProfileView: View {
                     selectedSection = section
                 } label: {
                     Text(section.rawValue)
-                        .font(.system(size: 11, weight: .bold))
+                        .font(.app(size: 11, weight: .bold))
                         .foregroundStyle(selected ? AppColor.background : AppColor.textPrimary)
                         .frame(maxWidth: .infinity)
                         .frame(height: 38)
@@ -252,7 +252,7 @@ struct ProfileView: View {
                             .font(.system(.subheadline).weight(.semibold))
                             .foregroundStyle(AppColor.textSecondary)
                         Text("Category-linked rewards defined by you")
-                            .font(.system(size: 11))
+                            .font(.app(size: 11))
                             .foregroundStyle(AppColor.textSecondary)
                     }
                     Spacer()
@@ -261,9 +261,9 @@ struct ProfileView: View {
                     } label: {
                         HStack(spacing: 4) {
                             Image(systemName: "plus")
-                                .font(.system(size: 10, weight: .black))
+                                .font(.app(size: 10, weight: .black))
                             Text("ADD REWARD")
-                                .font(.system(size: 10, weight: .black))
+                                .font(.app(size: 10, weight: .black))
                         }
                         .foregroundStyle(AppColor.background)
                         .padding(.horizontal, 10)
@@ -314,7 +314,7 @@ struct ProfileView: View {
                     .foregroundStyle(AppColor.textSecondary)
                 Spacer()
                 Text("\(vm.shopItems.filter { $0.usedAt == nil }.count) UNUSED")
-                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                    .font(.app(size: 10, weight: .bold, design: .monospaced))
                     .foregroundStyle(AppColor.green)
             }
 
@@ -341,7 +341,7 @@ struct ProfileView: View {
         return BrutalistCard(borderColor: isUsed ? AppColor.blank : AppColor.border) {
             HStack(spacing: 12) {
                 Text(item.itemType.emoji)
-                    .font(.system(size: 22))
+                    .font(.app(size: 22))
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text(item.itemType.title)
@@ -349,12 +349,12 @@ struct ProfileView: View {
                         .foregroundStyle(AppColor.textPrimary)
 
                     Text(item.itemType.effectDescription)
-                        .font(.system(size: 10))
+                        .font(.app(size: 10))
                         .foregroundStyle(AppColor.textSecondary)
 
                     if let exp = item.expiresAt, exp > Date() {
                         Text("⚡ Active until \(exp.formatted(date: .omitted, time: .shortened))")
-                            .font(.system(size: 9, weight: .bold))
+                            .font(.app(size: 9, weight: .bold))
                             .foregroundStyle(AppColor.green)
                     }
                 }
@@ -367,9 +367,9 @@ struct ProfileView: View {
                     } label: {
                         HStack(spacing: 4) {
                             Image(systemName: "bolt.fill")
-                                .font(.system(size: 10))
+                                .font(.app(size: 10))
                             Text("ACTIVATE")
-                                .font(.system(size: 10, weight: .black))
+                                .font(.app(size: 10, weight: .black))
                         }
                         .foregroundStyle(AppColor.background)
                         .padding(.horizontal, 10)
@@ -381,9 +381,9 @@ struct ProfileView: View {
                 } else {
                     HStack(spacing: 4) {
                         Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 10))
+                            .font(.app(size: 10))
                         Text("ACTIVATED")
-                            .font(.system(size: 9, weight: .bold))
+                            .font(.app(size: 9, weight: .bold))
                     }
                     .foregroundStyle(AppColor.textDisabled)
                     .padding(.horizontal, 8)
@@ -407,7 +407,7 @@ struct ProfileView: View {
                     HStack(spacing: 6) {
                         CategoryDot(color: catColor ?? AppColor.neutralDot)
                         Text(catName)
-                            .font(.system(size: 10, weight: .bold, design: .monospaced))
+                            .font(.app(size: 10, weight: .bold, design: .monospaced))
                             .foregroundStyle(AppColor.textSecondary)
                     }
 
@@ -416,7 +416,7 @@ struct ProfileView: View {
                     HStack(spacing: 4) {
                         Text(reward.tier.emoji)
                         Text("\(reward.xpCost) XP")
-                            .font(.system(size: 12, weight: .black, design: .monospaced))
+                            .font(.app(size: 12, weight: .black, design: .monospaced))
                             .foregroundStyle(AppColor.textPrimary)
                     }
                     .padding(.horizontal, 8)
@@ -442,9 +442,9 @@ struct ProfileView: View {
                 HStack {
                     HStack(spacing: 4) {
                         Image(systemName: reward.isLocked ? "lock.fill" : "lock.open.fill")
-                            .font(.system(size: 10))
+                            .font(.app(size: 10))
                         Text(reward.isLocked ? "LOCKED FOR MONTH" : "EDITABLE")
-                            .font(.system(size: 9, weight: .bold))
+                            .font(.app(size: 9, weight: .bold))
                     }
                     .foregroundStyle(AppColor.textDisabled)
 
@@ -454,7 +454,7 @@ struct ProfileView: View {
                         HStack(spacing: 4) {
                             Image(systemName: "checkmark.circle.fill")
                             Text("REDEEMED")
-                                .font(.system(size: 10, weight: .black))
+                                .font(.app(size: 10, weight: .black))
                         }
                         .foregroundStyle(AppColor.green)
                     } else {
@@ -462,7 +462,7 @@ struct ProfileView: View {
                             vm.redeemCustomReward(reward)
                         } label: {
                             Text("REDEEM (\(reward.xpCost) XP)")
-                                .font(.system(size: 10, weight: .black))
+                                .font(.app(size: 10, weight: .black))
                                 .foregroundStyle(canAfford ? AppColor.background : AppColor.textDisabled)
                                 .padding(.horizontal, 10)
                                 .padding(.vertical, 6)
@@ -484,7 +484,7 @@ struct ProfileView: View {
         return BrutalistCard {
             HStack(spacing: 12) {
                 Text(itemType.emoji)
-                    .font(.system(size: 26))
+                    .font(.app(size: 26))
 
                 VStack(alignment: .leading, spacing: 2) {
                     HStack {
@@ -494,7 +494,7 @@ struct ProfileView: View {
                         
                         if !isLevelUnlocked {
                             Text("REQ LVL \(itemType.minLevel)")
-                                .font(.system(size: 9, weight: .black))
+                                .font(.app(size: 9, weight: .black))
                                 .foregroundStyle(AppColor.red)
                                 .padding(.horizontal, 5)
                                 .padding(.vertical, 2)
@@ -505,7 +505,7 @@ struct ProfileView: View {
                     }
 
                     Text(itemType.effectDescription)
-                        .font(.system(size: 11))
+                        .font(.app(size: 11))
                         .foregroundStyle(AppColor.textSecondary)
                 }
 
@@ -516,9 +516,9 @@ struct ProfileView: View {
                 } label: {
                     VStack(spacing: 2) {
                         Text("BUY")
-                            .font(.system(size: 10, weight: .black))
+                            .font(.app(size: 10, weight: .black))
                         Text("\(itemType.xpCost) XP")
-                            .font(.system(size: 9, weight: .bold, design: .monospaced))
+                            .font(.app(size: 9, weight: .bold, design: .monospaced))
                     }
                     .foregroundStyle(isLevelUnlocked && canAfford ? AppColor.background : AppColor.textDisabled)
                     .padding(.horizontal, 10)
@@ -563,29 +563,29 @@ struct ProfileView: View {
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
                     Image(systemName: def.iconName)
-                        .font(.system(size: 20))
+                        .font(.app(size: 20))
                         .foregroundStyle(isEarned ? AppColor.green : AppColor.textDisabled)
 
                     Spacer()
 
                     if isEarned {
                         Image(systemName: "checkmark.seal.fill")
-                            .font(.system(size: 14))
+                            .font(.app(size: 14))
                             .foregroundStyle(AppColor.green)
                     } else {
                         Image(systemName: "lock.fill")
-                            .font(.system(size: 12))
+                            .font(.app(size: 12))
                             .foregroundStyle(AppColor.textDisabled)
                     }
                 }
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(def.title.uppercased())
-                        .font(.system(size: 11, weight: .bold))
+                        .font(.app(size: 11, weight: .bold))
                         .foregroundStyle(isEarned ? AppColor.textPrimary : AppColor.textDisabled)
 
                     Text(def.description)
-                        .font(.system(size: 10))
+                        .font(.app(size: 10))
                         .foregroundStyle(isEarned ? AppColor.textSecondary : AppColor.textDisabled)
                         .lineLimit(2)
                 }
@@ -615,11 +615,11 @@ struct ProfileView: View {
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(tx.reason.rawValue.uppercased())
-                                    .font(.system(size: 11, weight: .bold))
+                                    .font(.app(size: 11, weight: .bold))
                                     .foregroundStyle(AppColor.textPrimary)
                                 if let note = tx.note {
                                     Text(note)
-                                        .font(.system(size: 10))
+                                        .font(.app(size: 10))
                                         .foregroundStyle(AppColor.textSecondary)
                                 }
                             }
@@ -627,7 +627,7 @@ struct ProfileView: View {
                             Spacer()
 
                             Text(tx.amount >= 0 ? "+\(tx.amount) XP" : "\(tx.amount) XP")
-                                .font(.system(size: 13, weight: .black, design: .monospaced))
+                                .font(.app(size: 13, weight: .black, design: .monospaced))
                                 .foregroundStyle(tx.amount >= 0 ? AppColor.green : AppColor.red)
                         }
                     }

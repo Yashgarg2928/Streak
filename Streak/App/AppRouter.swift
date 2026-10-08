@@ -4,26 +4,19 @@
 
 import Foundation
 
+/// Five tabs — iOS shows at most five before collapsing the rest into "More".
 enum Tab: Hashable {
     case home
     case tasks
     case workout
     case finance
-    case goals
     case profile
-    case more
 }
 
 enum Sheet: Hashable, Identifiable {
     case addCategory
     case editCategory(UUID)
-    case addTask(Date)
-    case addGoal
-    case editGoal(UUID)
-    case dailyAssist(Date)
     case settings
-    case exportData
-    case importData
     case addTransaction
     case editTransaction(UUID)
     case shortcutsGuide
@@ -32,13 +25,7 @@ enum Sheet: Hashable, Identifiable {
         switch self {
         case .addCategory:         return "addCategory"
         case .editCategory(let id): return "editCategory-\(id)"
-        case .addTask(let d):      return "addTask-\(d.timeIntervalSince1970)"
-        case .addGoal:             return "addGoal"
-        case .editGoal(let id):    return "editGoal-\(id)"
-        case .dailyAssist(let d):  return "dailyAssist-\(d.timeIntervalSince1970)"
         case .settings:            return "settings"
-        case .exportData:          return "exportData"
-        case .importData:          return "importData"
         case .addTransaction:      return "addTransaction"
         case .editTransaction(let id): return "editTransaction-\(id)"
         case .shortcutsGuide:      return "shortcutsGuide"
@@ -51,8 +38,8 @@ final class AppRouter {
     var selectedTab: Tab = .home
     var activeSheet: Sheet? = nil
     var categoryDetailId: UUID? = nil   // nil = no detail pushed
-    var goalDetailId: UUID? = nil
     var showOverallDetail: Bool = false
+    var showGoals: Bool = false         // Goals list pushed from Home
 
     func present(_ sheet: Sheet) {
         activeSheet = sheet
@@ -64,9 +51,5 @@ final class AppRouter {
 
     func showCategoryDetail(_ id: UUID) {
         categoryDetailId = id
-    }
-
-    func showGoalDetail(_ id: UUID) {
-        goalDetailId = id
     }
 }

@@ -49,10 +49,6 @@ struct TaskListView: View {
 
                 switch selectedTab {
                 case .daily:
-                    ActiveDayCountdownView(settings: env.settingsRepository)
-                        .padding(.horizontal, AppLayout.screenMargin)
-                        .padding(.top, AppLayout.itemSpacing)
-
                     dateToggle
                         .padding(.horizontal, AppLayout.screenMargin)
                         .padding(.top, AppLayout.itemSpacing)
@@ -113,10 +109,12 @@ struct TaskListView: View {
     // MARK: - Header Bar
 
     private var headerBar: some View {
-        HStack {
+        HStack(spacing: 8) {
             Text(navigationTitleString)
                 .font(.system(.title2, design: .monospaced).weight(.black))
                 .foregroundStyle(AppColor.textPrimary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
 
             Spacer()
 
@@ -124,66 +122,67 @@ struct TaskListView: View {
                 Button {
                     showPastTasksReviewSheet = true
                 } label: {
-                    Image(systemName: "clock.arrow.circlepath")
-                        .font(.system(size: 13, weight: .bold))
-                        .foregroundStyle(AppColor.orange)
-                        .frame(width: 30, height: 30)
-                        .background(AppColor.surface)
-                        .clipShape(RoundedRectangle(cornerRadius: AppLayout.cornerRadius))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: AppLayout.cornerRadius)
-                                .stroke(AppColor.orange, lineWidth: AppLayout.borderWidth)
-                        )
+                    HStack(spacing: 4) {
+                        Image(systemName: "clock.arrow.circlepath")
+                            .font(.app(size: 13, weight: .bold))
+                        Text("\(pastCount)")
+                            .font(.app(size: 13, weight: .black, design: .monospaced))
+                    }
+                    .foregroundStyle(AppColor.orange)
+                    .padding(.horizontal, 10)
+                    .frame(minWidth: AppLayout.minTapTarget, minHeight: AppLayout.minTapTarget)
+                    .background(AppColor.surface)
+                    .clipShape(RoundedRectangle(cornerRadius: AppLayout.cornerRadius))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: AppLayout.cornerRadius)
+                            .stroke(AppColor.orange, lineWidth: AppLayout.borderWidth)
+                    )
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Missed tasks from previous days: \(pastCount)")
             }
 
-            if let count = vm?.tasks.filter({ !$0.isDeleted }).count, count > 1 {
+            if isReordering {
                 Button {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        isReordering.toggle()
-                    }
+                    withAnimation(.easeInOut(duration: 0.2)) { isReordering = false }
                 } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: isReordering ? "checkmark" : "arrow.up.arrow.down")
-                            .font(.system(size: 11, weight: .bold))
-                        Text(isReordering ? "DONE" : "REORDER")
-                            .font(.system(size: 10, weight: .bold))
-                    }
-                    .foregroundStyle(isReordering ? AppColor.background : AppColor.textPrimary)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 7)
-                    .background(isReordering ? AppColor.textPrimary : AppColor.surface)
-                    .clipShape(RoundedRectangle(cornerRadius: AppLayout.cornerRadius))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: AppLayout.cornerRadius)
-                            .stroke(AppColor.border, lineWidth: AppLayout.borderWidth)
-                    )
+                    Text("DONE")
+                        .font(.app(size: 13, weight: .black, design: .monospaced))
+                        .foregroundStyle(AppColor.background)
+                        .padding(.horizontal, 14)
+                        .frame(minHeight: AppLayout.minTapTarget)
+                        .background(AppColor.textPrimary)
+                        .clipShape(RoundedRectangle(cornerRadius: AppLayout.cornerRadius))
                 }
                 .buttonStyle(.plain)
-            }
-
-            Button {
-                showRoutineSheet = true
-            } label: {
-                HStack(spacing: 5) {
-                    Image(systemName: "flame.fill")
-                        .font(.system(size: 11, weight: .bold))
-                    Text("HABIT COMMITMENT")
-                        .font(.system(size: 10, weight: .bold))
+            } else {
+                Menu {
+                    Button {
+                        showRoutineSheet = true
+                    } label: {
+                        Label("Habit commitments", systemImage: "flame.fill")
+                    }
+                    if let count = vm?.tasks.filter({ !$0.isDeleted }).count, count > 1 {
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.2)) { isReordering = true }
+                        } label: {
+                            Label("Reorder tasks", systemImage: "arrow.up.arrow.down")
+                        }
+                    }
+                } label: {
+                    Image(systemName: "ellipsis")
+                        .font(.app(size: 16, weight: .black))
+                        .foregroundStyle(AppColor.textPrimary)
+                        .frame(width: AppLayout.minTapTarget, height: AppLayout.minTapTarget)
+                        .background(AppColor.surface)
+                        .clipShape(RoundedRectangle(cornerRadius: AppLayout.cornerRadius))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: AppLayout.cornerRadius)
+                                .stroke(AppColor.border, lineWidth: AppLayout.borderWidth)
+                        )
                 }
-                .foregroundStyle(AppColor.textPrimary)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 7)
-                .background(AppColor.surface)
-                .clipShape(RoundedRectangle(cornerRadius: AppLayout.cornerRadius))
-                .overlay(
-                    RoundedRectangle(cornerRadius: AppLayout.cornerRadius)
-                        .stroke(AppColor.border, lineWidth: AppLayout.borderWidth)
-                )
+                .accessibilityLabel("More options")
             }
-            .buttonStyle(.plain)
         }
     }
 
@@ -213,7 +212,7 @@ struct TaskListView: View {
                     vm?.load(tab: tab, for: selectedDate ?? activeToday)
                 } label: {
                     Text(tab.rawValue)
-                        .font(.system(size: 11, weight: .bold))
+                        .font(.app(size: 11, weight: .bold))
                         .foregroundStyle(selectedTab == tab ? AppColor.background : AppColor.textPrimary)
                         .frame(maxWidth: .infinity)
                         .frame(height: 36)
@@ -260,7 +259,7 @@ struct TaskListView: View {
                     .font(.system(.subheadline).weight(.bold))
                     .foregroundStyle(selected ? AppColor.background : AppColor.textPrimary)
                 Text(dateString)
-                    .font(.system(size: 11, weight: .medium))
+                    .font(.app(size: 11, weight: .medium))
                     .foregroundStyle(selected ? AppColor.background.opacity(0.75) : AppColor.textSecondary)
             }
             .frame(maxWidth: .infinity)
@@ -290,7 +289,7 @@ struct TaskListView: View {
                     }
                     Spacer()
                     Text("\(completedCount)/\(totalCount) DONE")
-                        .font(.system(size: 10, weight: .black))
+                        .font(.app(size: 10, weight: .black))
                         .foregroundStyle(.white)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
@@ -329,7 +328,7 @@ struct TaskListView: View {
                     }
                     Spacer()
                     Text("\(completedCount)/\(totalCount) DONE")
-                        .font(.system(size: 10, weight: .black))
+                        .font(.app(size: 10, weight: .black))
                         .foregroundStyle(.white)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
@@ -361,7 +360,7 @@ struct TaskListView: View {
                 }
                 Spacer()
                 Text("\(count) PENDING")
-                    .font(.system(size: 10, weight: .black))
+                    .font(.app(size: 10, weight: .black))
                     .foregroundStyle(.white)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
@@ -377,10 +376,10 @@ struct TaskListView: View {
     private var reorderInfoBanner: some View {
         HStack(spacing: 8) {
             Image(systemName: "arrow.up.arrow.down")
-                .font(.system(size: 11, weight: .bold))
+                .font(.app(size: 11, weight: .bold))
                 .foregroundStyle(AppColor.textPrimary)
             Text("Drag ≡ or tap chevrons / ︙ to reorder. Syncs to widget.")
-                .font(.system(size: 11, weight: .bold, design: .monospaced))
+                .font(.app(size: 11, weight: .bold, design: .monospaced))
                 .foregroundStyle(AppColor.textPrimary)
             Spacer()
         }
@@ -596,13 +595,13 @@ struct TaskListView: View {
             let cutoffStr = ActiveDayResolver.formattedPlanningDeadline(settings: env.settingsRepository)
 
             if isDeadlinePassed {
-                Text("⚠️ Cutoff (\(cutoffStr)) passed: Tasks added now will be marked [ADDED LATE] and cannot save today's streak.")
-                    .font(.system(size: 10, weight: .bold))
+                Text("Cutoff (\(cutoffStr)) passed: new tasks count as BONUS. They earn XP but don't affect today's status.")
+                    .font(.app(size: 10, weight: .bold))
                     .foregroundStyle(AppColor.red)
                     .frame(maxWidth: .infinity, alignment: .leading)
             } else {
                 Text("⚠️ Tasks cannot be edited or deleted once created.")
-                    .font(.system(size: 10, weight: .semibold))
+                    .font(.app(size: 10, weight: .semibold))
                     .foregroundStyle(AppColor.textSecondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
@@ -617,15 +616,15 @@ struct TaskListView: View {
             BrutalistCard(borderColor: AppColor.red) {
                 HStack(alignment: .top, spacing: 8) {
                     Image(systemName: "exclamationmark.triangle.fill")
-                        .font(.system(size: 13, weight: .bold))
+                        .font(.app(size: 13, weight: .bold))
                         .foregroundStyle(AppColor.red)
 
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("LATE TASK ADDED")
-                            .font(.system(size: 11, weight: .black, design: .monospaced))
+                        Text("BONUS TASK ADDED")
+                            .font(.app(size: 11, weight: .black, design: .monospaced))
                             .foregroundStyle(AppColor.red)
                         Text(warningMsg)
-                            .font(.system(size: 11, weight: .medium))
+                            .font(.app(size: 11, weight: .medium))
                             .foregroundStyle(AppColor.textPrimary)
                     }
 
@@ -635,7 +634,7 @@ struct TaskListView: View {
                         vm?.dismissLateTaskWarning()
                     } label: {
                         Image(systemName: "xmark")
-                            .font(.system(size: 12, weight: .bold))
+                            .font(.app(size: 12, weight: .bold))
                             .foregroundStyle(AppColor.textSecondary)
                     }
                     .buttonStyle(.plain)
@@ -656,19 +655,19 @@ struct TaskListView: View {
             let tasks = (vm?.tasks ?? []).filter { !$0.isDeleted && $0.timeframe == .daily }
             let earlyTasks = tasks.filter { $0.routineId != nil || $0.createdAt <= deadline }
             
-            if isDeadlinePassed && earlyTasks.isEmpty {
+            if isDeadlinePassed && earlyTasks.isEmpty && !ActiveDayResolver.isRestDay(activeToday, settings: env.settingsRepository) {
                 BrutalistCard(borderColor: AppColor.red) {
                     VStack(alignment: .leading, spacing: 6) {
                         HStack(spacing: 6) {
                             Image(systemName: "lock.fill")
-                                .font(.system(size: 13, weight: .bold))
+                                .font(.app(size: 13, weight: .bold))
                                 .foregroundStyle(AppColor.red)
                             Text("ACTIVE DAY LOCKED (RED STATUS)")
-                                .font(.system(size: 11, weight: .black, design: .monospaced))
+                                .font(.app(size: 11, weight: .black, design: .monospaced))
                                 .foregroundStyle(AppColor.red)
                         }
-                        Text("Planning cutoff (\(cutoffStr)) passed with 0 tasks scheduled. Today is locked as RED. Tasks added now will be marked [ADDED LATE] and cannot save today's streak.")
-                            .font(.system(size: 11, weight: .medium))
+                        Text("Planning cutoff (\(cutoffStr)) passed with 0 tasks scheduled. Today is locked as RED. Tasks added now are BONUS only and can't save today's streak.")
+                            .font(.app(size: 11, weight: .medium))
                             .foregroundStyle(AppColor.textPrimary)
                     }
                 }
@@ -782,12 +781,20 @@ struct TaskListView: View {
 struct AddHabitRoutineSheet: View {
     @Environment(\.dismiss) private var dismiss
     let categories: [Category]
-    let onSave: (String, UUID?, HabitRoutineType, Date, Date) -> Void
+    let onSave: (String, UUID?, HabitRoutineType, Date, Date, Set<Int>, HealthRule?) -> Void
 
     @State private var title: String = ""
     @State private var selectedCategoryId: UUID? = nil
     @State private var routineType: HabitRoutineType = .monthlyFixed
     @State private var sprintDays: Int = 7
+    @State private var weekdays: Set<Int> = Set(1...7)
+    @State private var healthMetric: HealthMetric? = nil
+    @State private var healthTarget: String = ""
+
+    private var healthRule: HealthRule? {
+        guard let healthMetric, let target = Int(healthTarget), target > 0 else { return nil }
+        return HealthRule(metric: healthMetric, target: target)
+    }
 
     var body: some View {
         NavigationStack {
@@ -799,7 +806,7 @@ struct AddHabitRoutineSheet: View {
                             Text("🔥 DAILY HABIT ROUTINE")
                                 .font(.system(.subheadline, design: .monospaced).weight(.bold))
                                 .foregroundStyle(AppColor.textPrimary)
-                            Text("Build consistency with recurring daily habits (e.g. 2 hrs DSA, hydration, exercise). These automatically appear in your daily task list every day.")
+                            Text("Build consistency with recurring habits (e.g. 2 hrs DSA, hydration, exercise). They appear in your daily task list on the days you choose and keep their own streak.")
                                 .font(.system(.caption))
                                 .foregroundStyle(AppColor.textSecondary)
                         }
@@ -844,6 +851,71 @@ struct AddHabitRoutineSheet: View {
                         }
                     }
 
+                    // Weekday Schedule
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack {
+                            Text("SCHEDULE")
+                                .font(.system(.caption, design: .monospaced).weight(.bold))
+                                .foregroundStyle(AppColor.textSecondary)
+                            Spacer()
+                            Text(WeekdayPicker.summary(weekdays))
+                                .font(.system(.caption, design: .monospaced).weight(.bold))
+                                .foregroundStyle(AppColor.textPrimary)
+                        }
+                        WeekdayPicker(selection: $weekdays)
+                        Text("The habit only appears on the selected days. Unselected days don't count against you.")
+                            .font(.system(.caption))
+                            .foregroundStyle(AppColor.textSecondary)
+                    }
+
+                    // Apple Health auto-complete
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("AUTO-COMPLETE FROM APPLE HEALTH (OPTIONAL)")
+                            .font(.system(.caption, design: .monospaced).weight(.bold))
+                            .foregroundStyle(AppColor.textSecondary)
+
+                        HStack(spacing: 10) {
+                            Picker("Metric", selection: $healthMetric) {
+                                Text("Off").tag(HealthMetric?.none)
+                                ForEach(HealthMetric.allCases) { metric in
+                                    Text(metric.title).tag(HealthMetric?.some(metric))
+                                }
+                            }
+                            .pickerStyle(.menu)
+                            .tint(AppColor.textPrimary)
+                            .frame(minHeight: AppLayout.minTapTarget)
+                            .padding(.horizontal, 6)
+                            .background(AppColor.surface)
+                            .clipShape(RoundedRectangle(cornerRadius: AppLayout.cornerRadius))
+                            .overlay(RoundedRectangle(cornerRadius: AppLayout.cornerRadius).stroke(AppColor.border, lineWidth: 1.5))
+
+                            if let healthMetric {
+                                HStack(spacing: 6) {
+                                    Text("≥")
+                                        .font(.system(.body, design: .monospaced).weight(.bold))
+                                    TextField("\(healthMetric.defaultTarget)", text: $healthTarget)
+                                        .keyboardType(.numberPad)
+                                        .font(.system(.body, design: .monospaced).weight(.bold))
+                                    Text(healthMetric.unit)
+                                        .font(.system(.caption, design: .monospaced))
+                                        .foregroundStyle(AppColor.textSecondary)
+                                }
+                                .padding(.horizontal, 10)
+                                .frame(minHeight: AppLayout.minTapTarget)
+                                .background(AppColor.surface)
+                                .clipShape(RoundedRectangle(cornerRadius: AppLayout.cornerRadius))
+                                .overlay(RoundedRectangle(cornerRadius: AppLayout.cornerRadius).stroke(AppColor.border, lineWidth: 1.5))
+                            }
+                        }
+                        .onChange(of: healthMetric) { _, metric in
+                            healthTarget = metric.map { String($0.defaultTarget) } ?? ""
+                        }
+
+                        Text("Ticked automatically when your Apple Health sync (Fitness tab → Apple Health) meets the target.")
+                            .font(.system(.caption))
+                            .foregroundStyle(AppColor.textSecondary)
+                    }
+
                     // Commitment Type Options
                     VStack(alignment: .leading, spacing: 10) {
                         Text("COMMITMENT TYPE")
@@ -859,7 +931,7 @@ struct AddHabitRoutineSheet: View {
                                     VStack(alignment: .leading, spacing: 6) {
                                         HStack {
                                             Text("🔒 ENTIRE MONTH (FIXED & LOCKED)")
-                                                .font(.system(size: 11, weight: .black))
+                                                .font(.app(size: 11, weight: .black))
                                                 .foregroundStyle(AppColor.textPrimary)
                                             Spacer()
                                             if routineType == .monthlyFixed {
@@ -867,7 +939,7 @@ struct AddHabitRoutineSheet: View {
                                                     .foregroundStyle(AppColor.green)
                                             }
                                         }
-                                        Text("Runs every day for the rest of this month. Once locked, this commitment cannot be edited or deleted.")
+                                        Text("Runs on your scheduled days for the rest of this month. Once locked, this commitment cannot be edited or deleted.")
                                             .font(.system(.caption))
                                             .foregroundStyle(AppColor.textSecondary)
                                     }
@@ -883,7 +955,7 @@ struct AddHabitRoutineSheet: View {
                                     VStack(alignment: .leading, spacing: 6) {
                                         HStack {
                                             Text("⚡️ HABIT SPRINT (CUSTOM DAYS)")
-                                                .font(.system(size: 11, weight: .black))
+                                                .font(.app(size: 11, weight: .black))
                                                 .foregroundStyle(AppColor.textPrimary)
                                             Spacer()
                                             if routineType == .customRange {
@@ -891,7 +963,7 @@ struct AddHabitRoutineSheet: View {
                                                     .foregroundStyle(AppColor.green)
                                             }
                                         }
-                                        Text("Runs every day for a specific timeframe (e.g. 7 days or 14 days).")
+                                        Text("Runs on your scheduled days for a specific timeframe (e.g. 7 days or 14 days).")
                                             .font(.system(.caption))
                                             .foregroundStyle(AppColor.textSecondary)
 
@@ -913,13 +985,14 @@ struct AddHabitRoutineSheet: View {
 
                     // Save Button
                     BrutalistButton(title: routineType == .monthlyFixed ? "LOCK IN MONTHLY COMMITMENT" : "START HABIT SPRINT") {
-                        guard !title.trimmingCharacters(in: .whitespaces).isEmpty else { return }
+                        guard !title.trimmingCharacters(in: .whitespaces).isEmpty, !weekdays.isEmpty else { return }
                         let today = Date()
                         let endDate = Calendar.current.date(byAdding: .day, value: sprintDays - 1, to: today) ?? today
-                        onSave(title, selectedCategoryId, routineType, today, endDate)
+                        onSave(title, selectedCategoryId, routineType, today, endDate, weekdays, healthRule)
                         dismiss()
                     }
                     .padding(.top, 10)
+                    .disabled(weekdays.isEmpty)
                 }
                 .padding(AppLayout.screenMargin)
             }
@@ -939,7 +1012,7 @@ struct AddHabitRoutineSheet: View {
             HStack(spacing: 6) {
                 Circle().fill(color).frame(width: 10, height: 10)
                 Text(name)
-                    .font(.system(size: 11, weight: .bold))
+                    .font(.app(size: 11, weight: .bold))
                     .foregroundStyle(isSelected ? AppColor.background : AppColor.textPrimary)
             }
             .padding(.horizontal, 10)
@@ -982,7 +1055,7 @@ struct PastTasksReviewSheet: View {
                     Spacer()
                     VStack(spacing: 12) {
                         Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 52))
+                            .font(.app(size: 52))
                             .foregroundStyle(AppColor.green)
                         Text("ALL CAUGHT UP!")
                             .font(.system(.title3, design: .monospaced).weight(.black))
@@ -999,10 +1072,10 @@ struct PastTasksReviewSheet: View {
                     HStack {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("DECIDE ON MISSED TASKS")
-                                .font(.system(size: 11, weight: .black, design: .monospaced))
+                                .font(.app(size: 11, weight: .black, design: .monospaced))
                                 .foregroundStyle(AppColor.textPrimary)
                             Text("Complete past tasks, move to To-Do, or bring to Today.")
-                                .font(.system(size: 10, weight: .medium))
+                                .font(.app(size: 10, weight: .medium))
                                 .foregroundStyle(AppColor.textSecondary)
                         }
                         Spacer()
@@ -1014,7 +1087,7 @@ struct PastTasksReviewSheet: View {
                             }
                         } label: {
                             Text(selectedTaskIds.count == vm.pastIncompleteTasks.count ? "DESELECT ALL" : "SELECT ALL")
-                                .font(.system(size: 10, weight: .black))
+                                .font(.app(size: 10, weight: .black))
                                 .foregroundStyle(AppColor.textPrimary)
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 5)
@@ -1081,7 +1154,7 @@ struct PastTasksReviewSheet: View {
                         toggleSelection(task.id)
                     } label: {
                         Image(systemName: selected ? "checkmark.circle.fill" : "circle")
-                            .font(.system(size: 20, weight: .bold))
+                            .font(.app(size: 20, weight: .bold))
                             .foregroundStyle(selected ? AppColor.green : AppColor.textSecondary)
                     }
                     .buttonStyle(.plain)
@@ -1098,7 +1171,7 @@ struct PastTasksReviewSheet: View {
                     Spacer()
 
                     Text(dateString)
-                        .font(.system(size: 9, weight: .black, design: .monospaced))
+                        .font(.app(size: 9, weight: .black, design: .monospaced))
                         .foregroundStyle(AppColor.orange)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 3)
@@ -1116,9 +1189,9 @@ struct PastTasksReviewSheet: View {
                     } label: {
                         HStack(spacing: 4) {
                             Image(systemName: "checkmark")
-                                .font(.system(size: 9, weight: .black))
+                                .font(.app(size: 9, weight: .black))
                             Text("COMPLETE")
-                                .font(.system(size: 9, weight: .black))
+                                .font(.app(size: 9, weight: .black))
                         }
                         .foregroundStyle(.white)
                         .padding(.horizontal, 8)
@@ -1136,9 +1209,9 @@ struct PastTasksReviewSheet: View {
                     } label: {
                         HStack(spacing: 4) {
                             Image(systemName: "tray.and.arrow.down")
-                                .font(.system(size: 9, weight: .black))
+                                .font(.app(size: 9, weight: .black))
                             Text("TO-DO")
-                                .font(.system(size: 9, weight: .black))
+                                .font(.app(size: 9, weight: .black))
                         }
                         .foregroundStyle(AppColor.textPrimary)
                         .padding(.horizontal, 8)
@@ -1156,9 +1229,9 @@ struct PastTasksReviewSheet: View {
                     } label: {
                         HStack(spacing: 4) {
                             Image(systemName: "bolt.fill")
-                                .font(.system(size: 9, weight: .black))
+                                .font(.app(size: 9, weight: .black))
                             Text("TODAY")
-                                .font(.system(size: 9, weight: .black))
+                                .font(.app(size: 9, weight: .black))
                         }
                         .foregroundStyle(AppColor.background)
                         .padding(.horizontal, 8)
@@ -1179,7 +1252,7 @@ struct PastTasksReviewSheet: View {
         VStack(spacing: 8) {
             HStack {
                 Text("\(selectedTaskIds.count) TASK(S) SELECTED")
-                    .font(.system(size: 11, weight: .black, design: .monospaced))
+                    .font(.app(size: 11, weight: .black, design: .monospaced))
                     .foregroundStyle(AppColor.textPrimary)
                 Spacer()
             }
@@ -1193,9 +1266,9 @@ struct PastTasksReviewSheet: View {
                 } label: {
                     HStack(spacing: 4) {
                         Image(systemName: "checkmark")
-                            .font(.system(size: 10, weight: .black))
+                            .font(.app(size: 10, weight: .black))
                         Text("COMPLETE")
-                            .font(.system(size: 10, weight: .black))
+                            .font(.app(size: 10, weight: .black))
                     }
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
@@ -1214,9 +1287,9 @@ struct PastTasksReviewSheet: View {
                 } label: {
                     HStack(spacing: 4) {
                         Image(systemName: "tray.and.arrow.down")
-                            .font(.system(size: 10, weight: .black))
+                            .font(.app(size: 10, weight: .black))
                         Text("TO-DO")
-                            .font(.system(size: 10, weight: .black))
+                            .font(.app(size: 10, weight: .black))
                     }
                     .foregroundStyle(AppColor.textPrimary)
                     .frame(maxWidth: .infinity)
@@ -1235,9 +1308,9 @@ struct PastTasksReviewSheet: View {
                 } label: {
                     HStack(spacing: 4) {
                         Image(systemName: "bolt.fill")
-                            .font(.system(size: 10, weight: .black))
+                            .font(.app(size: 10, weight: .black))
                         Text("TODAY")
-                            .font(.system(size: 10, weight: .black))
+                            .font(.app(size: 10, weight: .black))
                     }
                     .foregroundStyle(AppColor.background)
                     .frame(maxWidth: .infinity)

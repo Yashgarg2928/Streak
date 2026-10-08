@@ -532,6 +532,17 @@ struct StreakAppShortcuts: AppShortcutsProvider {
             shortTitle: "Quick Expense",
             systemImageName: "bolt.fill"
         )
+
+        AppShortcut(
+            intent: StartDayCountdownIntent(),
+            phrases: [
+                "Show my \(.applicationName) countdown",
+                "Start my \(.applicationName) countdown",
+                "Start my day in \(.applicationName)"
+            ],
+            shortTitle: "Day Countdown",
+            systemImageName: "timer"
+        )
     }
 }
 

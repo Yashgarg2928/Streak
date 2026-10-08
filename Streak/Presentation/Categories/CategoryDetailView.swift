@@ -144,7 +144,7 @@ struct CategoryDetailView: View {
                             ForEach(tasks) { task in
                                 HStack(spacing: 8) {
                                     Image(systemName: task.isCompleted ? "checkmark.square.fill" : "square")
-                                        .font(.system(size: 16))
+                                        .font(.app(size: 16))
                                         .foregroundStyle(task.isCompleted ? AppColor.green : AppColor.textDisabled)
                                     Text(task.title)
                                         .font(.system(.subheadline))
@@ -156,13 +156,13 @@ struct CategoryDetailView: View {
                             if status == .red {
                                 let cutoffStr = ActiveDayResolver.formattedPlanningDeadline(settings: env.settingsRepository)
                                 let planningDeadline = ActiveDayResolver.planningDeadline(for: date, settings: env.settingsRepository)
-                                let hasLateTasks = tasks.contains { $0.routineId == nil && $0.createdAt > planningDeadline }
+                                let hasPlannedTasks = tasks.contains { !$0.isAddedLate(planningDeadline: planningDeadline) }
                                 
                                 HStack(spacing: 4) {
                                     Image(systemName: "info.circle.fill")
-                                        .font(.system(size: 10))
-                                    Text(hasLateTasks ? "RED: Tasks added after planning cutoff (\(cutoffStr))" : (tasks.isEmpty ? "RED: No tasks planned before cutoff (\(cutoffStr))" : "RED: Tasks left incomplete"))
-                                        .font(.system(size: 10, weight: .bold))
+                                        .font(.app(size: 10))
+                                    Text(hasPlannedTasks ? "RED: Planned tasks left incomplete" : "RED: No tasks planned before cutoff (\(cutoffStr))")
+                                        .font(.app(size: 10, weight: .bold))
                                 }
                                 .foregroundStyle(AppColor.red)
                                 .padding(.top, 4)

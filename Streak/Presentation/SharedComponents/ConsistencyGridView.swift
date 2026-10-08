@@ -69,14 +69,14 @@ struct ConsistencyGridView: View {
 
         return VStack(alignment: .leading, spacing: 5) {
             Text(monthLabel(for: monthStart))
-                .font(.system(size: 10, weight: .medium))
+                .font(.app(size: 10, weight: .medium))
                 .foregroundStyle(AppColor.textDisabled)
                 .lineLimit(1)
 
             HStack(spacing: gap) {
                 ForEach(0..<7, id: \.self) { i in
                     Text(dowLabels[i])
-                        .font(.system(size: 8, weight: .medium))
+                        .font(.system(size: 8, weight: .medium))   // fixed: must fit one heatmap cell
                         .foregroundStyle(AppColor.textDisabled)
                         .frame(width: cell)
                 }
@@ -123,6 +123,8 @@ struct ConsistencyGridView: View {
         switch status {
         case .green:  return AppColor.green
         case .red:    return AppColor.red
+        case .frozen: return AppColor.frozen
+        case .rest:   return AppColor.rest
         default:      return AppColor.blank.opacity(0.35)
         }
     }
@@ -159,9 +161,11 @@ struct ConsistencyGridView: View {
         f.timeStyle = .none
         let d = f.string(from: date)
         switch status {
-        case .green: return "\(d), completed"
-        case .red:   return "\(d), missed"
-        default:     return d
+        case .green:  return "\(d), completed"
+        case .red:    return "\(d), missed"
+        case .frozen: return "\(d), protected by streak freeze"
+        case .rest:   return "\(d), rest day"
+        default:      return d
         }
     }
 }

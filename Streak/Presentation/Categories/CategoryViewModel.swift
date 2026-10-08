@@ -27,7 +27,7 @@ final class CategoryViewModel {
             let dayEntries = try env.dayEntryRepository.fetchAll(categoryId: categoryId)
             entries = Dictionary(uniqueKeysWithValues: dayEntries.map { ($0.date, $0.status) })
 
-            streak = try CalculateStreakUseCase(dayEntryRepository: env.dayEntryRepository)
+            streak = try CalculateStreakUseCase(dayEntryRepository: env.dayEntryRepository, settingsRepository: env.settingsRepository)
                 .execute(categoryId: categoryId)
 
             let historyResult = try CalculateStreakHistoryUseCase(dayEntryRepository: env.dayEntryRepository)
@@ -38,7 +38,8 @@ final class CategoryViewModel {
             let syncUseCase = SyncGoalProgressUseCase(
                 goalRepository: env.goalRepository,
                 dayEntryRepository: env.dayEntryRepository,
-                taskRepository: env.taskRepository
+                taskRepository: env.taskRepository,
+                settingsRepository: env.settingsRepository
             )
             try syncUseCase.execute()
 
@@ -81,7 +82,8 @@ final class CategoryViewModel {
             let syncGoals = SyncGoalProgressUseCase(
                 goalRepository: env.goalRepository,
                 dayEntryRepository: env.dayEntryRepository,
-                taskRepository: env.taskRepository
+                taskRepository: env.taskRepository,
+                settingsRepository: env.settingsRepository
             )
             try syncGoals.execute()
             

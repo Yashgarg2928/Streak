@@ -54,7 +54,7 @@ struct FriendTabDetailSheet: View {
                         }
                     } label: {
                         Image(systemName: "ellipsis.circle")
-                            .font(.system(size: 16, weight: .bold))
+                            .font(.app(size: 16, weight: .bold))
                             .foregroundStyle(AppColor.textSecondary)
                     }
                 }
@@ -98,29 +98,29 @@ struct FriendTabDetailSheet: View {
                             )
 
                         Text(liveSummary.name.prefix(1).uppercased())
-                            .font(.system(size: 24, weight: .black, design: .monospaced))
+                            .font(.app(size: 24, weight: .black, design: .monospaced))
                             .foregroundStyle(Color.white)
                     }
 
                     VStack(alignment: .leading, spacing: 3) {
                         Text(liveSummary.name)
-                            .font(.system(size: 18, weight: .black, design: .monospaced))
+                            .font(.app(size: 18, weight: .black, design: .monospaced))
                             .foregroundStyle(AppColor.textPrimary)
 
                         if liveSummary.totalOwed > 0 {
                             HStack(spacing: 4) {
                                 Image(systemName: "clock.arrow.circlepath")
-                                    .font(.system(size: 10))
+                                    .font(.app(size: 10))
                                 Text("\(liveSummary.pendingCount) PENDING COLLECTION")
-                                    .font(.system(size: 9, weight: .black, design: .monospaced))
+                                    .font(.app(size: 9, weight: .black, design: .monospaced))
                             }
                             .foregroundStyle(Color(hex: "#8E44AD"))
                         } else {
                             HStack(spacing: 4) {
                                 Image(systemName: "checkmark.circle.fill")
-                                    .font(.system(size: 10))
+                                    .font(.app(size: 10))
                                 Text("ALL SETTLED UP")
-                                    .font(.system(size: 9, weight: .black, design: .monospaced))
+                                    .font(.app(size: 9, weight: .black, design: .monospaced))
                             }
                             .foregroundStyle(Color(hex: "#27AE60"))
                         }
@@ -135,20 +135,20 @@ struct FriendTabDetailSheet: View {
                 HStack(spacing: 12) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("CURRENTLY OWED")
-                            .font(.system(size: 9, weight: .black, design: .monospaced))
+                            .font(.app(size: 9, weight: .black, design: .monospaced))
                             .foregroundStyle(AppColor.textSecondary)
                         Text(String(format: "\(vm.currencySymbol)%.2f", liveSummary.totalOwed))
-                            .font(.system(size: 20, weight: .black, design: .monospaced))
+                            .font(.app(size: 20, weight: .black, design: .monospaced))
                             .foregroundStyle(liveSummary.totalOwed > 0 ? Color(hex: "#8E44AD") : AppColor.textPrimary)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                     VStack(alignment: .leading, spacing: 2) {
                         Text("TOTAL SETTLED")
-                            .font(.system(size: 9, weight: .black, design: .monospaced))
+                            .font(.app(size: 9, weight: .black, design: .monospaced))
                             .foregroundStyle(AppColor.textSecondary)
                         Text(String(format: "\(vm.currencySymbol)%.2f", liveSummary.totalSettled))
-                            .font(.system(size: 20, weight: .black, design: .monospaced))
+                            .font(.app(size: 20, weight: .black, design: .monospaced))
                             .foregroundStyle(Color(hex: "#27AE60"))
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -167,9 +167,9 @@ struct FriendTabDetailSheet: View {
             } label: {
                 HStack(spacing: 6) {
                     Image(systemName: "plus.circle.fill")
-                        .font(.system(size: 14))
+                        .font(.app(size: 14))
                     Text("ADD TO TAB")
-                        .font(.system(size: 12, weight: .black, design: .monospaced))
+                        .font(.app(size: 12, weight: .black, design: .monospaced))
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 12)
@@ -189,9 +189,9 @@ struct FriendTabDetailSheet: View {
                 } label: {
                     HStack(spacing: 6) {
                         Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 14))
+                            .font(.app(size: 14))
                         Text("SETTLE ALL")
-                            .font(.system(size: 12, weight: .black, design: .monospaced))
+                            .font(.app(size: 12, weight: .black, design: .monospaced))
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
@@ -214,13 +214,13 @@ struct FriendTabDetailSheet: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Text("TAB ACTIVITY & HISTORY")
-                    .font(.system(size: 12, weight: .black, design: .monospaced))
+                    .font(.app(size: 12, weight: .black, design: .monospaced))
                     .foregroundStyle(AppColor.textPrimary)
 
                 Spacer()
 
                 Text("\(liveSummary.items.count) entries")
-                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                    .font(.app(size: 10, weight: .bold, design: .monospaced))
                     .foregroundStyle(AppColor.textSecondary)
             }
 
@@ -228,12 +228,12 @@ struct FriendTabDetailSheet: View {
                 BrutalistCard {
                     VStack(spacing: 8) {
                         Text("📝")
-                            .font(.system(size: 28))
+                            .font(.app(size: 28))
                         Text("NO SPLITS OR DEBTS RECORDED")
-                            .font(.system(size: 12, weight: .black, design: .monospaced))
+                            .font(.app(size: 12, weight: .black, design: .monospaced))
                             .foregroundStyle(AppColor.textPrimary)
                         Text("Tap 'ADD TO TAB' to lend money or toggle 'Split' on any expense.")
-                            .font(.system(size: 11))
+                            .font(.app(size: 11))
                             .foregroundStyle(AppColor.textSecondary)
                             .multilineTextAlignment(.center)
                     }
@@ -264,18 +264,18 @@ struct FriendTabDetailSheet: View {
                         )
 
                     Text(item.transaction.category.emoji)
-                        .font(.system(size: 18))
+                        .font(.app(size: 18))
                 }
 
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 6) {
                         Text(item.transaction.category.displayName)
-                            .font(.system(size: 13, weight: .bold, design: .monospaced))
+                            .font(.app(size: 13, weight: .bold, design: .monospaced))
                             .foregroundStyle(AppColor.textPrimary)
 
                         if item.share.isSettled {
                             Text("SETTLED ✅")
-                                .font(.system(size: 8, weight: .black, design: .monospaced))
+                                .font(.app(size: 8, weight: .black, design: .monospaced))
                                 .padding(.horizontal, 4)
                                 .padding(.vertical, 2)
                                 .background(Color(hex: "#27AE60").opacity(0.18))
@@ -286,14 +286,14 @@ struct FriendTabDetailSheet: View {
 
                     if !item.transaction.note.isEmpty {
                         Text(item.transaction.note)
-                            .font(.system(size: 11, weight: .medium))
+                            .font(.app(size: 11, weight: .medium))
                             .foregroundStyle(AppColor.textSecondary)
                             .lineLimit(1)
                     }
 
                     HStack(spacing: 8) {
                         Text(item.transaction.date.formatted(date: .abbreviated, time: .omitted))
-                            .font(.system(size: 10, design: .monospaced))
+                            .font(.app(size: 10, design: .monospaced))
                             .foregroundStyle(AppColor.textSecondary)
 
                         Button {
@@ -302,9 +302,9 @@ struct FriendTabDetailSheet: View {
                         } label: {
                             HStack(spacing: 2) {
                                 Image(systemName: "pencil")
-                                    .font(.system(size: 8, weight: .bold))
+                                    .font(.app(size: 8, weight: .bold))
                                 Text("EDIT")
-                                    .font(.system(size: 9, weight: .black, design: .monospaced))
+                                    .font(.app(size: 9, weight: .black, design: .monospaced))
                             }
                             .foregroundStyle(Color(hex: "#8E44AD"))
                         }
@@ -316,7 +316,7 @@ struct FriendTabDetailSheet: View {
 
                 VStack(alignment: .trailing, spacing: 6) {
                     Text(String(format: "\(vm.currencySymbol)%.2f", item.share.amountOwed))
-                        .font(.system(size: 15, weight: .black, design: .monospaced))
+                        .font(.app(size: 15, weight: .black, design: .monospaced))
                         .foregroundStyle(item.share.isSettled ? Color(hex: "#27AE60") : Color(hex: "#8E44AD"))
 
                     Button {
@@ -327,7 +327,7 @@ struct FriendTabDetailSheet: View {
                         )
                     } label: {
                         Text(item.share.isSettled ? "UNDO" : "SETTLE")
-                            .font(.system(size: 10, weight: .black, design: .monospaced))
+                            .font(.app(size: 10, weight: .black, design: .monospaced))
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
                             .background(item.share.isSettled ? AppColor.surface : Color(hex: "#8E44AD"))

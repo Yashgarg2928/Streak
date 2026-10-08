@@ -10,8 +10,19 @@ struct ManageHabitRoutinesSheet: View {
     let onRoutineChanged: () -> Void
 
     @State private var routines: [HabitRoutine] = []
+    @State private var progress: [UUID: HabitProgress] = [:]
     @State private var showAddSheet: Bool = false
+    @State private var routineToDelete: HabitRoutine? = nil
     @State private var errorMessage: String? = nil
+
+    /// Running now or starting later; ended sprints are listed separately.
+    private var activeRoutines: [HabitRoutine] {
+        routines.filter { $0.isInDateRange(activeToday) || Calendar.current.startOfDay(for: $0.startDate) > activeToday }
+    }
+
+    private var endedRoutines: [HabitRoutine] {
+        routines.filter { !($0.isInDateRange(activeToday) || Calendar.current.startOfDay(for: $0.startDate) > activeToday) }
+    }
 
     private var activeToday: Date {
         ActiveDayResolver.resolveActiveDate(for: Date(), settings: env.settingsRepository)
@@ -60,7 +71,7 @@ struct ManageHabitRoutinesSheet: View {
 
                     if let errorMessage {
                         Text(errorMessage)
-                            .font(.system(size: 11, weight: .bold))
+                            .font(.app(size: 11, weight: .bold))
                             .foregroundStyle(AppColor.red)
                     }
 
@@ -70,15 +81,27 @@ struct ManageHabitRoutinesSheet: View {
                             .font(.system(.caption, design: .monospaced).weight(.bold))
                             .foregroundStyle(AppColor.textSecondary)
 
-                        if routines.isEmpty {
+                        if activeRoutines.isEmpty {
                             BrutalistCard {
                                 Text("No active habit commitments. Tap below to create one.")
                                     .font(.system(.subheadline))
                                     .foregroundStyle(AppColor.textSecondary)
                             }
                         } else {
-                            ForEach(routines) { routine in
+                            ForEach(activeRoutines) { routine in
                                 habitRow(routine)
+                            }
+                        }
+                    }
+
+                    if !endedRoutines.isEmpty {
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("ENDED SPRINTS")
+                                .font(.system(.caption, design: .monospaced).weight(.bold))
+                                .foregroundStyle(AppColor.textSecondary)
+                            ForEach(endedRoutines) { routine in
+                                habitRow(routine)
+                                    .opacity(0.7)
                             }
                         }
                     }
@@ -99,10 +122,25 @@ struct ManageHabitRoutinesSheet: View {
                     Button("Done") { dismiss() }
                 }
             }
-            .onAppear { loadRoutines() }
+            .onAppear {
+                loadRoutines()
+            }
+            .confirmationDialog(
+                "Delete this habit?",
+                isPresented: Binding(get: { routineToDelete != nil }, set: { if !$0 { routineToDelete = nil } }),
+                titleVisibility: .visible,
+                presenting: routineToDelete
+            ) { routine in
+                Button("Delete \(routine.title)", role: .destructive) {
+                    deleteRoutine(routine)
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: { _ in
+                Text("Its past days stay in your history. It stops appearing in your daily list from tomorrow.")
+            }
             .sheet(isPresented: $showAddSheet) {
-                AddHabitRoutineSheet(categories: categories) { title, categoryId, type, startDate, endDate in
-                    addRoutine(title: title, categoryId: categoryId, type: type, startDate: startDate, endDate: endDate)
+                AddHabitRoutineSheet(categories: categories) { title, categoryId, type, startDate, endDate, weekdays, healthRule in
+                    addRoutine(title: title, categoryId: categoryId, type: type, startDate: startDate, endDate: endDate, weekdays: weekdays, healthRule: healthRule)
                 }
             }
         }
@@ -111,70 +149,102 @@ struct ManageHabitRoutinesSheet: View {
     private func habitRow(_ routine: HabitRoutine) -> some View {
         let cat = categories.first(where: { $0.id == routine.categoryId })
         let isDeletable = isDay1 || routine.type == .customRange
+        let habitProgress = progress[routine.id]
 
-        return BrutalistCard {
-            HStack(spacing: 12) {
-                CategoryDot(color: cat?.color ?? AppColor.neutralDot)
+        return BrutalistCard(borderColor: cat?.color ?? AppColor.border) {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack(alignment: .top, spacing: 10) {
+                    CategoryDot(color: cat?.color ?? AppColor.neutralDot)
+                        .padding(.top, 6)
 
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(routine.title)
-                        .font(.system(.body).weight(.bold))
-                        .foregroundStyle(AppColor.textPrimary)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(routine.title)
+                            .font(.system(.body).weight(.bold))
+                            .foregroundStyle(AppColor.textPrimary)
 
-                    HStack(spacing: 6) {
-                        Text(routine.type == .monthlyFixed ? "🔒 MONTHLY COMMITMENT" : "⚡️ HABIT SPRINT")
-                            .font(.system(size: 9, weight: .black, design: .monospaced))
+                        Text(detailLine(routine, category: cat))
+                            .font(.app(size: 10, weight: .bold, design: .monospaced))
                             .foregroundStyle(AppColor.textSecondary)
 
-                        if let cat {
-                            Text("• \(cat.name.uppercased())")
-                                .font(.system(size: 9, weight: .bold))
-                                .foregroundStyle(cat.color)
+                        if let rule = routine.healthRule {
+                            Text("❤️ AUTO-TICK FROM HEALTH: \(rule.summary.uppercased())")
+                                .font(.app(size: 10, weight: .black, design: .monospaced))
+                                .foregroundStyle(Color(hex: "#E74C3C"))
                         }
+                    }
+
+                    Spacer()
+
+                    if let habitProgress {
+                        Text("🔥 \(habitProgress.streak)")
+                            .font(.system(.headline, design: .rounded).weight(.heavy))
+                            .foregroundStyle(AppColor.textPrimary)
+                            .accessibilityLabel("\(habitProgress.streak) day habit streak")
                     }
                 }
 
-                Spacer()
-
-                if isDeletable {
-                    Button {
-                        deleteRoutine(routine)
-                    } label: {
-                        Image(systemName: "trash")
-                            .font(.system(size: 14, weight: .bold))
-                            .foregroundStyle(AppColor.red)
-                            .frame(width: 32, height: 32)
-                            .background(AppColor.surface)
-                            .clipShape(RoundedRectangle(cornerRadius: 6))
-                            .overlay(RoundedRectangle(cornerRadius: 6).stroke(AppColor.red, lineWidth: 1))
+                HStack(alignment: .center) {
+                    if let habitProgress {
+                        HabitHistoryStrip(days: habitProgress.recent, size: 11)
                     }
-                    .buttonStyle(.plain)
-                } else {
-                    HStack(spacing: 3) {
-                        Image(systemName: "lock.fill")
-                            .font(.system(size: 10, weight: .bold))
-                        Text("LOCKED")
-                            .font(.system(size: 9, weight: .bold))
+                    Spacer()
+                    if isDeletable {
+                        Button {
+                            routineToDelete = routine
+                        } label: {
+                            Image(systemName: "trash")
+                                .font(.app(size: 14, weight: .bold))
+                                .foregroundStyle(AppColor.red)
+                                .frame(width: AppLayout.minTapTarget, height: AppLayout.minTapTarget)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Delete \(routine.title)")
+                    } else {
+                        HStack(spacing: 3) {
+                            Image(systemName: "lock.fill")
+                                .font(.app(size: 10, weight: .bold))
+                            Text("LOCKED")
+                                .font(.app(size: 9, weight: .bold))
+                        }
+                        .foregroundStyle(AppColor.textDisabled)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 4)
+                        .background(AppColor.blank)
+                        .clipShape(RoundedRectangle(cornerRadius: 4))
                     }
-                    .foregroundStyle(AppColor.textDisabled)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 4)
-                    .background(AppColor.blank)
-                    .clipShape(RoundedRectangle(cornerRadius: 4))
                 }
             }
         }
     }
 
+    private func detailLine(_ routine: HabitRoutine, category: Category?) -> String {
+        var parts: [String] = [routine.type == .monthlyFixed ? "🔒 MONTHLY" : "⚡️ SPRINT"]
+        if routine.type == .customRange {
+            parts.append("ENDS \(routine.endDate.formatted(.dateTime.month(.abbreviated).day()).uppercased())")
+        }
+        parts.append(WeekdayPicker.summary(routine.weekdays))
+        if let category { parts.append(category.name.uppercased()) }
+        return parts.joined(separator: " · ")
+    }
+
     private func loadRoutines() {
         do {
             routines = try env.habitRoutineRepository.fetchAll()
+            let habitTasks = try env.taskRepository.fetchAll().filter { $0.routineId != nil && $0.timeframe == .daily }
+            let protectedDays = Set(try env.dayEntryRepository.fetchAll(categoryId: nil)
+                .filter { $0.status.isStreakNeutral }
+                .map { Calendar.current.startOfDay(for: $0.date) })
+            let calculator = CalculateHabitStreakUseCase(settingsRepository: env.settingsRepository)
+            progress = Dictionary(uniqueKeysWithValues: routines.map { routine in
+                (routine.id, calculator.execute(routine: routine, tasks: habitTasks, protectedDays: protectedDays))
+            })
         } catch {
             errorMessage = error.localizedDescription
         }
     }
 
-    private func addRoutine(title: String, categoryId: UUID?, type: HabitRoutineType, startDate: Date, endDate: Date) {
+    private func addRoutine(title: String, categoryId: UUID?, type: HabitRoutineType, startDate: Date, endDate: Date, weekdays: Set<Int>, healthRule: HealthRule?) {
         do {
             let cal = Calendar.current
             let start: Date
@@ -200,7 +270,9 @@ struct ManageHabitRoutinesSheet: View {
                 type: type,
                 startDate: start,
                 endDate: end,
-                isLocked: isLocked
+                isLocked: isLocked,
+                weekdays: weekdays,
+                healthRule: healthRule
             )
             try env.habitRoutineRepository.save(routine)
 

@@ -73,7 +73,7 @@ public enum FixedShopItemType: String, Codable, CaseIterable, Identifiable {
 
     public var effectDescription: String {
         switch self {
-        case .streakFreeze: return "Protects your streak for 1 missed day."
+        case .streakFreeze: return "Auto-protects your streak on a missed day. Or equip it to protect today."
         case .xpBoost: return "All XP earned in the next 24h is doubled."
         case .doubleHabitDay: return "Triple XP for all completed habits for 1 day."
         case .weekendShield: return "Protects streak across Sat & Sun."

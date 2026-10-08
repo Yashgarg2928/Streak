@@ -37,6 +37,9 @@ public final class UserDefaultsSettingsRepository: SettingsRepository {
         static let isPlanningAlertEnabled = "isPlanningAlertEnabled"
         static let isEmergencyCutoffEnabled = "isEmergencyCutoffEnabled"
         static let currencySymbol = "currencySymbol"
+        static let restWeekdays = "restWeekdays"
+        static let lastBackupDate = "lastBackupDate"
+        static let isLiveActivityEnabled = "isLiveActivityEnabled"
     }
     
     public init() {
@@ -67,7 +70,8 @@ public final class UserDefaultsSettingsRepository: SettingsRepository {
             Keys.isMorningHypeEnabled: true,
             Keys.isMiddayNudgeEnabled: true,
             Keys.isPlanningAlertEnabled: true,
-            Keys.isEmergencyCutoffEnabled: true
+            Keys.isEmergencyCutoffEnabled: true,
+            Keys.isLiveActivityEnabled: true
         ])
     }
     
@@ -196,6 +200,21 @@ public final class UserDefaultsSettingsRepository: SettingsRepository {
         set { defaults.set(newValue, forKey: Keys.currencySymbol) }
     }
     
+    public var restWeekdays: [Int] {
+        get { (defaults.array(forKey: Keys.restWeekdays) as? [Int]) ?? [] }
+        set { defaults.set(newValue, forKey: Keys.restWeekdays) }
+    }
+
+    public var lastBackupDate: Date? {
+        get { defaults.object(forKey: Keys.lastBackupDate) as? Date }
+        set { defaults.set(newValue, forKey: Keys.lastBackupDate) }
+    }
+
+    public var isLiveActivityEnabled: Bool {
+        get { defaults.bool(forKey: Keys.isLiveActivityEnabled) }
+        set { defaults.set(newValue, forKey: Keys.isLiveActivityEnabled) }
+    }
+
     public func saveAll() {
         // UserDefaults automatically saves, but we can call synchronize for instant write verification.
         defaults.synchronize()

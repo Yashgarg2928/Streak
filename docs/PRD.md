@@ -22,10 +22,14 @@ The app is designed as a **super-app scaffold** — the core three modules ship 
    - **Red (Checked strictly at 2 times):**
      1. When the planning deadline has passed and no tasks were scheduled (Lockout condition).
      2. When the active day has ended and tasks were left incomplete.
-   - **Blank:** Active in-progress days with pending tasks remain Blank (`#D0C9B8` / `#2C2C2E`) until completed or until the day ends.
+   - **Blank:** Active in-progress days with pending tasks remain Blank (`#D0C9B8` / `#2C2C2E`) until completed or until the day ends. An in-progress day never breaks the displayed streak.
+   - **Only planned tasks count.** Standalone tasks created after the planning deadline are **BONUS** tasks: they earn XP but never change the day's status (they can't make it green, and leaving them open can't make it red).
+   - **Rest:** Weekdays chosen as rest days in Settings resolve to Rest (blue-grey) unless every task was completed. Rest days never turn red and neither extend nor break a streak.
+   - **Frozen:** A missed day protected by a Streak Freeze (blue). Freezes are used automatically when a missed day would break a running streak, or can be equipped manually to protect today. Frozen days neither extend nor break a streak.
 2. **Task Immutability:** Tasks cannot be edited or deleted once created. Creation UI displays explicit warning text (`⚠️ Tasks cannot be edited or deleted once created`).
 3. **Gamification & Progression Economy:** XP earned for completing tasks/habits, polynomial level progression ($XP = 100 \times Level^{1.8}$), 13 prestige title tiers, 30+ badges, System Shop, and Category-Bound Monthly Custom Rewards with monthly lock & persistence rules.
-4. **End-of-Day Habit Reflection Form:** Core lifelong lifestyle habits evaluated every night with tactile `[ ✅ FOLLOWED ]` and `[ ❌ NOT FOLLOWED ]` buttons.
+4. **Habits:** habit commitments run on chosen weekdays, keep their own streaks (Today → Habits, and the Habit commitments sheet), and can be linked to Apple Health (steps, exercise minutes, active energy, workouts) so a Shortcuts sync ticks them automatically.
+5. **End-of-Day Check-In:** One nightly flow: habit commitments marked `[ ✓ FOLLOWED ]` / `[ ✕ NOT FOLLOWED ]` (kept in sync with their tasks in the Today list), a 1–5 day rating, and a short reflection (wins, what slipped, tomorrow's priorities). Past check-ins are browsable from the sheet.
 5. **Local-first.** No backend, no accounts, no internet requirement.
 6. **SOLID + Domain-driven.** Each domain (Habits, Goals, Tasks, Notifications, Gamification) is isolated.
 7. **Minimal UI.** Neo-Brutalist aesthetic. Nothing on screen that doesn't need to be there.
@@ -116,7 +120,8 @@ A flexible task planning system spanning four distinct timeframes:
 
 **Completion logic:**
 - When all daily tasks for a category are checked, that category's day is marked green
-- If even one active daily task is unchecked, the day remains red (no partial state)
+- If even one planned daily task is unchecked when the day ends, the day is red (no partial state). Bonus (late) tasks are ignored.
+- Habit commitments can be scheduled on specific weekdays (e.g. gym Mon/Wed/Fri); on other days they generate no task.
 - Non-daily tasks (`.weekly`, `.monthly`, `.backlog`) do not affect daily streak calculations unless promoted to `.daily`
 
 ---
@@ -180,9 +185,9 @@ Allows the user to define their custom wake-cycle (Active Start and End times) w
 
 **Key Features:**
 - **Active Time Period:** Start and End time configuration. The End Time (deadline) acts as the rollover boundary for streaks.
-- **Lockout Rule:** If no tasks are scheduled for the upcoming active day before the End Time, the day is locked as Missed (Red), resetting the streak. Any tasks added afterwards are marked late and do not count toward the streak.
+- **Lockout Rule:** If no tasks are scheduled for the active day before the planning deadline, the day is locked as Missed (Red), resetting the streak (unless it's a rest day or a Streak Freeze covers it). Tasks added afterwards are BONUS tasks and don't count toward the streak.
 - **Onboarding Flow:** Fullscreen overlay on first run to configure start/end times before accessing the app.
-- **Settings Screen:** Accessed from the "More" tab to configure active times, manage categories, toggle Appearance Theme (System/Light/Dark), and Danger Zone data reset.
+- **Settings Screen:** Opened from the gear on the Today tab (or Profile → Settings) to configure active times, planning window, rest days, notifications, Lock Screen countdown, Appearance Theme (System/Light/Dark), Backup & Restore, and Danger Zone data reset.
 
 ---
 
@@ -220,8 +225,8 @@ Provides high-contrast Neo-Brutalist visual design across both Light Mode (Paper
 | Language | Swift 5.9+, SwiftUI |
 | Storage | SwiftData (local, on-device) |
 | iCloud sync | Optional toggle in Settings. Uses iCloud Drive via SwiftData's CloudKit sync |
-| Export | Single JSON file export via share sheet / AirDrop |
-| Import | Load JSON file to restore all data |
+| Backup | Settings → Backup & Restore → Export writes a single `.plist` backup (database snapshot + settings) via the Files exporter |
+| Restore | Settings → Backup & Restore → Restore stages a backup file; it's applied on the next launch (previous data kept in a safety copy) |
 | Distribution | AltStore IPA sideload. No App Store. |
 | Signing | Free Apple ID (7-day resign cycle) or paid dev account (1-year) |
 | Permissions | Notifications, iCloud (optional) |
@@ -251,12 +256,12 @@ These are documented in `FUTURE_MODULES.md`.
 | Backend? | None. Local-only. |
 | Distribution | AltStore sideload |
 | Signing | Free Apple ID (friends re-sign individually) |
-| Partial day state? | No. Green or Red. No partial. |
-| Day with no tasks | Red |
+| Partial day state? | No. Green or Red (plus neutral Rest / Frozen days). No partial. |
+| Day with no tasks | Red (Rest on a rest day) |
 | Streak break condition | Any red day resets streak |
 | Reminder repeat interval | Every 5 minutes until tasks are set |
 | iCloud sync | Optional user toggle |
-| Data portability | Export/import as single JSON file via AirDrop |
+| Data portability | Full backup/restore file via Files (Settings → Backup & Restore) |
 | UI theme | Neo-Brutalist: paper/cream background, thick dark borders, no shadows |
 | Category color | Full color wheel, user picks per category |
 | Dark mode | Not in v1 |

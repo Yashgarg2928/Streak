@@ -50,13 +50,19 @@ final class ProfileViewModel {
         }
     }
 
+    func clearMessages() {
+        errorMessage = nil
+        successMessage = nil
+    }
+
     func activateItem(_ item: ShopItem) {
         do {
             let useCase = ActivateShopItemUseCase(
                 playerProfileRepository: env.playerProfileRepository,
                 shopItemRepository: env.shopItemRepository,
                 dayEntryRepository: env.dayEntryRepository,
-                settingsRepository: env.settingsRepository
+                settingsRepository: env.settingsRepository,
+                categoryRepository: env.categoryRepository
             )
             try useCase.execute(itemId: item.id)
             successMessage = "Successfully activated \(item.itemType.title)!"

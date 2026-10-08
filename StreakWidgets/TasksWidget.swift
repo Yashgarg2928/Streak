@@ -1,8 +1,9 @@
 // StreakWidgets/TasksWidget.swift
-// Shows today's task list with checkmark status.
-// Tapping opens the Tasks tab in the main app.
+// Shows today's task list. Checkboxes are tappable (iOS 17+ interactive widgets);
+// tapping anywhere else opens the Tasks tab in the main app.
 
 import WidgetKit
+import AppIntents
 import SwiftUI
 
 // MARK: - Entry
@@ -250,10 +251,19 @@ struct TasksWidgetLarge: View {
 
 private func taskRow(item: WidgetData.TaskItem, theme: WidgetColorTheme, mode: WidgetRenderingMode) -> some View {
     HStack(spacing: 6) {
-        Image(systemName: item.isCompleted ? "checkmark.square.fill" : "square")
-            .font(.system(size: 13, weight: .medium))
+        let checkbox = Image(systemName: item.isCompleted ? "checkmark.square.fill" : "square")
+            .font(.system(size: 15, weight: .medium))
             .foregroundStyle(item.isCompleted ? (mode == .fullColor ? WColor.green : .white.opacity(0.6)) : theme.textSecondary)
-            .frame(width: 16)
+            .frame(width: 20, height: 20)
+
+        if let id = item.id {
+            Button(intent: ToggleWidgetTaskIntent(taskId: id, completed: !item.isCompleted)) {
+                checkbox
+            }
+            .buttonStyle(.plain)
+        } else {
+            checkbox
+        }
 
         if let hex = item.categoryColorHex {
             Circle()
@@ -303,7 +313,7 @@ struct TasksWidget: Widget {
                 .widgetURL(URL(string: "streak://tasks"))
         }
         .configurationDisplayName("Today's Tasks")
-        .description("See your task list for today.")
+        .description("Tick off today's tasks right from your Home Screen.")
         .supportedFamilies([
             .systemSmall,
             .systemMedium,

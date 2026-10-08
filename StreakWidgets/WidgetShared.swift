@@ -44,6 +44,14 @@ enum WColor {
     static let blank = Color(uiColor: UIColor { trait in
         trait.userInterfaceStyle == .dark ? UIColor(Color(hex: "#2C2C2E")) : UIColor(Color(hex: "#D0C9B8"))
     })
+
+    static let frozen = Color(uiColor: UIColor { trait in
+        trait.userInterfaceStyle == .dark ? UIColor(Color(hex: "#64B5F6")) : UIColor(Color(hex: "#2E86C1"))
+    })
+
+    static let rest = Color(uiColor: UIColor { trait in
+        trait.userInterfaceStyle == .dark ? UIColor(Color(hex: "#5C6B7A")) : UIColor(Color(hex: "#A9B7C6"))
+    })
 }
 
 extension Color {
@@ -99,7 +107,7 @@ struct WidgetColorTheme {
 
 struct StatusDot: View {
     @Environment(\.widgetRenderingMode) var renderingMode
-    let status: String   // "green" | "red" | "future"
+    let status: String   // "green" | "red" | "future" | "rest" | "frozen"
     let size: CGFloat
 
     var color: Color {
@@ -109,6 +117,10 @@ struct StatusDot: View {
             return renderingMode == .fullColor ? WColor.green : .white
         case "red":
             return renderingMode == .fullColor ? WColor.red : .white.opacity(0.5)
+        case "frozen":
+            return renderingMode == .fullColor ? WColor.frozen : .white.opacity(0.7)
+        case "rest":
+            return renderingMode == .fullColor ? WColor.rest : .white.opacity(0.3)
         default:
             return theme.blank
         }
@@ -164,6 +176,10 @@ struct MiniHeatmap: View {
             return renderingMode == .fullColor ? WColor.green : .white
         case "red":
             return renderingMode == .fullColor ? WColor.red : .white.opacity(0.3)
+        case "frozen":
+            return renderingMode == .fullColor ? WColor.frozen : .white.opacity(0.6)
+        case "rest":
+            return renderingMode == .fullColor ? WColor.rest : .white.opacity(0.2)
         default:
             return renderingMode == .fullColor ? WColor.blank.opacity(0.4) : .white.opacity(0.1)
         }

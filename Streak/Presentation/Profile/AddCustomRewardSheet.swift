@@ -48,10 +48,10 @@ struct AddCustomRewardSheet: View {
 
                     VStack(alignment: .leading, spacing: 4) {
                         Text("TIER PRICE: \(selectedTier.xpCost) XP")
-                            .font(.system(size: 11, weight: .bold, design: .monospaced))
+                            .font(.app(size: 11, weight: .bold, design: .monospaced))
                             .foregroundStyle(AppColor.textPrimary)
                         Text(selectedTier.intendedDescription)
-                            .font(.system(size: 11))
+                            .font(.app(size: 11))
                             .foregroundStyle(AppColor.textSecondary)
                     }
                     .padding(.vertical, 4)
@@ -61,14 +61,14 @@ struct AddCustomRewardSheet: View {
                     VStack(alignment: .leading, spacing: 6) {
                         HStack(spacing: 4) {
                             Image(systemName: "lock.fill")
-                                .font(.system(size: 11, weight: .bold))
+                                .font(.app(size: 11, weight: .bold))
                             Text("MONTHLY LOCK & PERSISTENCE RULE")
-                                .font(.system(size: 10, weight: .bold, design: .monospaced))
+                                .font(.app(size: 10, weight: .bold, design: .monospaced))
                         }
                         .foregroundStyle(AppColor.textPrimary)
 
                         Text("Custom rewards configured for this month stay locked during the month and cannot be edited mid-month. Unredeemed rewards do NOT reset next month — they persist until redeemed.")
-                            .font(.system(size: 11))
+                            .font(.app(size: 11))
                             .foregroundStyle(AppColor.textSecondary)
                     }
                     .padding(.vertical, 4)

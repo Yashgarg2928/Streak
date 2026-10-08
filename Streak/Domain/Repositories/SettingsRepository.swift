@@ -36,6 +36,11 @@ public protocol SettingsRepository: AnyObject {
     var isEmergencyCutoffEnabled: Bool { get set }
     var currencySymbol: String { get set }
 
+    /// Calendar weekdays (1 = Sunday … 7 = Saturday) that are scheduled rest days.
+    var restWeekdays: [Int] { get set }
+    var lastBackupDate: Date? { get set }
+    var isLiveActivityEnabled: Bool { get set }
+
     func saveAll()
     func resetAll()
 }

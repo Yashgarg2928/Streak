@@ -46,7 +46,7 @@ struct StreakBadgeView: View {
     var body: some View {
         HStack(spacing: 4) {
             Text("🔥")
-                .font(.system(size: 16))
+                .font(.app(size: 16))
             Text("\(count)")
                 .font(.system(.title2, design: .rounded).weight(.heavy))
                 .foregroundStyle(AppColor.textPrimary)
@@ -131,9 +131,8 @@ struct TaskRowView: View {
 
     private var isLateTask: Bool {
         guard task.timeframe == .daily else { return false }
-        if task.routineId != nil { return false }
         let planningDeadline = ActiveDayResolver.planningDeadline(for: task.targetDate, settings: env.settingsRepository)
-        return task.createdAt > planningDeadline
+        return task.isAddedLate(planningDeadline: planningDeadline)
     }
 
     var body: some View {
@@ -145,7 +144,7 @@ struct TaskRowView: View {
                     HStack(spacing: 10) {
                         // Checkbox — greyed out for future tasks
                         Image(systemName: task.isCompleted ? "checkmark.square.fill" : "square")
-                            .font(.system(size: 22, weight: .medium))
+                            .font(.app(size: 22, weight: .medium))
                             .foregroundStyle(
                                 isFuture ? AppColor.textDisabled :
                                 task.isCompleted ? AppColor.green : AppColor.textSecondary
@@ -169,9 +168,9 @@ struct TaskRowView: View {
                             if task.isLocked {
                                 HStack(spacing: 3) {
                                     Image(systemName: "lock.fill")
-                                        .font(.system(size: 9, weight: .bold))
+                                        .font(.app(size: 9, weight: .bold))
                                     Text("LOCKED")
-                                        .font(.system(size: 9, weight: .black))
+                                        .font(.app(size: 9, weight: .black))
                                 }
                                 .foregroundStyle(AppColor.textSecondary)
                                 .padding(.horizontal, 6)
@@ -182,25 +181,26 @@ struct TaskRowView: View {
 
                             if isLateTask {
                                 HStack(spacing: 3) {
-                                    Image(systemName: "exclamationmark.triangle.fill")
-                                        .font(.system(size: 9, weight: .bold))
-                                    Text("ADDED LATE")
-                                        .font(.system(size: 9, weight: .black))
+                                    Image(systemName: "plus.circle.fill")
+                                        .font(.app(size: 9, weight: .bold))
+                                    Text("BONUS")
+                                        .font(.app(size: 9, weight: .black))
                                 }
-                                .foregroundStyle(AppColor.red)
+                                .foregroundStyle(AppColor.orange)
                                 .padding(.horizontal, 6)
                                 .padding(.vertical, 3)
                                 .background(AppColor.surface)
                                 .clipShape(RoundedRectangle(cornerRadius: 4))
-                                .overlay(RoundedRectangle(cornerRadius: 4).stroke(AppColor.red, lineWidth: 1))
+                                .overlay(RoundedRectangle(cornerRadius: 4).stroke(AppColor.orange, lineWidth: 1))
+                                .accessibilityLabel("Added after the planning cutoff. Bonus task, doesn't affect today's status.")
                             }
 
                             if isPast && !task.isCompleted && task.timeframe == .daily && task.routineId == nil && !task.isLocked {
                                 HStack(spacing: 3) {
                                     Image(systemName: "clock.arrow.circlepath")
-                                        .font(.system(size: 9, weight: .bold))
+                                        .font(.app(size: 9, weight: .bold))
                                     Text("MISSED")
-                                        .font(.system(size: 9, weight: .black))
+                                        .font(.app(size: 9, weight: .black))
                                 }
                                 .foregroundStyle(AppColor.orange)
                                 .padding(.horizontal, 6)
@@ -223,7 +223,7 @@ struct TaskRowView: View {
                         if let onMoveUp {
                             Button(action: onMoveUp) {
                                 Image(systemName: "chevron.up")
-                                    .font(.system(size: 11, weight: .bold))
+                                    .font(.app(size: 11, weight: .bold))
                                     .foregroundStyle(AppColor.textPrimary)
                                     .frame(width: 28, height: 28)
                                     .background(AppColor.surface)
@@ -240,7 +240,7 @@ struct TaskRowView: View {
                         if let onMoveDown {
                             Button(action: onMoveDown) {
                                 Image(systemName: "chevron.down")
-                                    .font(.system(size: 11, weight: .bold))
+                                    .font(.app(size: 11, weight: .bold))
                                     .foregroundStyle(AppColor.textPrimary)
                                     .frame(width: 28, height: 28)
                                     .background(AppColor.surface)
@@ -259,7 +259,7 @@ struct TaskRowView: View {
                 if let onDelete {
                     Button(action: onDelete) {
                         Image(systemName: "trash")
-                            .font(.system(size: 14, weight: .bold))
+                            .font(.app(size: 14, weight: .bold))
                             .foregroundStyle(AppColor.red)
                             .frame(width: 28, height: 28)
                             .background(AppColor.surface)
@@ -281,9 +281,9 @@ struct TaskRowView: View {
                         Button(action: onScheduleToday) {
                             HStack(spacing: 4) {
                                 Image(systemName: "bolt.fill")
-                                    .font(.system(size: 9, weight: .black))
+                                    .font(.app(size: 9, weight: .black))
                                 Text("ADD TO TODAY")
-                                    .font(.system(size: 9, weight: .black))
+                                    .font(.app(size: 9, weight: .black))
                             }
                             .foregroundStyle(AppColor.background)
                             .padding(.horizontal, 9)
@@ -298,9 +298,9 @@ struct TaskRowView: View {
                         Button(action: onScheduleTomorrow) {
                             HStack(spacing: 4) {
                                 Image(systemName: "calendar")
-                                    .font(.system(size: 9, weight: .bold))
+                                    .font(.app(size: 9, weight: .bold))
                                 Text("ADD TO TOMORROW")
-                                    .font(.system(size: 9, weight: .black))
+                                    .font(.app(size: 9, weight: .black))
                             }
                             .foregroundStyle(AppColor.textPrimary)
                             .padding(.horizontal, 9)
@@ -319,9 +319,9 @@ struct TaskRowView: View {
                         Button(action: onMoveToBacklog) {
                             HStack(spacing: 4) {
                                 Image(systemName: "tray.and.arrow.down")
-                                    .font(.system(size: 9, weight: .bold))
+                                    .font(.app(size: 9, weight: .bold))
                                 Text("MOVE TO TO-DO")
-                                    .font(.system(size: 9, weight: .black))
+                                    .font(.app(size: 9, weight: .black))
                             }
                             .foregroundStyle(AppColor.textPrimary)
                             .padding(.horizontal, 9)
@@ -448,7 +448,7 @@ struct ActiveDayCountdownView: View {
             
             HStack(spacing: 8) {
                 Text("⏳")
-                    .font(.system(size: 14))
+                    .font(.app(size: 14))
                 Text("DAY ENDS IN:")
                     .font(.system(.caption, design: .monospaced).weight(.black))
                     .foregroundStyle(AppColor.textSecondary)
@@ -465,6 +465,151 @@ struct ActiveDayCountdownView: View {
                 RoundedRectangle(cornerRadius: AppLayout.cornerRadius)
                     .stroke(AppColor.border, lineWidth: AppLayout.borderWidth)
             )
+        }
+    }
+}
+
+// MARK: - WeekdayPicker
+// Row of day chips. Values are Calendar weekdays (1 = Sunday … 7 = Saturday),
+// ordered from the user's first weekday.
+
+struct WeekdayPicker: View {
+    @Binding var selection: Set<Int>
+    var accent: Color = AppColor.border
+    var selectedTextColor: Color = AppColor.background
+
+    static var orderedWeekdays: [Int] {
+        let first = Calendar.current.firstWeekday
+        return (0..<7).map { (first - 1 + $0) % 7 + 1 }
+    }
+
+    /// "EVERY DAY", or e.g. "MON · WED · FRI".
+    static func summary(_ weekdays: Set<Int>) -> String {
+        guard !weekdays.isEmpty, weekdays.count < 7 else { return "EVERY DAY" }
+        let symbols = Calendar.current.shortStandaloneWeekdaySymbols
+        return orderedWeekdays
+            .filter { weekdays.contains($0) }
+            .map { symbols[$0 - 1].uppercased() }
+            .joined(separator: " · ")
+    }
+
+    var body: some View {
+        let symbols = Calendar.current.veryShortStandaloneWeekdaySymbols
+        HStack(spacing: 6) {
+            ForEach(Self.orderedWeekdays, id: \.self) { weekday in
+                let isOn = selection.contains(weekday)
+                Button {
+                    if isOn { selection.remove(weekday) } else { selection.insert(weekday) }
+                } label: {
+                    Text(symbols[weekday - 1])
+                        .font(.system(.subheadline, design: .monospaced).weight(.black))
+                        .foregroundStyle(isOn ? selectedTextColor : AppColor.textPrimary)
+                        .frame(maxWidth: .infinity, minHeight: AppLayout.minTapTarget)
+                        .background(isOn ? accent : AppColor.surface)
+                        .clipShape(RoundedRectangle(cornerRadius: AppLayout.cornerRadius))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: AppLayout.cornerRadius)
+                                .stroke(AppColor.border, lineWidth: 1.5)
+                        )
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(Calendar.current.standaloneWeekdaySymbols[weekday - 1])
+                .accessibilityAddTraits(isOn ? .isSelected : [])
+            }
+        }
+    }
+}
+
+// MARK: - ShortcutGuideCard
+// Numbered step-by-step card used by the Shortcuts / automation setup guides.
+
+struct ShortcutGuideCard: View {
+    let stepNumber: String
+    let badge: String
+    let badgeColor: String
+    let title: String
+    let description: String
+    let steps: [String]
+    var stepLabel: String = "STEP"
+
+    var body: some View {
+        BrutalistCard {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(spacing: 8) {
+                    Text(badge)
+                        .font(.app(size: 9, weight: .black, design: .monospaced))
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 3)
+                        .background(Color(hex: badgeColor))
+                        .foregroundStyle(Color.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 4))
+
+                    Spacer()
+
+                    Text("\(stepLabel) \(stepNumber)")
+                        .font(.app(size: 10, weight: .black, design: .monospaced))
+                        .foregroundStyle(AppColor.textSecondary)
+                }
+
+                Text(title)
+                    .font(.app(size: 16, weight: .bold, design: .monospaced))
+                    .foregroundStyle(AppColor.textPrimary)
+
+                Text(description)
+                    .font(.app(size: 13, weight: .medium))
+                    .foregroundStyle(AppColor.textSecondary)
+
+                VStack(alignment: .leading, spacing: 8) {
+                    ForEach(Array(steps.enumerated()), id: \.offset) { index, step in
+                        HStack(alignment: .top, spacing: 8) {
+                            Text("\(index + 1).")
+                                .font(.app(size: 12, weight: .black, design: .monospaced))
+                                .foregroundStyle(AppColor.textPrimary)
+                            Text(.init(step))
+                                .font(.app(size: 12, weight: .medium))
+                                .foregroundStyle(AppColor.textPrimary)
+                        }
+                    }
+                }
+                .padding(10)
+                .background(AppColor.surface)
+                .clipShape(RoundedRectangle(cornerRadius: 6))
+                .overlay(RoundedRectangle(cornerRadius: 6).stroke(AppColor.border, lineWidth: 1.5))
+            }
+        }
+    }
+}
+
+// MARK: - HabitHistoryStrip
+// Small squares for a habit's recent days: done (green), missed (red), today pending
+// (outlined), unscheduled / rest / frozen (faint).
+
+struct HabitHistoryStrip: View {
+    let days: [HabitDay]
+    var size: CGFloat = 12
+
+    var body: some View {
+        HStack(spacing: 3) {
+            ForEach(days, id: \.date) { day in
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(fill(for: day.state))
+                    .frame(width: size, height: size)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 2)
+                            .stroke(day.state == .pending ? AppColor.border : .clear, lineWidth: 1.5)
+                    )
+            }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Last \(days.count) days: \(days.filter { $0.state == .done }.count) done, \(days.filter { $0.state == .missed }.count) missed")
+    }
+
+    private func fill(for state: HabitDay.State) -> Color {
+        switch state {
+        case .done:    return AppColor.green
+        case .missed:  return AppColor.red
+        case .pending: return AppColor.surface
+        case .off:     return AppColor.blank.opacity(0.35)
         }
     }
 }

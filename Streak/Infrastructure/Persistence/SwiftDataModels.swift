@@ -104,6 +104,10 @@ final class HabitRoutineModel {
     var endDate: Date
     var isLocked: Bool
     var createdAt: Date
+    /// Comma-separated weekdays (1 = Sunday … 7 = Saturday). nil/empty = every day.
+    var weekdaysCSV: String? = nil
+    /// Encoded HealthRule ("steps:10000"). nil = no Health auto-complete.
+    var healthRuleRaw: String? = nil
 
     var type: HabitRoutineType {
         get { HabitRoutineType(rawValue: typeRaw) ?? .monthlyFixed }
@@ -119,6 +123,8 @@ final class HabitRoutineModel {
         self.endDate = entity.endDate
         self.isLocked = entity.isLocked
         self.createdAt = entity.createdAt
+        self.weekdaysCSV = Self.encodeWeekdays(entity.weekdays)
+        self.healthRuleRaw = entity.healthRule?.encoded
     }
 
     func toDomain() -> HabitRoutine {
@@ -130,8 +136,14 @@ final class HabitRoutineModel {
             startDate: startDate,
             endDate: endDate,
             isLocked: isLocked,
-            createdAt: createdAt
+            createdAt: createdAt,
+            weekdays: Set((weekdaysCSV ?? "").split(separator: ",").compactMap { Int($0) }),
+            healthRule: HealthRule(encoded: healthRuleRaw)
         )
+    }
+
+    private static func encodeWeekdays(_ weekdays: Set<Int>) -> String? {
+        weekdays.isEmpty ? nil : weekdays.sorted().map(String.init).joined(separator: ",")
     }
 
     func update(from entity: HabitRoutine) {
@@ -141,6 +153,8 @@ final class HabitRoutineModel {
         startDate = entity.startDate
         endDate = entity.endDate
         isLocked = entity.isLocked
+        weekdaysCSV = Self.encodeWeekdays(entity.weekdays)
+        healthRuleRaw = entity.healthRule?.encoded
     }
 }
 
@@ -468,6 +482,8 @@ final class CustomRewardModel {
     }
 }
 
+/// Legacy "core habits" table, superseded by habit commitments (HabitRoutine) and no longer
+/// used. Kept in the schema so existing stores open without a destructive migration.
 @Model
 final class CoreHabitModel {
     @Attribute(.unique) var id: UUID
@@ -476,22 +492,12 @@ final class CoreHabitModel {
     var isArchived: Bool
     var createdAt: Date
 
-    init(from entity: CoreHabit) {
-        self.id = entity.id
-        self.title = entity.title
-        self.categoryId = entity.categoryId
-        self.isArchived = entity.isArchived
-        self.createdAt = entity.createdAt
-    }
-
-    func toDomain() -> CoreHabit {
-        CoreHabit(id: id, title: title, categoryId: categoryId, isArchived: isArchived, createdAt: createdAt)
-    }
-
-    func update(from entity: CoreHabit) {
-        title = entity.title
-        categoryId = entity.categoryId
-        isArchived = entity.isArchived
+    init(id: UUID = UUID(), title: String, categoryId: UUID? = nil, isArchived: Bool = false, createdAt: Date = Date()) {
+        self.id = id
+        self.title = title
+        self.categoryId = categoryId
+        self.isArchived = isArchived
+        self.createdAt = createdAt
     }
 }
 
@@ -801,5 +807,42 @@ final class SplitShareModel {
     }
 }
 
+@Model
+final class HealthSnapshotModel {
+    @Attribute(.unique) var id: UUID
+    var date: Date
+    var steps: Int
+    var activeEnergyKcal: Int
+    var exerciseMinutes: Int
+    var workoutCount: Int
+    var workoutMinutes: Int
+    var updatedAt: Date
 
+    init(from entity: HealthSnapshot) {
+        self.id = entity.id
+        self.date = entity.date
+        self.steps = entity.steps
+        self.activeEnergyKcal = entity.activeEnergyKcal
+        self.exerciseMinutes = entity.exerciseMinutes
+        self.workoutCount = entity.workoutCount
+        self.workoutMinutes = entity.workoutMinutes
+        self.updatedAt = entity.updatedAt
+    }
 
+    func toDomain() -> HealthSnapshot {
+        HealthSnapshot(
+            id: id, date: date, steps: steps, activeEnergyKcal: activeEnergyKcal,
+            exerciseMinutes: exerciseMinutes, workoutCount: workoutCount,
+            workoutMinutes: workoutMinutes, updatedAt: updatedAt
+        )
+    }
+
+    func update(from entity: HealthSnapshot) {
+        steps = entity.steps
+        activeEnergyKcal = entity.activeEnergyKcal
+        exerciseMinutes = entity.exerciseMinutes
+        workoutCount = entity.workoutCount
+        workoutMinutes = entity.workoutMinutes
+        updatedAt = entity.updatedAt
+    }
+}

@@ -123,6 +123,28 @@ Tapping opens the Tasks screen in the main app (deep link).
 - **Content:** Displays a selected goal's progress bar, completion metrics, and deadline. styled exactly like the in-app goal card.
 - **User Configurable:** Select which specific Goal to display.
 
+### 1.3a Interactive Tasks Widget
+
+The medium/large Tasks widget checkboxes are `Button(intent: ToggleWidgetTaskIntent)` (StreakWidgets/ToggleWidgetTaskIntent.swift).
+The widget extension can't run the app's completion flow, so the intent:
+1. flips the item in the cached `WidgetData` immediately (instant visual feedback), and
+2. appends the change to `WidgetTaskToggleQueue` in App Group UserDefaults.
+
+`DaySweeper` drains the queue on the next launch / foreground / background sweep and applies each tick through
+`AppEnvironment.setTaskCompleted` (day status, XP, badges, goals). Streak counts and status dots in widgets update
+once the app has applied the queue.
+
+### 1.3b Day Countdown Live Activity
+
+`DayCountdownLiveActivity` (widget extension) + `DayCountdownActivityManager` (app) + shared `DayCountdownAttributes`.
+- Shows planned tasks done / total, streak, and a countdown to the end of the active day on the Lock Screen and Dynamic Island.
+- Shown whenever the active day has open planned tasks; updated on every `syncWidgets()`. iOS only allows starting one
+  from the foreground or a `LiveActivityIntent`, and ends it after ~8 hours, so it (re)starts when the app opens, when the
+  active day rolls over while the app is open, or when **Show Day Countdown** (`StartDayCountdownIntent`, Siri: "Start my
+  Streak countdown") or **Log Health Data in Streak** runs from Shortcuts. A morning automation keeps it on all day.
+- Ends 15 minutes after the day turns green / rest / frozen, or immediately when disabled in Settings.
+- Requires `NSSupportsLiveActivities = YES` (Info.plist). No push entitlement needed (local updates only).
+
 ### 1.4 Widget Tap → Deep Link
 
 Every widget tap opens the main app at a specific screen using URL scheme deep links:
@@ -218,6 +240,13 @@ The App Intents structure is designed to accept new intents by adding new `AppIn
 ## 3. Notification System
 
 All notifications are **local**. No push notification server.
+
+> **Current scheduling model (SpicyNotificationScheduler):** notifications are one-shot requests for the current and
+> next active day, rebuilt (debounced) after every data change via `syncWidgets()`. Messages always carry the live
+> streak / pending count. Mid-day nudge and "last call" (1h before the day ends) are skipped once the day is green,
+> rest or frozen; nothing but the planning reminder fires on rest days; the planning reminder is skipped when the next
+> day already has tasks. Optional Gemini messages use the `gemini-flash-latest` alias (API key sent in the
+> `x-goog-api-key` header) and are cached so there's at most one AI call per touchpoint per day.
 
 ### 3.1 Notification Types
 
@@ -317,38 +346,16 @@ SwiftData natively supports CloudKit as a backend. When iCloud sync is enabled, 
 
 ---
 
-## 5. Data Export / Import (AirDrop & Share Sheet)
+## 5. Backup & Restore
 
-### 5.1 Export
-
-Accessible from Settings → Export Data.
-
-1. `ExportDataUseCase` serializes all entities to `ExportPayload` JSON
-2. Written to a temp file: `streak-backup-2026-07-08.streak`
-3. `UIActivityViewController` presented — user can:
-   - AirDrop to another device or friend
-   - Save to Files app
-   - Share via any app (Messages, email, etc.)
-
-### 5.2 Import
-
-Accessible from Settings → Import Data.
-
-1. `UIDocumentPickerViewController` shown — user picks a `.streak` file
-2. File is parsed and version checked
-3. Warning presented: "This will replace all current data. Are you sure?"
-4. User confirms → `ImportDataUseCase` clears store and writes new data
-
-### 5.3 File Format
-
-```
-File extension:  .streak
-MIME type:       application/json
-Encoding:        UTF-8
-Format:          JSON (human-readable, no binary)
-```
-
-The `.streak` extension is registered in the app's `Info.plist` as a custom UTI so iOS recognizes it and offers to open it with Streak.
+Settings → **Backup & Restore**.
+- **Export:** `BackupService.makeBackup` snapshots the SwiftData SQLite store with `VACUUM INTO` (safe while the app runs)
+  and bundles it with the app's settings into a binary plist, saved via SwiftUI's `fileExporter` as
+  `Streak-Backup-YYYY-MM-DD.plist`. Save it off the phone (iCloud Drive, Google Drive, AirDrop to a Mac).
+- **Restore:** pick the file with `fileImporter` → validated → staged next to the store → the app closes and applies it on
+  the next launch before the database opens. The previous data is kept in `PreRestore/` beside the store.
+- The Today screen shows a reminder when you've never backed up (and have a few days of history) or the last backup is
+  more than 14 days old.
 
 ---
 
@@ -388,3 +395,18 @@ The Screen Time API (`ManagedSettings` framework, iOS 15+) allows apps to apply 
 | iCloud | When user enables sync in Settings | Optional |
 | Background App Refresh | First launch | Recommended for midnight sweep |
 | No camera, location, contacts, or microphone | — | Not needed |
+
+---
+
+## 9. Apple Health via Shortcuts
+
+Streak can't use HealthKit: the entitlement isn't available to free Apple ID signing (AltStore). Instead:
+
+- **`LogHealthDataIntent`** ("Log Health Data in Streak", App/HealthAppIntents.swift) — optional Number parameters
+  Steps, Active Energy (kcal), Exercise Minutes, Workouts, Workout Minutes. Runs without opening the app and reuses the
+  running app's `AppEnvironment` when there is one.
+- The user's own shortcut reads Health (**Find Health Samples** + **Calculate Statistics → Sum** / **Count**) and passes
+  the totals; a **Time of Day** automation (optionally **Apple Watch Workout → Ends**) runs it. Setup steps live in the
+  in-app guide (Fitness → Apple Health → SET UP).
+- `HealthSync` stores a `HealthSnapshot` for the active day and ticks every habit whose `HealthRule` is met through
+  `AppEnvironment.setTaskCompleted`. `DaySweeper` re-applies the rules on launch so habits created later still tick.

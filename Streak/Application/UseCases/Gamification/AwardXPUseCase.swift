@@ -10,6 +10,7 @@ public struct AwardXPUseCase {
     let taskRepository: any TaskRepository
     let goalRepository: any GoalRepository
     let habitRoutineRepository: any HabitRoutineRepository
+    let settingsRepository: any SettingsRepository
 
     public func execute(amount: Int, reason: XPTransactionReason, note: String? = nil) throws -> Int {
         guard amount > 0 else { return 0 }
@@ -42,7 +43,8 @@ public struct AwardXPUseCase {
             dayEntryRepository: dayEntryRepository,
             taskRepository: taskRepository,
             goalRepository: goalRepository,
-            habitRoutineRepository: habitRoutineRepository
+            habitRoutineRepository: habitRoutineRepository,
+            settingsRepository: settingsRepository
         )
         try badgeUseCase.execute()
         

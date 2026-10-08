@@ -300,11 +300,13 @@ func level(for totalXP: Int) -> Int {
 ### XP Award Triggers
 - XP is awarded when a task is toggled to **completed**.
 - Milestone/streak bonuses are checked once per day at end of day (when day resolves to green/red).
-- Decay is applied once per day when a day resolves to **red** (same trigger as DayStatus.red).
+- Decay is applied once per day when a day resolves to **red** (same trigger as DayStatus.red). The end-of-day sweep (`DaySweeper`) finalizes each ended day, so decay applies even if the app wasn't opened that day.
+- The Overall Green Day bonus is awarded at most once per day.
 
 ### Streak Freeze Logic
-- Must be **equipped** (activated) before the day ends.
-- Once equipped for a day, it consumes 1 freeze from inventory.
+- **Automatic:** when a past day is finalized as red and the overall streak before it is > 0, one freeze is consumed and the day becomes `.frozen` (for the master entry and every non-green category). An XP-log entry ("Streak Freeze Used") records it.
+- **Manual:** equipping a freeze from the inventory protects the current active day the same way.
+- Either way it consumes 1 freeze from inventory.
 - That day's DayStatus shows as **protected** (neutral, not red).
 - Streak does not break, and no XP decay for that day.
 - The streak-break XP penalty is also waived.

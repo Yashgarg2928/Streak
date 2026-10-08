@@ -105,7 +105,7 @@ struct WorkoutAIPromptGuideSheet: View {
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {
                             Text("🏋️ WEEKLY WORKOUT PLAN PROMPT")
-                                .font(.system(size: 11, weight: .bold, design: .monospaced))
+                                .font(.app(size: 11, weight: .bold, design: .monospaced))
                                 .foregroundStyle(AppColor.textSecondary)
                             Spacer()
                             Button {
@@ -119,7 +119,7 @@ struct WorkoutAIPromptGuideSheet: View {
                                     Image(systemName: copiedWorkoutPrompt ? "checkmark" : "doc.on.doc")
                                     Text(copiedWorkoutPrompt ? "COPIED!" : "COPY PROMPT")
                                 }
-                                .font(.system(size: 10, weight: .bold))
+                                .font(.app(size: 10, weight: .bold))
                                 .foregroundStyle(copiedWorkoutPrompt ? AppColor.green : AppColor.textPrimary)
                                 .padding(.horizontal, 10)
                                 .padding(.vertical, 6)
@@ -130,7 +130,7 @@ struct WorkoutAIPromptGuideSheet: View {
                         }
 
                         Text(workoutPromptText)
-                            .font(.system(size: 10, design: .monospaced))
+                            .font(.app(size: 10, design: .monospaced))
                             .foregroundStyle(AppColor.textPrimary)
                             .padding(10)
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -143,7 +143,7 @@ struct WorkoutAIPromptGuideSheet: View {
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {
                             Text("🥗 MEAL MACRO JSON PROMPT")
-                                .font(.system(size: 11, weight: .bold, design: .monospaced))
+                                .font(.app(size: 11, weight: .bold, design: .monospaced))
                                 .foregroundStyle(AppColor.textSecondary)
                             Spacer()
                             Button {
@@ -157,7 +157,7 @@ struct WorkoutAIPromptGuideSheet: View {
                                     Image(systemName: copiedMealPrompt ? "checkmark" : "doc.on.doc")
                                     Text(copiedMealPrompt ? "COPIED!" : "COPY PROMPT")
                                 }
-                                .font(.system(size: 10, weight: .bold))
+                                .font(.app(size: 10, weight: .bold))
                                 .foregroundStyle(copiedMealPrompt ? AppColor.green : AppColor.textPrimary)
                                 .padding(.horizontal, 10)
                                 .padding(.vertical, 6)
@@ -168,7 +168,7 @@ struct WorkoutAIPromptGuideSheet: View {
                         }
 
                         Text(mealPromptText)
-                            .font(.system(size: 10, design: .monospaced))
+                            .font(.app(size: 10, design: .monospaced))
                             .foregroundStyle(AppColor.textPrimary)
                             .padding(10)
                             .frame(maxWidth: .infinity, alignment: .leading)

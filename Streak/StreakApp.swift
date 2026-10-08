@@ -15,44 +15,26 @@ struct StreakApp: App {
     private let router = AppRouter()
 
     init() {
+        // A restore staged from Settings is applied before the store is opened.
+        BackupService.applyPendingRestoreIfNeeded(
+            storeURL: ModelContainerFactory.storeURL,
+            appGroupID: AppConfig.appGroupID
+        )
+
         do {
             let c = try ModelContainerFactory.makeContainer()
             self.container = c
-            let ctx = c.mainContext
-            let dayEntryRepo   = SwiftDataDayEntryRepository(context: ctx)
-            let categoryRepo   = SwiftDataCategoryRepository(context: ctx)
-            let settingsRepo   = UserDefaultsSettingsRepository()
-            let routineRepo    = SwiftDataHabitRoutineRepository(context: ctx)
-            
-            self.environment = AppEnvironment(
-                categoryRepository:     categoryRepo,
-                taskRepository:         SwiftDataTaskRepository(context: ctx),
-                goalRepository:         SwiftDataGoalRepository(context: ctx),
-                dayEntryRepository:     dayEntryRepo,
-                reflectionRepository:   SwiftDataReflectionRepository(context: ctx),
-                settingsRepository:     settingsRepo,
-                habitRoutineRepository: routineRepo,
-                playerProfileRepository: SwiftDataPlayerProfileRepository(context: ctx),
-                badgeRepository:         SwiftDataBadgeRepository(context: ctx),
-                xpTransactionRepository: SwiftDataXPTransactionRepository(context: ctx),
-                shopItemRepository:     SwiftDataShopItemRepository(context: ctx),
-                customRewardRepository: SwiftDataCustomRewardRepository(context: ctx),
-                coreHabitRepository:     SwiftDataCoreHabitRepository(context: ctx),
-                dailyHabitLogRepository: SwiftDataDailyHabitLogRepository(context: ctx),
-                workoutRepository:       SwiftDataWorkoutRepository(context: ctx),
-                nutritionRepository:     SwiftDataNutritionRepository(context: ctx),
-                financeRepository:       SwiftDataFinanceRepository(context: ctx)
-            )
-            
-            let container = c
+            self.environment = AppEnvironment.live(context: c.mainContext)
+            AppEnvironment.current = self.environment
+
             let env = self.environment
-            
+
             BGTaskScheduler.shared.register(forTaskWithIdentifier: AppConfig.backgroundTaskId, using: nil) { task in
                 task.expirationHandler = {
                     // Task expired, clean up if needed
                 }
-                Swift.Task {
-                    await StreakApp.performLockoutSweep(container: container, environment: env)
+                Swift.Task { @MainActor in
+                    DaySweeper.run(env: env)
                     StreakApp.scheduleLockoutSweep(environment: env)
                     task.setTaskCompleted(success: true)
                 }
@@ -78,14 +60,13 @@ struct StreakApp: App {
                 .environment(router)
                 .modelContainer(container)
                 .onAppear {
-                    environment.syncWidgets()
-                    StreakApp.performForegroundCatchUpSweep(container: container, environment: environment)
+                    DaySweeper.run(env: environment)
                     StreakApp.scheduleLockoutSweep(environment: environment)
                     StreakAppShortcuts.updateAppShortcutParameters()
                 }
                 .onChange(of: scenePhase) { oldPhase, newPhase in
                     if newPhase == .active {
-                        StreakApp.performForegroundCatchUpSweep(container: container, environment: environment)
+                        DaySweeper.run(env: environment)
                         StreakApp.scheduleLockoutSweep(environment: environment)
                     }
                 }
@@ -95,186 +76,40 @@ struct StreakApp: App {
                     case "tasks": router.selectedTab = .tasks
                     case "home":  router.selectedTab = .home
                     case "finance": router.selectedTab = .finance
+                    case "goals":
+                        router.selectedTab = .home
+                        router.showGoals = true
                     default: break
                     }
                 }
         }
     }
-    
+
     private static func scheduleLockoutSweep(environment: AppEnvironment) {
         let request = BGProcessingTaskRequest(identifier: AppConfig.backgroundTaskId)
         request.requiresNetworkConnectivity = false
         request.requiresExternalPower = false
-        
+
         let calendar = Calendar.current
         let settings = environment.settingsRepository
         let endHour = settings.activeDayEndHour
         let endMinute = settings.activeDayEndMinute
-        
+
         var components = calendar.dateComponents([.year, .month, .day], from: Date())
         components.hour = endHour
         components.minute = endMinute
-        
+
         if var deadline = calendar.date(from: components) {
             if deadline <= Date() {
                 deadline = calendar.date(byAdding: .day, value: 1, to: deadline) ?? deadline
             }
             request.earliestBeginDate = deadline
         }
-        
+
         do {
             try BGTaskScheduler.shared.submit(request)
-            print("Scheduled next lockout sweep task successfully.")
         } catch {
             print("Could not schedule lockout sweep task: \(error)")
-        }
-    }
-    
-    private static func performLockoutSweep(container: ModelContainer, environment: AppEnvironment) async {
-        let ctx = container.mainContext
-        let settings = environment.settingsRepository
-        
-        let today = ActiveDayResolver.resolveActiveDate(for: Date(), settings: settings)
-        
-        let dayEntryRepo = SwiftDataDayEntryRepository(context: ctx)
-        let categoryRepo = SwiftDataCategoryRepository(context: ctx)
-        let taskRepo     = SwiftDataTaskRepository(context: ctx)
-        let goalRepo     = SwiftDataGoalRepository(context: ctx)
-        
-        let resolver = ResolveDayStatusUseCase(
-            taskRepository: taskRepo,
-            categoryRepository: categoryRepo,
-            dayEntryRepository: dayEntryRepo,
-            settingsRepository: settings
-        )
-        
-        do {
-            // Resolve master status for today
-            try resolver.execute(date: today, categoryId: nil)
-            
-            // Resolve category statuses for today
-            let activeCategories = try categoryRepo.fetchActive()
-            for cat in activeCategories {
-                try resolver.execute(date: today, categoryId: cat.id)
-            }
-            
-            // Sync goals progress
-            let syncUseCase = SyncGoalProgressUseCase(
-                goalRepository: goalRepo,
-                dayEntryRepository: dayEntryRepo,
-                taskRepository: taskRepo
-            )
-            try syncUseCase.execute()
-            
-            // Reload widgets
-            environment.syncWidgets()
-        } catch {
-            print("Background sweep failed: \(error)")
-        }
-    }
-    
-    private static func performForegroundCatchUpSweep(container: ModelContainer, environment: AppEnvironment) {
-        let ctx = container.mainContext
-        let settings = environment.settingsRepository
-        
-        let currentActiveDate = ActiveDayResolver.resolveActiveDate(for: Date(), settings: settings)
-        
-        let defaults = UserDefaults(suiteName: AppConfig.appGroupID) ?? .standard
-        let lastActiveDateKey = "lastActiveDateString"
-        let fmt = DateFormatter()
-        fmt.dateFormat = "yyyy-MM-dd"
-        fmt.locale = Locale(identifier: "en_US_POSIX")
-        
-        guard let lastActiveStr = defaults.string(forKey: lastActiveDateKey),
-              let lastActiveDate = fmt.date(from: lastActiveStr) else {
-            defaults.set(fmt.string(from: currentActiveDate), forKey: lastActiveDateKey)
-            return
-        }
-        
-        let calendar = Calendar.current
-        let startOfLastActive = calendar.startOfDay(for: lastActiveDate)
-        let startOfCurrentActive = calendar.startOfDay(for: currentActiveDate)
-        
-        if startOfCurrentActive > startOfLastActive {
-            let dayEntryRepo = SwiftDataDayEntryRepository(context: ctx)
-            let categoryRepo = SwiftDataCategoryRepository(context: ctx)
-            let taskRepo     = SwiftDataTaskRepository(context: ctx)
-            let goalRepo     = SwiftDataGoalRepository(context: ctx)
-            
-            let resolver = ResolveDayStatusUseCase(
-                taskRepository: taskRepo,
-                categoryRepository: categoryRepo,
-                dayEntryRepository: dayEntryRepo,
-                settingsRepository: settings
-            )
-            
-            var sweepDate = startOfLastActive
-            while sweepDate < startOfCurrentActive {
-                do {
-                    try resolver.execute(date: sweepDate, categoryId: nil)
-                    let activeCategories = try categoryRepo.fetchActive()
-                    for cat in activeCategories {
-                        try resolver.execute(date: sweepDate, categoryId: cat.id)
-                    }
-                } catch {
-                    print("Catch up sweep failed for date \(sweepDate): \(error)")
-                }
-                
-                guard let nextDate = calendar.date(byAdding: .day, value: 1, to: sweepDate) else { break }
-                sweepDate = nextDate
-            }
-            
-            do {
-                let syncUseCase = SyncGoalProgressUseCase(
-                    goalRepository: goalRepo,
-                    dayEntryRepository: dayEntryRepo,
-                    taskRepository: taskRepo
-                )
-                try syncUseCase.execute()
-            } catch {
-                print("Goals sync failed during catch-up: \(error)")
-            }
-            
-            environment.syncWidgets()
-            defaults.set(fmt.string(from: currentActiveDate), forKey: lastActiveDateKey)
-        }
-        
-        // Check if the current active date has passed its planning deadline and has 0 tasks
-        let deadline = ActiveDayResolver.planningDeadline(for: currentActiveDate, settings: settings)
-        if Date() > deadline {
-            let taskRepo = SwiftDataTaskRepository(context: ctx)
-            let dayEntryRepo = SwiftDataDayEntryRepository(context: ctx)
-            let categoryRepo = SwiftDataCategoryRepository(context: ctx)
-            
-            do {
-                let tasks = try taskRepo.fetchAll(for: currentActiveDate)
-                if tasks.isEmpty {
-                    let masterEntry = DayEntry(
-                        date: currentActiveDate,
-                        categoryId: nil,
-                        status: .red,
-                        taskCount: 0,
-                        completedCount: 0
-                    )
-                    try dayEntryRepo.save(masterEntry)
-                    
-                    let activeCategories = try categoryRepo.fetchActive()
-                    for cat in activeCategories {
-                        let catEntry = DayEntry(
-                            date: currentActiveDate,
-                            categoryId: cat.id,
-                            status: .red,
-                            taskCount: 0,
-                            completedCount: 0
-                        )
-                        try dayEntryRepo.save(catEntry)
-                    }
-                    
-                    environment.syncWidgets()
-                }
-            } catch {
-                print("Failed to enforce planning deadline check: \(error)")
-            }
         }
     }
 }

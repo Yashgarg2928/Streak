@@ -18,6 +18,7 @@ struct FinanceMainView: View {
     @State private var transactionToEdit: FinanceTransaction? = nil
     @State private var transactionToDelete: FinanceTransaction? = nil
     @State private var showDeleteAlert: Bool = false
+    @State private var financeError: String? = nil
 
     // Friend directory & direct collection state
     @State private var splitsViewMode: SplitsViewMode = .byFriend
@@ -77,7 +78,7 @@ struct FinanceMainView: View {
             .sheet(isPresented: $showAddTransactionSheet) {
                 AddTransactionSheet(
                     onSave: { _, amount, type, category, note, date, isSplit, numPeople, names, customShare, customFriendShares in
-                        activeVM.addTransaction(
+                        try activeVM.addTransaction(
                             amount: amount,
                             type: type,
                             category: category,
@@ -97,7 +98,7 @@ struct FinanceMainView: View {
                     transactionToEdit: tx,
                     onSave: { targetId, amount, type, category, note, date, isSplit, numPeople, names, customShare, customFriendShares in
                         if let targetId {
-                            activeVM.updateTransaction(
+                            try activeVM.updateTransaction(
                                 id: targetId,
                                 amount: amount,
                                 type: type,
@@ -113,7 +114,7 @@ struct FinanceMainView: View {
                         }
                     },
                     onDelete: { id in
-                        activeVM.deleteTransaction(id: id)
+                        try activeVM.deleteTransaction(id: id)
                     }
                 )
             }
@@ -125,7 +126,7 @@ struct FinanceMainView: View {
                     initialDirectCollectFriend: directCollectPreselectedFriend,
                     isDirectCollectInitial: true,
                     onSave: { _, amount, type, category, note, date, isSplit, numPeople, names, customShare, customFriendShares in
-                        activeVM.addTransaction(
+                        try activeVM.addTransaction(
                             amount: amount,
                             type: type,
                             category: category,
@@ -155,13 +156,25 @@ struct FinanceMainView: View {
             }
             .alert("DELETE EXPENSE", isPresented: $showDeleteAlert, presenting: transactionToDelete) { tx in
                 Button("Delete", role: .destructive) {
-                    activeVM.deleteTransaction(id: tx.id)
+                    do {
+                        try activeVM.deleteTransaction(id: tx.id)
+                    } catch {
+                        financeError = error.localizedDescription
+                    }
                 }
                 Button("Cancel", role: .cancel) {
                     transactionToDelete = nil
                 }
             } message: { tx in
                 Text("Are you sure you want to delete this \(tx.category.displayName) expense of \(activeVM.currencySymbol)\(String(format: "%.2f", tx.amount))? Any pending friend receivables from this split will also be removed.")
+            }
+            .alert("Something went wrong", isPresented: Binding(
+                get: { financeError != nil || activeVM.errorMessage != nil },
+                set: { if !$0 { financeError = nil; activeVM.errorMessage = nil } }
+            )) {
+                Button("OK", role: .cancel) { financeError = nil; activeVM.errorMessage = nil }
+            } message: {
+                Text(financeError ?? activeVM.errorMessage ?? "")
             }
             .alert("ADD NEW FIXED FRIEND", isPresented: $showAddFriendAlert) {
                 TextField("Friend's Name", text: $newFriendAlertName)
@@ -192,13 +205,13 @@ struct FinanceMainView: View {
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {
                     Text("💰")
-                        .font(.system(size: 22))
+                        .font(.app(size: 22))
                     Text("FINANCE")
                         .font(.system(.title2, design: .monospaced).weight(.black))
                         .foregroundStyle(AppColor.textPrimary)
                 }
                 Text("Expenses, splits & debts")
-                    .font(.system(size: 11, weight: .bold, design: .monospaced))
+                    .font(.app(size: 11, weight: .bold, design: .monospaced))
                     .foregroundStyle(AppColor.textSecondary)
             }
 
@@ -210,9 +223,9 @@ struct FinanceMainView: View {
                 } label: {
                     HStack(spacing: 4) {
                         Image(systemName: "bolt.fill")
-                            .font(.system(size: 11, weight: .black))
+                            .font(.app(size: 11, weight: .black))
                         Text("SHORTCUTS")
-                            .font(.system(size: 10, weight: .black, design: .monospaced))
+                            .font(.app(size: 10, weight: .black, design: .monospaced))
                     }
                     .foregroundStyle(Color.white)
                     .padding(.horizontal, 10)
@@ -231,9 +244,9 @@ struct FinanceMainView: View {
                 } label: {
                     HStack(spacing: 4) {
                         Image(systemName: "plus")
-                            .font(.system(size: 12, weight: .black))
+                            .font(.app(size: 12, weight: .black))
                         Text("LOG")
-                            .font(.system(size: 11, weight: .black, design: .monospaced))
+                            .font(.app(size: 11, weight: .black, design: .monospaced))
                     }
                     .foregroundStyle(AppColor.background)
                     .padding(.horizontal, 12)
@@ -259,9 +272,9 @@ struct FinanceMainView: View {
                 } label: {
                     HStack(spacing: 5) {
                         Text(tab.emoji)
-                            .font(.system(size: 13))
+                            .font(.app(size: 13))
                         Text(tab.rawValue)
-                            .font(.system(size: 11, weight: .black, design: .monospaced))
+                            .font(.app(size: 11, weight: .black, design: .monospaced))
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 8)
@@ -285,13 +298,13 @@ struct FinanceMainView: View {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
                     Text("MONTHLY OVERVIEW")
-                        .font(.system(size: 10, weight: .black, design: .monospaced))
+                        .font(.app(size: 10, weight: .black, design: .monospaced))
                         .foregroundStyle(AppColor.textSecondary)
 
                     Spacer()
 
                     Text("CURRENCY: \(vm.currencySymbol)")
-                        .font(.system(size: 9, weight: .black, design: .monospaced))
+                        .font(.app(size: 9, weight: .black, design: .monospaced))
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
                         .background(AppColor.surface)
@@ -303,10 +316,10 @@ struct FinanceMainView: View {
                     // Net Personal Spent
                     VStack(alignment: .leading, spacing: 2) {
                         Text("MY EXPENSES")
-                            .font(.system(size: 10, weight: .bold, design: .monospaced))
+                            .font(.app(size: 10, weight: .bold, design: .monospaced))
                             .foregroundStyle(AppColor.textSecondary)
                         Text(String(format: "\(vm.currencySymbol)%.2f", vm.summary.totalSpentThisMonth))
-                            .font(.system(size: 22, weight: .black, design: .monospaced))
+                            .font(.app(size: 22, weight: .black, design: .monospaced))
                             .foregroundStyle(AppColor.textPrimary)
                     }
 
@@ -317,11 +330,11 @@ struct FinanceMainView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         HStack(spacing: 4) {
                             Text("TO COLLECT")
-                                .font(.system(size: 10, weight: .bold, design: .monospaced))
+                                .font(.app(size: 10, weight: .bold, design: .monospaced))
                                 .foregroundStyle(Color(hex: "#8E44AD"))
                             if vm.summary.pendingSplitsCount > 0 {
                                 Text("\(vm.summary.pendingSplitsCount)")
-                                    .font(.system(size: 9, weight: .black, design: .monospaced))
+                                    .font(.app(size: 9, weight: .black, design: .monospaced))
                                     .padding(.horizontal, 4)
                                     .background(Color(hex: "#8E44AD"))
                                     .foregroundStyle(Color.white)
@@ -329,7 +342,7 @@ struct FinanceMainView: View {
                             }
                         }
                         Text(String(format: "\(vm.currencySymbol)%.2f", vm.summary.totalPendingToCollect))
-                            .font(.system(size: 22, weight: .black, design: .monospaced))
+                            .font(.app(size: 22, weight: .black, design: .monospaced))
                             .foregroundStyle(Color(hex: "#8E44AD"))
                     }
                 }
@@ -338,10 +351,10 @@ struct FinanceMainView: View {
                 HStack(spacing: 16) {
                     HStack(spacing: 4) {
                         Text("TODAY:")
-                            .font(.system(size: 10, weight: .bold, design: .monospaced))
+                            .font(.app(size: 10, weight: .bold, design: .monospaced))
                             .foregroundStyle(AppColor.textSecondary)
                         Text(String(format: "\(vm.currencySymbol)%.2f", vm.summary.totalSpentToday))
-                            .font(.system(size: 11, weight: .bold, design: .monospaced))
+                            .font(.app(size: 11, weight: .bold, design: .monospaced))
                             .foregroundStyle(AppColor.textPrimary)
                     }
 
@@ -349,10 +362,10 @@ struct FinanceMainView: View {
 
                     HStack(spacing: 4) {
                         Text("TOTAL OUTFLOW:")
-                            .font(.system(size: 10, weight: .bold, design: .monospaced))
+                            .font(.app(size: 10, weight: .bold, design: .monospaced))
                             .foregroundStyle(AppColor.textSecondary)
                         Text(String(format: "\(vm.currencySymbol)%.2f", vm.summary.totalGrossOutflowThisMonth))
-                            .font(.system(size: 11, weight: .bold, design: .monospaced))
+                            .font(.app(size: 11, weight: .bold, design: .monospaced))
                             .foregroundStyle(AppColor.textPrimary)
                     }
                 }
@@ -369,10 +382,10 @@ struct FinanceMainView: View {
             HStack(spacing: 8) {
                 HStack(spacing: 6) {
                     Image(systemName: "magnifyingglass")
-                        .font(.system(size: 12))
+                        .font(.app(size: 12))
                         .foregroundStyle(AppColor.textSecondary)
                     TextField("Search expenses, notes...", text: Bindable(vm).searchQuery)
-                        .font(.system(size: 13, weight: .medium))
+                        .font(.app(size: 13, weight: .medium))
                 }
                 .padding(8)
                 .background(AppColor.surface)
@@ -384,7 +397,7 @@ struct FinanceMainView: View {
                         vm.selectedCategoryFilter = nil
                     } label: {
                         Text("RESET")
-                            .font(.system(size: 10, weight: .black, design: .monospaced))
+                            .font(.app(size: 10, weight: .black, design: .monospaced))
                             .padding(.horizontal, 8)
                             .padding(.vertical, 8)
                             .background(AppColor.surface)
@@ -405,9 +418,9 @@ struct FinanceMainView: View {
                         } label: {
                             HStack(spacing: 4) {
                                 Text(cat.emoji)
-                                    .font(.system(size: 11))
+                                    .font(.app(size: 11))
                                 Text(cat.displayName)
-                                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                                    .font(.app(size: 10, weight: .bold, design: .monospaced))
                             }
                             .padding(.horizontal, 8)
                             .padding(.vertical, 5)
@@ -452,18 +465,18 @@ struct FinanceMainView: View {
                             )
 
                         Text(tx.category.emoji)
-                            .font(.system(size: 18))
+                            .font(.app(size: 18))
                     }
 
                     // Title & Note
                     VStack(alignment: .leading, spacing: 2) {
                         Text(tx.category.displayName)
-                            .font(.system(size: 13, weight: .bold, design: .monospaced))
+                            .font(.app(size: 13, weight: .bold, design: .monospaced))
                             .foregroundStyle(AppColor.textPrimary)
 
                         if !tx.note.isEmpty {
                             Text(tx.note)
-                                .font(.system(size: 12, weight: .medium))
+                                .font(.app(size: 12, weight: .medium))
                                 .foregroundStyle(AppColor.textSecondary)
                                 .lineLimit(1)
                         }
@@ -474,12 +487,12 @@ struct FinanceMainView: View {
                     // Amount
                     VStack(alignment: .trailing, spacing: 2) {
                         Text(String(format: "\(tx.type == .income ? "+" : "-")\(vm.currencySymbol)%.2f", tx.amount))
-                            .font(.system(size: 15, weight: .black, design: .monospaced))
+                            .font(.app(size: 15, weight: .black, design: .monospaced))
                             .foregroundStyle(tx.type == .income ? Color(hex: "#27AE60") : AppColor.textPrimary)
 
                         if tx.isSplit, let split = tx.splitDetails {
                             Text("My share: \(vm.currencySymbol)\(String(format: "%.2f", split.myShare))")
-                                .font(.system(size: 10, weight: .bold, design: .monospaced))
+                                .font(.app(size: 10, weight: .bold, design: .monospaced))
                                 .foregroundStyle(Color(hex: "#8E44AD"))
                         }
                     }
@@ -491,9 +504,9 @@ struct FinanceMainView: View {
                         HStack(spacing: 8) {
                             HStack(spacing: 4) {
                                 Text("👥")
-                                    .font(.system(size: 10))
+                                    .font(.app(size: 10))
                                 Text("Split with \(split.splits.count) friends")
-                                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                                    .font(.app(size: 10, weight: .bold, design: .monospaced))
                                     .foregroundStyle(Color(hex: "#8E44AD"))
                             }
 
@@ -502,7 +515,7 @@ struct FinanceMainView: View {
                             let pending = tx.pendingCollectAmount
                             if pending > 0 {
                                 Text("Pending: \(vm.currencySymbol)\(String(format: "%.2f", pending))")
-                                    .font(.system(size: 10, weight: .black, design: .monospaced))
+                                    .font(.app(size: 10, weight: .black, design: .monospaced))
                                     .padding(.horizontal, 6)
                                     .padding(.vertical, 2)
                                     .background(Color(hex: "#8E44AD").opacity(0.15))
@@ -510,7 +523,7 @@ struct FinanceMainView: View {
                                     .clipShape(RoundedRectangle(cornerRadius: 3))
                             } else {
                                 Text("ALL SETTLED ✅")
-                                    .font(.system(size: 9, weight: .black, design: .monospaced))
+                                    .font(.app(size: 9, weight: .black, design: .monospaced))
                                     .padding(.horizontal, 6)
                                     .padding(.vertical, 2)
                                     .background(Color(hex: "#27AE60").opacity(0.15))
@@ -525,15 +538,15 @@ struct FinanceMainView: View {
                                 ForEach(split.splits) { share in
                                     HStack {
                                         Text("• \(share.personName)")
-                                            .font(.system(size: 11, weight: .semibold))
+                                            .font(.app(size: 11, weight: .semibold))
                                             .foregroundStyle(AppColor.textPrimary)
                                         Spacer()
                                         Text("\(vm.currencySymbol)\(String(format: "%.2f", share.amountOwed))")
-                                            .font(.system(size: 11, weight: .bold, design: .monospaced))
+                                            .font(.app(size: 11, weight: .bold, design: .monospaced))
                                             .foregroundStyle(AppColor.textPrimary)
                                         if share.isSettled {
                                             Text("PAID")
-                                                .font(.system(size: 8, weight: .black, design: .monospaced))
+                                                .font(.app(size: 8, weight: .black, design: .monospaced))
                                                 .padding(.horizontal, 4)
                                                 .padding(.vertical, 1)
                                                 .background(Color(hex: "#27AE60").opacity(0.15))
@@ -541,7 +554,7 @@ struct FinanceMainView: View {
                                                 .clipShape(RoundedRectangle(cornerRadius: 2))
                                         } else {
                                             Text("OWES")
-                                                .font(.system(size: 8, weight: .black, design: .monospaced))
+                                                .font(.app(size: 8, weight: .black, design: .monospaced))
                                                 .padding(.horizontal, 4)
                                                 .padding(.vertical, 1)
                                                 .background(Color(hex: "#8E44AD").opacity(0.15))
@@ -564,7 +577,7 @@ struct FinanceMainView: View {
                 // Date & Actions
                 HStack(alignment: .center) {
                     Text(tx.date.formatted(date: .abbreviated, time: .shortened))
-                        .font(.system(size: 10, weight: .medium, design: .monospaced))
+                        .font(.app(size: 10, weight: .medium, design: .monospaced))
                         .foregroundStyle(AppColor.textSecondary)
 
                     Spacer()
@@ -575,9 +588,9 @@ struct FinanceMainView: View {
                         } label: {
                             HStack(spacing: 3) {
                                 Image(systemName: "pencil")
-                                    .font(.system(size: 10, weight: .bold))
+                                    .font(.app(size: 10, weight: .bold))
                                 Text("EDIT")
-                                    .font(.system(size: 9, weight: .black, design: .monospaced))
+                                    .font(.app(size: 9, weight: .black, design: .monospaced))
                             }
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
@@ -594,9 +607,9 @@ struct FinanceMainView: View {
                         } label: {
                             HStack(spacing: 3) {
                                 Image(systemName: "trash")
-                                    .font(.system(size: 10, weight: .bold))
+                                    .font(.app(size: 10, weight: .bold))
                                 Text("DELETE")
-                                    .font(.system(size: 9, weight: .black, design: .monospaced))
+                                    .font(.app(size: 9, weight: .black, design: .monospaced))
                             }
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
@@ -620,12 +633,12 @@ struct FinanceMainView: View {
         BrutalistCard {
             VStack(spacing: 12) {
                 Text("💸")
-                    .font(.system(size: 40))
+                    .font(.app(size: 40))
                 Text("NO TRANSACTIONS LOGGED")
-                    .font(.system(size: 14, weight: .black, design: .monospaced))
+                    .font(.app(size: 14, weight: .black, design: .monospaced))
                     .foregroundStyle(AppColor.textPrimary)
                 Text("Tap '+ LOG' or use the Shortcuts automation whenever you pay to track expenses automatically!")
-                    .font(.system(size: 12))
+                    .font(.app(size: 12))
                     .foregroundStyle(AppColor.textSecondary)
                     .multilineTextAlignment(.center)
 
@@ -633,7 +646,7 @@ struct FinanceMainView: View {
                     showAddTransactionSheet = true
                 } label: {
                     Text("ADD FIRST EXPENSE")
-                        .font(.system(size: 12, weight: .black, design: .monospaced))
+                        .font(.app(size: 12, weight: .black, design: .monospaced))
                         .padding(.horizontal, 14)
                         .padding(.vertical, 8)
                         .background(AppColor.border)
@@ -660,9 +673,9 @@ struct FinanceMainView: View {
                 } label: {
                     HStack(spacing: 6) {
                         Image(systemName: "plus.circle.fill")
-                            .font(.system(size: 12))
+                            .font(.app(size: 12))
                         Text("DIRECT COLLECT")
-                            .font(.system(size: 11, weight: .black, design: .monospaced))
+                            .font(.app(size: 11, weight: .black, design: .monospaced))
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 10)
@@ -679,9 +692,9 @@ struct FinanceMainView: View {
                 } label: {
                     HStack(spacing: 5) {
                         Image(systemName: "person.badge.plus")
-                            .font(.system(size: 12))
+                            .font(.app(size: 12))
                         Text("ADD FRIEND")
-                            .font(.system(size: 11, weight: .black, design: .monospaced))
+                            .font(.app(size: 11, weight: .black, design: .monospaced))
                     }
                     .padding(.horizontal, 12)
                     .padding(.vertical, 10)
@@ -700,7 +713,7 @@ struct FinanceMainView: View {
                         splitsViewMode = mode
                     } label: {
                         Text(mode.rawValue)
-                            .font(.system(size: 11, weight: .black, design: .monospaced))
+                            .font(.app(size: 11, weight: .black, design: .monospaced))
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 8)
                             .background(splitsViewMode == mode ? Color(hex: "#8E44AD") : AppColor.surface)
@@ -719,12 +732,12 @@ struct FinanceMainView: View {
                     BrutalistCard {
                         VStack(spacing: 10) {
                             Text("👥")
-                                .font(.system(size: 36))
+                                .font(.app(size: 36))
                             Text("NO FRIENDS ADDED YET")
-                                .font(.system(size: 14, weight: .black, design: .monospaced))
+                                .font(.app(size: 14, weight: .black, design: .monospaced))
                                 .foregroundStyle(AppColor.textPrimary)
                             Text("Add your regular friends to track their individual tabs, lend money directly, or select them with 1-tap when splitting bills.")
-                                .font(.system(size: 12))
+                                .font(.app(size: 12))
                                 .foregroundStyle(AppColor.textSecondary)
                                 .multilineTextAlignment(.center)
 
@@ -733,7 +746,7 @@ struct FinanceMainView: View {
                                 showAddFriendAlert = true
                             } label: {
                                 Text("+ ADD FIRST FRIEND")
-                                    .font(.system(size: 12, weight: .black, design: .monospaced))
+                                    .font(.app(size: 12, weight: .black, design: .monospaced))
                                     .padding(.horizontal, 14)
                                     .padding(.vertical, 8)
                                     .background(Color(hex: "#8E44AD"))
@@ -757,14 +770,14 @@ struct FinanceMainView: View {
                 // Itemized All Splits View
                 HStack {
                     Text("ALL SPLIT RECORDS")
-                        .font(.system(size: 11, weight: .black, design: .monospaced))
+                        .font(.app(size: 11, weight: .black, design: .monospaced))
                         .foregroundStyle(AppColor.textSecondary)
                     Spacer()
                     Button {
                         showSettledSplits.toggle()
                     } label: {
                         Text(showSettledSplits ? "HIDE SETTLED" : "SHOW ALL")
-                            .font(.system(size: 10, weight: .black, design: .monospaced))
+                            .font(.app(size: 10, weight: .black, design: .monospaced))
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
                             .background(AppColor.surface)
@@ -787,12 +800,12 @@ struct FinanceMainView: View {
                     BrutalistCard {
                         VStack(spacing: 10) {
                             Text("🎉")
-                                .font(.system(size: 36))
+                                .font(.app(size: 36))
                             Text("ALL SETTLED UP!")
-                                .font(.system(size: 14, weight: .black, design: .monospaced))
+                                .font(.app(size: 14, weight: .black, design: .monospaced))
                                 .foregroundStyle(AppColor.textPrimary)
                             Text("No split items pending collection.")
-                                .font(.system(size: 12))
+                                .font(.app(size: 12))
                                 .foregroundStyle(AppColor.textSecondary)
                                 .multilineTextAlignment(.center)
                         }
@@ -827,19 +840,19 @@ struct FinanceMainView: View {
                         )
 
                     Text(item.share.personName.prefix(1).uppercased())
-                        .font(.system(size: 18, weight: .black, design: .monospaced))
+                        .font(.app(size: 18, weight: .black, design: .monospaced))
                         .foregroundStyle(Color.white)
                 }
 
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 6) {
                         Text(item.share.personName)
-                            .font(.system(size: 14, weight: .bold, design: .monospaced))
+                            .font(.app(size: 14, weight: .bold, design: .monospaced))
                             .foregroundStyle(AppColor.textPrimary)
 
                         if item.share.isSettled {
                             Text("SETTLED ✅")
-                                .font(.system(size: 8, weight: .black, design: .monospaced))
+                                .font(.app(size: 8, weight: .black, design: .monospaced))
                                 .padding(.horizontal, 4)
                                 .padding(.vertical, 2)
                                 .background(Color(hex: "#27AE60").opacity(0.18))
@@ -849,13 +862,13 @@ struct FinanceMainView: View {
                     }
 
                     Text("For: \(item.transaction.category.displayName)\(item.transaction.note.isEmpty ? "" : " - " + item.transaction.note)")
-                        .font(.system(size: 11, weight: .medium))
+                        .font(.app(size: 11, weight: .medium))
                         .foregroundStyle(AppColor.textSecondary)
                         .lineLimit(1)
 
                     HStack(spacing: 8) {
                         Text(item.transaction.date.formatted(date: .abbreviated, time: .omitted))
-                            .font(.system(size: 10, design: .monospaced))
+                            .font(.app(size: 10, design: .monospaced))
                             .foregroundStyle(AppColor.textSecondary)
 
                         Button {
@@ -863,9 +876,9 @@ struct FinanceMainView: View {
                         } label: {
                             HStack(spacing: 2) {
                                 Image(systemName: "pencil")
-                                    .font(.system(size: 8, weight: .bold))
+                                    .font(.app(size: 8, weight: .bold))
                                 Text("EDIT EXPENSE")
-                                    .font(.system(size: 9, weight: .black, design: .monospaced))
+                                    .font(.app(size: 9, weight: .black, design: .monospaced))
                             }
                             .foregroundStyle(Color(hex: "#8E44AD"))
                         }
@@ -877,7 +890,7 @@ struct FinanceMainView: View {
 
                 VStack(alignment: .trailing, spacing: 6) {
                     Text(String(format: "\(vm.currencySymbol)%.2f", item.share.amountOwed))
-                        .font(.system(size: 16, weight: .black, design: .monospaced))
+                        .font(.app(size: 16, weight: .black, design: .monospaced))
                         .foregroundStyle(item.share.isSettled ? Color(hex: "#27AE60") : Color(hex: "#8E44AD"))
 
                     Button {
@@ -888,7 +901,7 @@ struct FinanceMainView: View {
                         )
                     } label: {
                         Text(item.share.isSettled ? "UNDO" : "SETTLE")
-                            .font(.system(size: 10, weight: .black, design: .monospaced))
+                            .font(.app(size: 10, weight: .black, design: .monospaced))
                             .padding(.horizontal, 10)
                             .padding(.vertical, 5)
                             .background(item.share.isSettled ? AppColor.surface : Color(hex: "#8E44AD"))
@@ -928,19 +941,19 @@ struct FinanceMainView: View {
                                 )
 
                             Text(summary.name.prefix(1).uppercased())
-                                .font(.system(size: 20, weight: .black, design: .monospaced))
+                                .font(.app(size: 20, weight: .black, design: .monospaced))
                                 .foregroundStyle(Color.white)
                         }
 
                         VStack(alignment: .leading, spacing: 3) {
                             HStack(spacing: 6) {
                                 Text(summary.name)
-                                    .font(.system(size: 15, weight: .bold, design: .monospaced))
+                                    .font(.app(size: 15, weight: .bold, design: .monospaced))
                                     .foregroundStyle(AppColor.textPrimary)
 
                                 if summary.totalOwed > 0 {
                                     Text("\(summary.pendingCount) PENDING")
-                                        .font(.system(size: 8, weight: .black, design: .monospaced))
+                                        .font(.app(size: 8, weight: .black, design: .monospaced))
                                         .padding(.horizontal, 4)
                                         .padding(.vertical, 2)
                                         .background(Color(hex: "#8E44AD").opacity(0.15))
@@ -948,7 +961,7 @@ struct FinanceMainView: View {
                                         .clipShape(RoundedRectangle(cornerRadius: 3))
                                 } else {
                                     Text("SETTLED ✅")
-                                        .font(.system(size: 8, weight: .black, design: .monospaced))
+                                        .font(.app(size: 8, weight: .black, design: .monospaced))
                                         .padding(.horizontal, 4)
                                         .padding(.vertical, 2)
                                         .background(Color(hex: "#27AE60").opacity(0.18))
@@ -958,7 +971,7 @@ struct FinanceMainView: View {
                             }
 
                             Text("Total settled in past: \(vm.currencySymbol)\(String(format: "%.2f", summary.totalSettled)) • \(summary.items.count) total entries")
-                                .font(.system(size: 10, weight: .medium))
+                                .font(.app(size: 10, weight: .medium))
                                 .foregroundStyle(AppColor.textSecondary)
                                 .lineLimit(1)
                         }
@@ -967,11 +980,11 @@ struct FinanceMainView: View {
 
                         VStack(alignment: .trailing, spacing: 2) {
                             Text(String(format: "\(vm.currencySymbol)%.2f", summary.totalOwed))
-                                .font(.system(size: 17, weight: .black, design: .monospaced))
+                                .font(.app(size: 17, weight: .black, design: .monospaced))
                                 .foregroundStyle(summary.totalOwed > 0 ? Color(hex: "#8E44AD") : Color(hex: "#27AE60"))
 
                             Text(summary.totalOwed > 0 ? "OWED TO YOU" : "BALANCED")
-                                .font(.system(size: 8, weight: .black, design: .monospaced))
+                                .font(.app(size: 8, weight: .black, design: .monospaced))
                                 .foregroundStyle(AppColor.textSecondary)
                         }
                     }
@@ -988,9 +1001,9 @@ struct FinanceMainView: View {
                     } label: {
                         HStack(spacing: 4) {
                             Image(systemName: "plus.circle.fill")
-                                .font(.system(size: 10))
+                                .font(.app(size: 10))
                             Text("ADD TO TAB")
-                                .font(.system(size: 10, weight: .black, design: .monospaced))
+                                .font(.app(size: 10, weight: .black, design: .monospaced))
                         }
                         .padding(.horizontal, 10)
                         .padding(.vertical, 6)
@@ -1007,9 +1020,9 @@ struct FinanceMainView: View {
                         } label: {
                             HStack(spacing: 4) {
                                 Image(systemName: "checkmark.circle.fill")
-                                    .font(.system(size: 10))
+                                    .font(.app(size: 10))
                                 Text("SETTLE ALL")
-                                    .font(.system(size: 10, weight: .black, design: .monospaced))
+                                    .font(.app(size: 10, weight: .black, design: .monospaced))
                             }
                             .padding(.horizontal, 10)
                             .padding(.vertical, 6)
@@ -1028,9 +1041,9 @@ struct FinanceMainView: View {
                     } label: {
                         HStack(spacing: 3) {
                             Text("VIEW TAB")
-                                .font(.system(size: 10, weight: .black, design: .monospaced))
+                                .font(.app(size: 10, weight: .black, design: .monospaced))
                             Image(systemName: "chevron.right")
-                                .font(.system(size: 9, weight: .bold))
+                                .font(.app(size: 9, weight: .bold))
                         }
                         .foregroundStyle(AppColor.textSecondary)
                     }
@@ -1045,7 +1058,7 @@ struct FinanceMainView: View {
     private func analyticsSection(vm: FinanceViewModel) -> some View {
         VStack(alignment: .leading, spacing: 14) {
             Text("SPENDING BY CATEGORY (THIS MONTH)")
-                .font(.system(size: 12, weight: .black, design: .monospaced))
+                .font(.app(size: 12, weight: .black, design: .monospaced))
                 .foregroundStyle(AppColor.textPrimary)
 
             let breakdown = vm.summary.categoryBreakdown.sorted { $0.value > $1.value }
@@ -1054,7 +1067,7 @@ struct FinanceMainView: View {
             if breakdown.isEmpty {
                 BrutalistCard {
                     Text("No expense data recorded this month yet.")
-                        .font(.system(size: 12))
+                        .font(.app(size: 12))
                         .foregroundStyle(AppColor.textSecondary)
                 }
             } else {
@@ -1066,11 +1079,11 @@ struct FinanceMainView: View {
                                     HStack(spacing: 6) {
                                         Text(category.emoji)
                                         Text(category.displayName)
-                                            .font(.system(size: 12, weight: .bold, design: .monospaced))
+                                            .font(.app(size: 12, weight: .bold, design: .monospaced))
                                     }
                                     Spacer()
                                     Text(String(format: "\(vm.currencySymbol)%.2f", amount))
-                                        .font(.system(size: 13, weight: .black, design: .monospaced))
+                                        .font(.app(size: 13, weight: .black, design: .monospaced))
                                 }
 
                                 // Progress bar

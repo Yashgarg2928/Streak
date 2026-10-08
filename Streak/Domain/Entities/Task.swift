@@ -52,3 +52,11 @@ struct Task: Identifiable, Equatable {
         self.sortOrder = sortOrder
     }
 }
+
+extension Task {
+    /// A standalone task created after the day's planning deadline. Late tasks are
+    /// bonus work: they earn XP but don't count toward (or against) the day's status.
+    func isAddedLate(planningDeadline: Date) -> Bool {
+        routineId == nil && createdAt > planningDeadline
+    }
+}

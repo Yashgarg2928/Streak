@@ -31,18 +31,18 @@ struct MealMacroImportSheet: View {
             VStack(alignment: .leading, spacing: AppLayout.itemSpacing) {
                 HStack {
                     Text("PASTE MEAL MACROS (JSON)")
-                        .font(.system(size: 11, weight: .bold, design: .monospaced))
+                        .font(.app(size: 11, weight: .bold, design: .monospaced))
                         .foregroundStyle(AppColor.textSecondary)
                     Spacer()
                     Button("Load Sample") {
                         jsonText = templateJSON
                     }
-                    .font(.system(size: 11, weight: .bold))
+                    .font(.app(size: 11, weight: .bold))
                     .foregroundStyle(AppColor.green)
                 }
 
                 TextEditor(text: $jsonText)
-                    .font(.system(size: 11, design: .monospaced))
+                    .font(.app(size: 11, design: .monospaced))
                     .padding(8)
                     .background(AppColor.blank)
                     .clipShape(RoundedRectangle(cornerRadius: 6))

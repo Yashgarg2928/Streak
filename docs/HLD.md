@@ -116,47 +116,42 @@ App Group shared container provides a read-only snapshot for widgets.
 App Launch
     │
     ▼
-Home Screen
-    ├── Master Consistency Graph
-    ├── Master Streak Counter
-    ├── Overall Card
-    │       └── Tap → Overall History Screen
-    │                   ├── Line Graph (Completion rate 0% - 100%, scrollable 1 month width)
-    │                   └── Task List (grouped by category for the selected day)
-    ├── Category Cards (horizontal scroll or grid)
-    │       └── Tap → Category Detail Screen
-    │                   ├── Category Consistency Graph
-    │                   ├── Category Streak Counter
-    │                   └── Linked Goals
+Tab bar (5 tabs: Today · Tasks · Fitness · Finance · Profile)
+    │
+    ├── Today Tab (Home)
+    │       ├── Gear → Settings sheet          + → New Category
+    │       ├── Day-ends countdown
+    │       ├── Today card: planned done X/Y, progress, tap-to-complete task list
+    │       │       (BONUS tag on late tasks), ADD TASK → Tasks tab, CHECK-IN → End-of-Day Check-In sheet
+    │       │                                   ├── Habit commitments: Followed / Not followed
+    │       │                                   ├── Reflection: 1–5 rating, wins, what slipped, tomorrow's priorities
+    │       │                                   └── Past Check-ins log
+    │       ├── Backup reminder (when never backed up or > 14 days)
+    │       ├── Overall card (streak, freezes ready, heatmap) → Overall History Screen
+    │       ├── Habits (per-habit streak + 7-day strip) → Habit Commitments sheet
+    │       ├── Goals (top 3 active) → Goal Detail;  ALL GOALS → Goal List Screen
+    │       └── Category cards → Category Detail Screen
     │
     ├── Tasks Tab (Multi-Timeframe Planner)
     │       └── Task List Screen
+    │                   ├── Header: title, missed-tasks review button, ⋯ menu (Habit commitments, Reorder)
     │                   ├── Segment Bar: DAILY | WEEKLY | MONTHLY | TO-DO LIST
-    │                   ├── Daily Tab: Today / Tomorrow toggle, countdown timer, daily task list
-    │                   ├── Weekly Tab: Weekly goals header, progress bar, quick schedule pills ([⚡️ TODAY], [🗓️ TOMORROW])
-    │                   ├── Monthly Tab: Monthly targets header, progress bar, quick schedule pills
-    │                   ├── To-Do List Tab: Timeline-free backlog, pending count, quick schedule pills
-    │                   ├── Check/uncheck tasks & soft-delete (moves to bottom with (Deleted) badge)
+    │                   ├── Daily Tab: Yesterday / Today / Tomorrow toggle, daily task list
+    │                   ├── Weekly / Monthly / To-Do tabs with quick schedule pills
     │                   └── Add task bar (contextual input per timeframe tab)
     │
-    ├── Goals Tab
-    │       └── Goal List Screen
-    │                   └── Tap → Goal Detail Screen
-    │                               ├── Progress bar
-    │                               ├── History log
-    │                               └── Log progress (manual)
-    │
-    ├── Reflection Tab (Daily Assist)
-    │       └── Reflection Log Screen
-    │                   └── Tap date → Reflection Entry View
-    │
-    └── Settings Tab
-            ├── Planning Reminder time
-            ├── Daily Assist time
-            ├── iCloud sync toggle
-            ├── Export data
-            ├── Import data
-            └── Manage Categories (create, edit, archive, reorder)
+    ├── Fitness Tab (Workout & Nutrition)
+    │       └── Apple Health card (Shortcuts sync) → Apple Health Sync guide
+    ├── Finance Tab
+    └── Profile Tab (XP, level, shop, badges, XP log, Settings button)
+
+Settings (sheet)
+    ├── Appearance theme
+    ├── Active day cycle, planning window, rest days
+    ├── Planning reminder + notification touchpoints (+ optional Gemini AI)
+    ├── Lock Screen countdown (Live Activity)
+    ├── Backup & Restore
+    └── Danger Zone (reset all data)
 ```
 
 ---
@@ -215,35 +210,41 @@ User sees notification: "Set your goals for tomorrow"
 
 ---
 
-## 6. Data Flow: Export / Import
+## 6. Data Flow: Backup / Restore
 
 ```
-Export:
-User taps "Export Data"
-        │
-        ▼
-ExportDataUseCase
-        ├── Fetch all entities from SwiftData
-        ├── Serialize to ExportPayload struct
-        ├── JSONEncoder → Data
-        ├── Write to temp file: backup_2026-07-08.streak
-        └── Present UIActivityViewController (share sheet)
+Export (Settings → Backup & Restore → EXPORT):
+BackupService.makeBackup
+        ├── SQLite `VACUUM INTO` → consistent snapshot of the live SwiftData store
+        ├── + App Group and app UserDefaults (settings)
+        ├── Binary plist: { app, formatVersion, createdAt, store, appGroupDefaults, standardDefaults }
+        └── SwiftUI fileExporter → user saves Streak-Backup-YYYY-MM-DD.plist to Files
+              └── lastBackupDate recorded (drives the Today-screen backup reminder)
 
-Import:
-User taps "Import Data"
-        │
-        ▼
-UIDocumentPickerViewController (pick .streak file)
-        │
-        ▼
-ImportDataUseCase
-        ├── JSONDecoder → ExportPayload struct
-        ├── Validate version compatibility
-        ├── [Warn: this will replace all current data]
-        ├── User confirms
-        ├── Clear existing SwiftData store
-        └── Write all entities from payload to SwiftData
+Restore (Settings → Backup & Restore → RESTORE):
+fileImporter → BackupService.inspect (validates app + version + SQLite header)
+        ├── Confirm: "replaces ALL current data"
+        ├── BackupService.stageRestore → PendingRestore.plist next to the store
+        └── App closes; on next launch (before the ModelContainer opens):
+              BackupService.applyPendingRestoreIfNeeded
+                    ├── current store moved to PreRestore/ (safety copy)
+                    ├── snapshot written as default.store
+                    └── settings restored (lastActiveDateString cleared so no gap days are penalised)
 ```
+
+The store lives in the App Group container (`…/AppGroup/<id>/Library/Application Support/default.store`), so PendingRestore.plist and PreRestore/ live there too.
+
+---
+
+## 6b. Data Flow: Day Sweep
+
+`DaySweeper.run` runs on launch, on every return to foreground, and from the background lockout task:
+
+1. Apply task ticks queued by the interactive Tasks widget (`WidgetTaskToggleQueue`).
+2. Generate today's habit-commitment tasks.
+3. Finalize every day that ended since the last sweep: XP decay, automatic Streak Freeze.
+4. Re-resolve today (planning-deadline lockout, rest days).
+5. Sync goals → `syncWidgets()` → widgets, notifications (rebuilt from live data), Live Activity.
 
 ---
 
